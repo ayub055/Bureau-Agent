@@ -1,0 +1,2577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Bureau Analyser Report — {% if bureau_report %}{{ bureau_report.meta.customer_id|mask_id }}{% else %}Bureau Report{% endif %}</title>
+<script>{% autoescape false %}{% include 'chart.min.js' %}{% endautoescape %}</script>
+<style>
+  :root{
+    --bg:#f6f7fb; --panel:#ffffff; --ink:#0f172a; --muted:#64748b;
+    --indigo:#6366f1; --indigo-deep:#4338ca; --indigo-ink:#1e1b4b;
+    --green:#10b981; --amber:#f59e0b; --red:#ef4444; --grey:#cbd5e1;
+    --border:#e2e8f0; --chip:#eef2ff;
+    --shadow:0 1px 2px rgba(15,23,42,.04), 0 8px 24px rgba(15,23,42,.06);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter','Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.5}
+  .shell{max-width:1200px;margin:0 auto;padding:16px 20px 80px}
+
+  /* HEADER */
+  .topbar{
+    position:sticky;top:0;z-index:40;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);
+    border:1px solid var(--border);border-radius:14px;padding:12px 16px;margin-bottom:16px;
+    display:flex;align-items:center;gap:14px;box-shadow:var(--shadow);
+  }
+  .topbar .brand{display:flex;align-items:center;gap:10px;font-weight:700;color:var(--indigo-ink)}
+  .topbar .brand .logo{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--indigo),var(--indigo-deep));display:grid;place-items:center;color:#fff;font-weight:900;font-size:12px}
+  .topbar .cust{display:flex;gap:18px;margin-left:8px;font-size:13px;color:var(--muted)}
+  .topbar .cust b{color:var(--ink)}
+  .topbar .spacer{flex:1}
+  .verdict-pill{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;font-weight:700;font-size:13px}
+  .verdict-pill.amber{background:#fef3c7;color:#92400e;border:1px solid #fcd34d}
+  .verdict-pill.red{background:#fee2e2;color:#991b1b;border:1px solid #fca5a5}
+  .verdict-pill.green{background:#d1fae5;color:#065f46;border:1px solid #6ee7b7}
+  .verdict-pill.neutral{background:#f1f5f9;color:#475569;border:1px solid var(--grey)}
+  .verdict-pill::before{content:"●"}
+  .btn{padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:#fff;cursor:pointer;font-weight:600;font-size:12px;color:var(--ink)}
+  .btn:hover{border-color:var(--indigo);color:var(--indigo)}
+
+  /* SECTION NAV CHIPS */
+  .navchips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+  .navchips a{
+    padding:6px 12px;border-radius:999px;background:var(--chip);color:var(--indigo-deep);
+    font-size:12px;font-weight:600;text-decoration:none;border:1px solid transparent
+  }
+  .navchips a:hover{border-color:var(--indigo)}
+  .navchips a .badge{display:inline-block;background:var(--red);color:#fff;font-size:10px;padding:1px 6px;border-radius:999px;margin-left:4px}
+  .disclaimer{font-size:11px;color:var(--muted);font-style:italic;margin-bottom:16px}
+
+  /* KPI STRIP */
+  .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px}
+  .kpi{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--indigo)}
+  .kpi.green::before{background:var(--green)}
+  .kpi.amber::before{background:var(--amber)}
+  .kpi.red::before{background:var(--red)}
+  .kpi .label{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);font-weight:600}
+  .kpi .value{font-size:20px;font-weight:800;color:var(--indigo-ink);margin-top:4px;line-height:1.15}
+  .kpi .sub{font-size:11px;color:var(--muted);margin-top:2px}
+  .kpi .spark{height:28px;margin-top:6px}
+  .stress-gauge{display:flex;align-items:center;gap:10px;margin-top:4px}
+  .stress-gauge .bar{flex:1;height:8px;background:#e2e8f0;border-radius:999px;overflow:hidden}
+  .stress-gauge .fill{height:100%;background:linear-gradient(90deg,var(--green),var(--amber),var(--red))}
+
+  /* PANEL BASE */
+  .panel{position:relative;background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:18px 20px;margin-bottom:16px;box-shadow:var(--shadow)}
+  .panel h2{font-size:14px;text-transform:uppercase;letter-spacing:.6px;color:var(--indigo-deep);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .panel h2::before{content:"";width:4px;height:16px;background:var(--indigo);border-radius:2px}
+  .panel h2 .count{margin-left:auto;font-size:11px;color:var(--muted);font-weight:500;letter-spacing:0;text-transform:none}
+  .panel h3{font-size:12px;text-transform:uppercase;color:var(--muted);margin:10px 0 8px;letter-spacing:.4px}
+  .muted{color:var(--muted);font-size:12.5px;font-style:italic}
+
+  /* CHECKLIST */
+  .checks{display:grid;grid-template-columns:repeat(3,1fr);gap:10px 10px}
+  .check-col h3{font-size:12px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;letter-spacing:.4px}
+  .check{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;background:#f8fafc;border:1px solid var(--border);font-size:13px}
+  .check .ico{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:800;flex-shrink:0}
+  .check .lbl{flex:1;font-weight:500}
+  .check.red{background:#fef2f2;border-color:#fecaca}
+  .check.red .ico{background:var(--red);color:#fff}
+  .check.amber{background:#fffbeb;border-color:#fde68a}
+  .check.amber .ico{background:var(--amber);color:#fff}
+  .check.green{background:#f0fdf4;border-color:#bbf7d0}
+  .check.green .ico{background:var(--green);color:#fff}
+  .check.neutral .ico{background:#94a3b8;color:#fff}
+  .check .det{display:block;font-size:11px;color:var(--muted);margin-top:2px;font-weight:400}
+  .checklist-sort{font-size:11px;padding:4px 8px;border:1px solid var(--border);border-radius:8px;background:#fff;color:var(--muted);cursor:pointer;outline:none;margin-left:auto}
+  .checklist-sort:hover{border-color:var(--indigo)}
+
+  /* SUMMARY */
+  .summary{background:linear-gradient(135deg,#eef2ff 0%,#fdf4ff 100%);border-radius:12px;padding:14px 16px;font-size:13.5px;line-height:1.65;border:1px solid #e0e7ff;white-space:pre-line}
+  .summary .more-toggle{color:var(--indigo);cursor:pointer;font-weight:600;font-size:12px}
+  .summary.clamped .more{display:none}
+  .summary:not(.clamped) .teaser-dots{display:none}
+
+  /* TABS */
+  .tabs{display:inline-flex;gap:0;background:#f1f5f9;padding:3px;border-radius:10px;margin-bottom:14px}
+  .tabs button{padding:6px 14px;border:none;background:transparent;font-weight:600;font-size:12.5px;color:var(--muted);border-radius:8px;cursor:pointer}
+  .tabs button.active{background:#fff;color:var(--indigo-deep);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  .tab-body{display:none}
+  .tab-body.active{display:block}
+
+  /* TABLE */
+  table.data{width:100%;border-collapse:collapse;font-size:12.5px}
+  table.data th{text-align:left;padding:10px 12px;background:#f8fafc;color:var(--muted);font-weight:600;text-transform:uppercase;font-size:10.5px;letter-spacing:.5px;border-bottom:1px solid var(--border)}
+  table.data td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+  table.data tr:hover td{background:#fafbff}
+  table.data td.num{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+  table.data td.ctr{text-align:center}
+  table.data td.dr{color:var(--red)}
+  table.data td.cr{color:var(--green)}
+  table.data tr.total td{font-weight:800;background:#f8fafc;color:var(--indigo-ink)}
+  .tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:10.5px;font-weight:600;letter-spacing:.2px}
+  .tag.cat{background:var(--chip);color:var(--indigo-deep)}
+  .tag.green{background:#d1fae5;color:#065f46}
+  .tag.amber{background:#fef3c7;color:#92400e}
+  .tag.red{background:#fee2e2;color:#991b1b}
+  .tag.neutral{background:#f1f5f9;color:#475569}
+
+  /* CARDS (profile / persona / findings) */
+  .loan-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+  .loan-card{border:1px solid var(--border);border-radius:12px;padding:14px;background:#fafbff;position:relative}
+  .loan-card .head{display:flex;justify-content:space-between;margin-bottom:10px}
+  .loan-card .head b{font-size:13.5px;color:var(--indigo-ink)}
+  .loan-card .row{display:flex;justify-content:space-between;font-size:12px;padding:4px 0;color:var(--muted);gap:12px}
+  .loan-card .row b{color:var(--ink);font-weight:600;text-align:right}
+  .rank{width:24px;height:24px;border-radius:6px;background:var(--chip);color:var(--indigo-deep);display:grid;place-items:center;font-weight:700;font-size:11px;flex-shrink:0}
+  .persona-list{list-style:none}
+  .persona-list li{display:grid;grid-template-columns:30px 1fr;gap:12px;align-items:start;padding:10px 0;border-bottom:1px dashed var(--border)}
+  .persona-list li:last-child{border-bottom:none}
+  .persona-list .name{font-weight:600}
+  .persona-list .meta{font-size:11px;color:var(--muted)}
+
+  /* SCORECARD SIGNALS */
+  .sc-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+  .sc-col{padding:12px 14px;border-radius:10px;font-size:12px;line-height:1.7;border:1px solid var(--border)}
+  .sc-col-head{font-weight:800;font-size:11px;margin-bottom:8px;text-transform:uppercase;letter-spacing:.7px}
+  .sc-col-green{background:#f0fdf4;border-color:#bbf7d0}
+  .sc-col-green .sc-col-head{color:#065f46}
+  .sc-col-red{background:#fef2f2;border-color:#fecaca}
+  .sc-col-red .sc-col-head{color:#991b1b}
+  .sc-col-item{display:flex;align-items:flex-start;gap:6px;padding:1px 0;font-size:11.5px}
+  .sc-col-bullet{flex-shrink:0;margin-top:2px;font-size:11px}
+  .sc-signals-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(125px,1fr));gap:8px}
+  .sc-signal{position:relative;padding:10px 8px 8px;border-radius:10px;text-align:center;border:1px solid var(--border);border-bottom-width:3px;cursor:default;background:#f8fafc}
+  .sc-signal.sc-rag-green{background:#d1fae5;border-color:#6ee7b7;border-bottom-color:var(--green);color:#065f46}
+  .sc-signal.sc-rag-amber{background:#fef3c7;border-color:#fcd34d;border-bottom-color:var(--amber);color:#92400e}
+  .sc-signal.sc-rag-red{background:#fee2e2;border-color:#fca5a5;border-bottom-color:var(--red);color:#991b1b}
+  .sc-signal.sc-rag-neutral{background:#f1f5f9;border-color:var(--grey);border-bottom-color:#94a3b8;color:#475569}
+  .sc-sig-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;opacity:.8}
+  .sc-sig-value{font-size:14px;font-weight:800;margin:5px 0 3px}
+  .sc-sig-note{font-size:10px;opacity:.7}
+  .sc-tooltip{
+    display:none;position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);
+    background:#1e293b;color:#e2e8f0;font-size:11px;font-weight:400;text-align:left;
+    padding:8px 10px;border-radius:8px;width:210px;white-space:pre-line;z-index:200;
+    line-height:1.5;box-shadow:0 4px 14px rgba(15,23,42,.35);pointer-events:none;
+  }
+  .sc-tooltip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:#1e293b}
+  .sc-signal:hover .sc-tooltip{display:block}
+  .sc-narrative{border-top:1px solid var(--border);padding-top:14px;margin-top:14px;font-size:13px;color:#374151;line-height:1.7;white-space:pre-line}
+
+  /* PORTFOLIO TILES */
+  .tile-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(225px,1fr));gap:10px}
+  .tile{padding:12px 14px;background:#fafbff;border:1px solid var(--border);border-radius:10px}
+  .tile label{display:block;font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;font-weight:600;margin-bottom:4px}
+  .tile .value{font-size:15.5px;font-weight:700;color:var(--indigo-ink)}
+  .tile .value small{font-size:11.5px;color:var(--muted);font-weight:400}
+  .tile .value.risk{color:var(--red)}
+  .tile .value.warning{color:var(--amber)}
+  .tile .value.safe{color:var(--green)}
+  .onus-block{margin-top:12px;padding:12px 14px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px}
+  .onus-block .blk-title{font-weight:700;font-size:12px;color:#065f46;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px}
+
+  /* KEY FINDINGS — shared bits across all views */
+  .fmeta{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+  .ftext{font-weight:700;color:var(--ink);font-size:13.5px;line-height:1.45;margin-bottom:6px}
+  .finf{color:#475569;font-size:12px;font-style:italic;line-height:1.5}
+  /* severity left-accent (shared by card / reader pane / timeline / tile) */
+  .f-red{border-left-color:var(--red)} .f-amber{border-left-color:var(--amber)} .f-yellow{border-left-color:#eab308}
+  .f-green{border-left-color:var(--green)} .f-grey{border-left-color:#94a3b8}
+  /* severity icon + label */
+  .sev-ico{width:18px;height:18px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0;line-height:1}
+  .s-red{background:var(--red)} .s-amber{background:var(--amber)} .s-yellow{background:#eab308}
+  .s-green{background:var(--green)} .s-grey{background:#94a3b8}
+  .sev-label{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px}
+  .sev-label.s-red{background:none;color:#991b1b} .sev-label.s-amber{background:none;color:#92400e} .sev-label.s-yellow{background:none;color:#713f12}
+  .sev-label.s-green{background:none;color:#065f46} .sev-label.s-grey{background:none;color:#475569}
+  .fcat{margin-left:auto;font-size:10px;font-weight:700;color:var(--indigo-deep);background:var(--chip);padding:3px 9px;border-radius:999px;text-transform:uppercase;letter-spacing:.4px;white-space:nowrap}
+
+  /* VIEW TOGGLE */
+  .fview-toggle{display:inline-flex;gap:2px;background:#f1f5f9;border:1px solid var(--border);border-radius:10px;padding:3px;margin-bottom:14px}
+  .fview-toggle button{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border:none;background:transparent;border-radius:7px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer}
+  .fview-toggle button:hover{color:var(--indigo-deep)}
+  .fview-toggle button.active{background:#fff;color:var(--indigo-deep);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  .fview{display:none}
+  .fview.active{display:block}
+
+  /* CAROUSEL view */
+  .carousel{position:relative;max-width:680px;margin:0 auto}
+  .carousel-viewport{overflow:hidden;border-radius:12px}
+  .carousel-track{display:flex;transition:transform .35s cubic-bezier(.4,0,.2,1)}
+  .carousel-slide{flex:0 0 100%;min-width:100%;padding:1px}
+  .fcard{border:1px solid var(--border);border-left-width:5px;border-radius:12px;padding:14px 16px;background:linear-gradient(135deg,#ffffff 0%,#fafbff 100%);min-height:104px;display:flex;flex-direction:column}
+  .ffilter{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:12px}
+  .fchip{display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:999px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--muted);transition:all .15s}
+  .fchip .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+  .fchip .cnt{font-weight:800;opacity:.85}
+  .fchip:hover{border-color:var(--indigo);color:var(--indigo-deep)}
+  .carousel-nav{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:12px}
+  .carousel-arrow{width:30px;height:30px;border-radius:50%;border:1px solid var(--border);background:#fff;cursor:pointer;display:grid;place-items:center;font-size:15px;color:var(--ink);flex-shrink:0;box-shadow:var(--shadow);transition:all .15s}
+  .carousel-arrow:hover:not(:disabled){border-color:var(--indigo);color:var(--indigo);transform:translateY(-1px)}
+  .carousel-arrow:disabled{opacity:.35;cursor:not-allowed;box-shadow:none}
+  .carousel-dots{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center}
+  .carousel-dots button{width:7px;height:7px;border-radius:50%;border:none;background:var(--grey);cursor:pointer;padding:0;transition:all .25s}
+  .carousel-dots button:hover{background:var(--indigo-deep)}
+  .carousel-dots button.active{background:var(--indigo);width:20px;border-radius:999px}
+
+  /* READER view (master–detail) */
+  .reader{display:grid;grid-template-columns:260px minmax(0,1fr);gap:16px;align-items:start}
+  @media(max-width:720px){.reader{grid-template-columns:1fr}}
+  .reader-list{display:flex;flex-direction:column;gap:3px;max-height:360px;overflow-y:auto;border:1px solid var(--border);border-radius:10px;padding:6px;background:#fafbff}
+  .reader-item{display:flex;align-items:center;gap:9px;text-align:left;padding:9px 10px;border:none;border-left:3px solid transparent;border-radius:7px;background:transparent;cursor:pointer;font-size:12.5px;color:var(--ink);width:100%;font-family:inherit}
+  .reader-item:hover{background:#eef2ff}
+  .reader-item.active{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.08);border-left-color:var(--indigo);font-weight:600}
+  .reader-item .ri-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+  .reader-item .ri-text{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .reader-detail{min-height:170px}
+  .reader-pane{display:none;border:1px solid var(--border);border-left-width:5px;border-radius:12px;padding:18px 20px;background:linear-gradient(135deg,#fff 0%,#fafbff 100%)}
+  .reader-pane.active{display:block}
+  .reader-pane .ftext{font-size:15px;margin-bottom:9px}
+  .reader-pane .finf{font-size:13px;line-height:1.6}
+
+  /* TIMELINE view (vertical stepper) */
+  .ftimeline{padding-left:2px}
+  .ftl-item{position:relative;display:grid;grid-template-columns:26px minmax(0,1fr);gap:14px;padding-bottom:14px}
+  .ftl-item:last-child{padding-bottom:0}
+  .ftl-item::before{content:"";position:absolute;left:12px;top:28px;bottom:-2px;width:2px;background:var(--border)}
+  .ftl-item:last-child::before{display:none}
+  .ftl-node{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:800;font-size:13px;z-index:1;line-height:1}
+  .ftl-card{border:1px solid var(--border);border-left-width:4px;border-radius:10px;padding:11px 14px;background:#fafbff}
+
+  /* TILES view (expandable grid) */
+  .ftiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(245px,1fr));gap:10px}
+  .ftile{text-align:left;border:1px solid var(--border);border-left-width:4px;border-radius:10px;padding:12px 14px;background:#fafbff;cursor:pointer;font:inherit;color:inherit;transition:box-shadow .15s,transform .15s}
+  .ftile:hover{box-shadow:var(--shadow);transform:translateY(-1px)}
+  .ftile .finf{display:none;margin-top:7px}
+  .ftile.open .finf{display:block}
+  .ftile::after{content:"▸ inference";display:block;margin-top:7px;font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+  .ftile.open::after{content:"▾ hide inference"}
+
+  /* BEHAVIORAL FEATURES */
+  /* status accent colors */
+  .bf-acc-risk{--bf-acc:#ef4444} .bf-acc-warn{--bf-acc:#f59e0b}
+  .bf-acc-healthy{--bf-acc:#10b981} .bf-acc-nodata{--bf-acc:#cbd5e1}
+
+  /* SUMMARY — group accordion cards */
+  .bf-cards{display:flex;flex-direction:column;gap:10px}
+  .bf-card{border:1px solid var(--border);border-left:4px solid var(--bf-acc,#cbd5e1);border-radius:11px;background:#fff;overflow:hidden;transition:box-shadow .15s}
+  .bf-card.open{box-shadow:0 4px 14px rgba(15,23,42,.06)}
+  .bf-card-head{display:grid;grid-template-columns:1fr auto;align-items:center;gap:14px;width:100%;border:none;background:transparent;cursor:pointer;padding:11px 16px;text-align:left;font:inherit}
+  .bf-card-title{display:flex;align-items:baseline;gap:8px;min-width:0}
+  .bf-chev{font-size:11px;color:var(--muted);transition:transform .18s;flex:none;align-self:center}
+  .bf-card.open .bf-chev{transform:rotate(90deg)}
+  .bf-card-name{font-size:14px;font-weight:700;color:var(--indigo-ink);white-space:nowrap;flex:none}
+  .bf-take{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  .bf-take::before{content:"·";margin-right:8px;color:#cbd5e1;font-weight:700}
+  .bf-card-meter{display:flex;align-items:center;gap:10px;flex:none}
+  .bf-dots{display:inline-flex;gap:4px}
+  .bf-dots .dot{width:8px;height:8px;border-radius:50%;background:#e2e8f0}
+  .bf-dots .dot.on{background:var(--bf-acc,#10b981)}
+  .bf-card-count{font-size:11px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums;min-width:54px;text-align:right}
+  .bf-card-body{display:none;padding:2px 16px 14px 34px;border-top:1px solid #eef2f7}
+  .bf-card.open .bf-card-body{display:block}
+
+  /* METRIC ROW — refined threshold bars (shared by Summary + Bars view) */
+  .bf-group-head{font-size:11px;font-weight:700;color:var(--indigo-deep);text-transform:uppercase;letter-spacing:.5px;margin:16px 0 8px;padding:4px 11px;background:var(--chip);border-radius:6px;display:inline-block}
+  .bf-list{margin-bottom:2px}
+  .bf-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(96px,150px) 58px;gap:14px;align-items:center;padding:6px 0;border-top:1px solid #eef2f7}
+  .bf-row:first-child{border-top:none}
+  .bf-label{font-size:12.5px;color:var(--ink);line-height:1.3;min-width:0;overflow:hidden;text-overflow:ellipsis}
+  .bf-hint{font-size:10.5px;color:var(--muted);white-space:nowrap}
+  .bf-val{font-size:13.5px;font-weight:800;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .bf-val.safe{color:var(--green)} .bf-val.risk{color:var(--red)} .bf-val.warn{color:var(--amber)} .bf-val.neutral{color:#94a3b8}
+  .bf-track{min-width:0}
+  .bf-bar{position:relative;height:9px;border-radius:5px;overflow:hidden;display:flex;background:#f1f5f9}
+  .bf-seg{height:100%}
+  .bf-seg.green{background:#a7f3c8} .bf-seg.amber{background:#fcd34d} .bf-seg.red{background:#fca5a5}
+  .bf-marker{position:absolute;top:-4px;bottom:-4px;width:2.5px;background:#1e293b;border-radius:2px;transform:translateX(-50%);box-shadow:0 0 0 1.5px #fff}
+  .bf-marker::after{content:"";position:absolute;top:-5px;left:50%;transform:translateX(-50%);border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid #1e293b}
+  .bf-strip{height:17px;width:100%;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px}
+  .bf-strip.safe{background:#d1fae5;color:#065f46} .bf-strip.risk{background:#fee2e2;color:#991b1b}
+  .bf-strip.warn{background:#fef3c7;color:#92400e} .bf-strip.neutral{background:#f1f5f9;color:#64748b}
+  @media(max-width:640px){.bf-row{grid-template-columns:minmax(0,1fr) 52px}.bf-track{grid-column:1/-1;order:3}}
+
+  /* TABLE — flat sortable */
+  .bf-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;vertical-align:middle}
+  .bf-dot.safe{background:var(--green)} .bf-dot.risk{background:var(--red)} .bf-dot.warn{background:var(--amber)} .bf-dot.neutral{background:#94a3b8}
+  .bf-stext{font-size:10px;font-weight:800;letter-spacing:.4px}
+  .bf-stext.safe{color:#065f46} .bf-stext.risk{color:#991b1b} .bf-stext.warn{color:#92400e} .bf-stext.neutral{color:#64748b}
+  #bfTable td .hw{font-size:11.5px;color:var(--muted)}
+  #bfTable th.bf-sort{cursor:pointer;user-select:none}
+  #bfTable th.bf-sort:hover{color:var(--indigo)}
+  #bfTable .sort-ind{font-size:9px;color:var(--indigo)}
+  @media(max-width:640px){.bf-card-name{white-space:normal}}
+
+  /* CHARTS */
+  .chart-wrap{position:relative;height:280px}
+  .chart-wrap.sm{height:230px}
+  .chart-wrap.ts{height:340px}
+
+  /* PORTFOLIO VIZ — at-a-glance header */
+  .viz-head{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;margin-bottom:16px}
+  .viz-takeaway{font-size:13.5px;font-weight:600;color:var(--indigo-ink)}
+  .viz-chips{display:inline-flex;flex-wrap:wrap;gap:8px}
+  .viz-chip{display:inline-flex;flex-direction:column;background:#f8fafc;border:1px solid var(--border);border-radius:9px;padding:5px 11px;line-height:1.25}
+  .viz-chip .k{font-size:9.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);font-weight:700}
+  .viz-chip .v{font-size:13.5px;font-weight:800;color:var(--indigo-ink)}
+
+  /* PORTFOLIO VIZ — explore toolbar (chart pills + metric chips + more) */
+  .viz-toolbar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin-bottom:14px}
+  .viz-toolbar .grp-label{text-transform:uppercase;letter-spacing:.04em;font-weight:700;color:#475569;font-size:10.5px}
+  .pillgrp{display:inline-flex;flex-wrap:wrap;background:#f1f5f9;border:1px solid var(--border);border-radius:999px;padding:2px;gap:2px}
+  .pillgrp .pill{padding:5px 12px;border:none;border-radius:999px;cursor:pointer;font-weight:600;color:#475569;font-size:11.5px;letter-spacing:.02em;background:transparent}
+  .pillgrp .pill:hover{color:var(--indigo-deep)}
+  .pillgrp .pill.active{background:var(--indigo);color:#fff;box-shadow:0 1px 3px rgba(99,102,241,.35)}
+  .chipgrp{display:inline-flex;flex-wrap:wrap;gap:6px;align-items:center}
+  .viz-mchip{padding:5px 11px;border:1px solid var(--border);border-radius:999px;background:#fff;color:#475569;font-size:11.5px;font-weight:600;cursor:pointer;display:inline-flex;gap:5px;align-items:center}
+  .viz-mchip .u{font-size:9px;color:#94a3b8;text-transform:uppercase}
+  .viz-mchip:hover{border-color:var(--indigo)}
+  .viz-mchip.active{background:var(--indigo);border-color:var(--indigo);color:#fff}
+  .viz-mchip.active .u{color:#e0e7ff}
+  .viz-moremenu{position:relative;display:inline-block}
+  .viz-more{border:1px solid var(--border);background:#fff;color:var(--indigo);font-size:11.5px;font-weight:700;cursor:pointer;padding:5px 11px;border-radius:999px}
+  .viz-more:hover{border-color:var(--indigo)}
+  .viz-morelist{position:absolute;top:calc(100% + 5px);left:0;z-index:30;min-width:210px;background:#fff;border:1px solid var(--border);border-radius:10px;box-shadow:0 10px 28px rgba(15,23,42,.14);padding:5px;max-height:260px;overflow:auto}
+  .viz-morelist[hidden]{display:none}
+  .viz-mitem{display:flex;align-items:center;gap:9px;padding:7px 10px;font-size:12px;color:var(--ink);cursor:pointer;border-radius:7px}
+  .viz-mitem:hover{background:#eef2ff}
+  .viz-mitem .ck{width:15px;height:15px;border:1.5px solid #cbd5e1;border-radius:4px;flex:none;display:grid;place-items:center;font-size:10px;color:#fff;line-height:1}
+  .viz-mitem.active .ck{background:var(--indigo);border-color:var(--indigo)}
+  .viz-mitem .u{margin-left:auto;font-size:9px;color:#94a3b8;text-transform:uppercase}
+  .viz-multi{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;color:#475569;cursor:pointer;margin-left:auto}
+  .viz-multi input{accent-color:var(--indigo);cursor:pointer;width:14px;height:14px}
+  .viz-charts{display:grid;grid-template-columns:1.3fr 1fr;gap:18px;align-items:start}
+  @media(max-width:760px){.viz-charts{grid-template-columns:1fr}}
+
+  /* PORTFOLIO VIZ — quick-view split bars (centered bar + one-line legend) */
+  .split-list{display:flex;flex-direction:column;gap:10px}
+  .split-row{display:grid;grid-template-columns:150px minmax(0,1fr) auto;gap:8px 16px;align-items:center}
+  .split-name{font-size:12px;font-weight:700;color:var(--indigo-ink)}
+  .split-barwrap{display:flex;justify-content:center}
+  .split-bar{display:flex;height:10px;border-radius:5px;overflow:hidden;background:#f1f5f9;width:100%;max-width:260px}
+  .split-seg{height:100%}
+  .split-legend{display:flex;align-items:center;gap:12px;white-space:nowrap;justify-self:end}
+  .split-legend .sv{font-size:11px;color:var(--muted);display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+  .split-legend .dot{width:8px;height:8px;border-radius:50%;flex:none}
+  .split-legend b{color:var(--ink);font-weight:700}
+  .split-empty{font-size:11.5px;color:#94a3b8}
+  .sv-more{position:relative;display:inline-block}
+  .sv-more-btn{border:1px solid var(--border);background:#fff;color:var(--indigo);font-size:10.5px;font-weight:700;border-radius:999px;padding:3px 9px;cursor:pointer;white-space:nowrap}
+  .sv-more-btn:hover{border-color:var(--indigo)}
+  .sv-pop{position:absolute;right:0;top:calc(100% + 5px);z-index:30;background:#fff;border:1px solid var(--border);border-radius:10px;box-shadow:0 10px 28px rgba(15,23,42,.14);padding:6px;min-width:190px;max-height:240px;overflow:auto;display:flex;flex-direction:column;gap:1px}
+  .sv-pop[hidden]{display:none}
+  .sv-pop .svp{display:flex;align-items:center;gap:8px;padding:5px 9px;font-size:11.5px;color:var(--muted);white-space:nowrap;border-radius:6px}
+  .sv-pop .svp:hover{background:#f8fafc}
+  .sv-pop .dot{width:9px;height:9px;border-radius:50%;flex:none}
+  .sv-pop b{color:var(--ink);font-weight:700}
+  @media(max-width:680px){.split-row{grid-template-columns:1fr}.split-barwrap{justify-content:flex-start}.split-legend{justify-self:start}}
+
+  /* PORTFOLIO VIZ — exposure: total summary (left) + per-product (right) */
+  .spark{display:block;max-width:100%}
+  .expo-wrap{display:flex;gap:24px;align-items:stretch;flex-wrap:wrap}
+  .expo-left{flex:0 0 280px;max-width:100%;display:flex;flex-direction:column;justify-content:center}
+  .expo-stats{display:flex;gap:22px;margin-top:12px;flex-wrap:wrap}
+  .es{display:flex;flex-direction:column;line-height:1.3}
+  .es .k{font-size:9.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);font-weight:700}
+  .es .v{font-size:17px;font-weight:800;color:var(--indigo-ink)}
+  .es .sub{font-size:10.5px;color:var(--muted)}
+  .expo-right{flex:1 1 340px;min-width:280px}
+  .expo-right-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--indigo-deep);margin-bottom:6px}
+  .chart-wrap.expo-chart{height:210px}
+
+  /* HEATMAP */
+  .heat-wrap{display:flex;flex-direction:column;gap:6px;overflow-x:auto}
+  .heat-row{display:flex;align-items:center;gap:8px}
+  .heat-row .lbl{font-size:10.5px;color:var(--muted);width:140px;flex-shrink:0;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .heat-row .cells{display:grid;grid-template-columns:repeat(24,18px);gap:3px}
+  .heat-row .cells div{background:#e2e8f0;border-radius:3px;height:14px}
+  .heat-row .cells .l1{background:#c7d2fe}.heat-row .cells .l2{background:#818cf8}.heat-row .cells .l3{background:#6366f1}.heat-row .cells .l4{background:#4338ca}
+  .heat-axis{display:grid;grid-template-columns:repeat(24,18px);gap:3px;margin-left:148px;font-size:8.5px;color:var(--muted)}
+  .heat-axis div{text-align:center;white-space:nowrap}
+  .heat-legend{font-size:11px;color:var(--muted);margin-top:8px}
+  .hist-events{margin-top:12px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:11.5px;color:var(--muted)}
+
+  /* PER-ACCOUNT DPD SWIMLANES */
+  .dpd-acct{overflow-x:auto}
+  .dpd-acct-bar{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+  .dpd-win{margin-left:auto;display:inline-flex;background:#f1f5f9;border:1px solid var(--border);border-radius:999px;padding:2px}
+  .dpd-win-btn{border:none;background:transparent;border-radius:999px;padding:3px 11px;font-size:11px;font-weight:700;color:#475569;cursor:pointer}
+  .dpd-win-btn.active{background:var(--indigo);color:#fff}
+  .dpd-lane{display:grid;grid-template-columns:150px 1fr;gap:10px;align-items:center;padding:2px 0}
+  .dpd-lane .dol{display:flex;flex-direction:column;line-height:1.2;min-width:0}
+  .dpd-nm{font-size:11.5px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .dpd-sb{font-size:9.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .dob{display:flex;gap:2px}
+  .dpd-c{width:12px;height:12px;border-radius:2px;flex:none;background:#f1f5f9}
+  .dpd-c.s-ok{background:#bbf7d0}
+  .dpd-c.s-none{background:#f1f5f9}
+  .dpd-c.s-gap{background:repeating-linear-gradient(45deg,#e2e8f0,#e2e8f0 2px,#fff 2px,#fff 4px)}
+  .dpd-c.s-dpd.lvl1{background:#fde68a} .dpd-c.s-dpd.lvl2{background:#fdba74}
+  .dpd-c.s-dpd.lvl3{background:#f87171} .dpd-c.s-dpd.lvl4{background:#dc2626}
+  .dpd-ov{margin-bottom:6px;padding-bottom:8px;border-bottom:1px dashed var(--border)}
+  .dpd-ov .dpd-nm{color:var(--indigo-deep);font-weight:700}
+  .dpd-old{display:none}
+  .dpd-acct.show-36 .dpd-old{display:inline-block}
+  .dpd-allclean{font-size:12.5px;color:#065f46;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:8px;padding:8px 12px;margin:6px 0 10px}
+  .dpd-clean{margin-top:8px;border-top:1px solid #eef2f7;padding-top:6px}
+  .dpd-clean-toggle{border:none;background:transparent;color:var(--indigo);font-size:12px;font-weight:700;cursor:pointer;padding:6px 0}
+  .dpd-clean-list{margin-top:6px}
+  .dpd-clean-list[hidden]{display:none}
+  .dpd-legend2{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;margin-top:12px;font-size:10.5px;color:var(--muted)}
+  .dpd-legend2 .dl{display:inline-flex;align-items:center;gap:5px}
+  .dpd-legend2 .dpd-c{width:11px;height:11px}
+  .dpd-cap{margin-left:auto;font-style:italic}
+
+  /* FOOTER */
+  .foot{text-align:center;color:var(--muted);font-size:11px;margin-top:20px}
+  .absence-note{background:#fee2e2;border:1px solid #fca5a5;border-left:4px solid var(--red);padding:14px 16px;border-radius:10px;color:#991b1b;font-style:italic}
+
+  /* ANALYST NOTEPAD */
+  .notepad{
+    position:fixed;top:96px;right:20px;width:300px;max-height:calc(100vh - 140px);
+    background:#fff;border:1px solid var(--border);border-radius:12px;
+    box-shadow:var(--shadow);z-index:45;display:flex;flex-direction:column;
+    transition:transform .25s ease, opacity .2s ease;overflow:hidden;
+  }
+  .notepad.hidden{transform:translateX(calc(100% + 28px));opacity:0;pointer-events:none}
+  .notepad .head{
+    display:flex;align-items:center;gap:8px;padding:10px 12px;
+    background:linear-gradient(135deg,var(--indigo) 0%,var(--indigo-deep) 100%);
+    color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
+    cursor:grab;
+  }
+  .notepad .head .icon{font-size:13px}
+  .notepad .head .lbl{flex:1}
+  .notepad .head .ctx{font-size:10px;font-weight:600;opacity:.85;text-transform:none;letter-spacing:0;background:rgba(255,255,255,.18);padding:2px 7px;border-radius:999px}
+  .notepad .head .x{background:transparent;border:none;color:#fff;cursor:pointer;font-size:14px;padding:0 4px;opacity:.85;line-height:1}
+  .notepad .head .x:hover{opacity:1}
+  .notepad textarea{
+    flex:1;border:none;outline:none;resize:none;padding:10px 12px;
+    font-family:inherit;font-size:12.5px;line-height:1.55;color:var(--ink);
+    min-height:200px;background:#fff;
+  }
+  .notepad textarea::placeholder{color:var(--muted);opacity:.7}
+  .notepad .foot{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:6px 12px;border-top:1px solid var(--border);background:#f8fafc;
+    font-size:10.5px;color:var(--muted);margin-top:0;text-align:left;
+  }
+  .notepad .foot .ts{font-style:italic}
+  .notepad .foot .insert{background:transparent;border:none;color:var(--indigo);cursor:pointer;font-size:11px;font-weight:600}
+  .notepad .foot .insert:hover{text-decoration:underline}
+  .notepad-tab{
+    position:fixed;top:96px;right:20px;z-index:44;
+    background:linear-gradient(135deg,var(--indigo) 0%,var(--indigo-deep) 100%);
+    color:#fff;border:none;cursor:pointer;
+    padding:8px 14px;border-radius:999px;
+    font-size:12px;font-weight:700;letter-spacing:.3px;
+    box-shadow:0 4px 14px rgba(99,102,241,.30);
+    display:none;align-items:center;gap:8px;
+  }
+  .notepad-tab.visible{display:inline-flex}
+  .notepad-tab:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(99,102,241,.40)}
+  .notepad-tab .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#fbbf24}
+  @keyframes notepadPulse {
+    0%   { box-shadow:0 0 0 0 rgba(99,102,241,.55), var(--shadow); }
+    70%  { box-shadow:0 0 0 14px rgba(99,102,241,0), var(--shadow); }
+    100% { box-shadow:0 0 0 0 rgba(99,102,241,0),   var(--shadow); }
+  }
+  .notepad.intro-pulse{animation:notepadPulse 1.6s ease-out 3}
+  .notepad-tab.intro-pulse{animation:notepadPulse 1.6s ease-out 3}
+  .notepad-hint{
+    position:fixed;top:150px;right:340px;z-index:46;max-width:240px;
+    background:#1e293b;color:#fff;font-size:12px;line-height:1.45;
+    padding:10px 12px 10px 14px;border-radius:10px;
+    box-shadow:0 8px 20px rgba(15,23,42,.30);
+    display:none;
+  }
+  .notepad-hint.visible{display:block}
+  .notepad-hint::after{
+    content:"";position:absolute;top:18px;right:-6px;width:12px;height:12px;
+    background:#1e293b;transform:rotate(45deg);
+  }
+  .notepad-hint .x{position:absolute;top:4px;right:6px;background:transparent;border:none;color:#cbd5e1;cursor:pointer;font-size:13px}
+
+  /* Menus (topbar) */
+  .notes-menu{position:relative;display:inline-block}
+  .notes-menu .menu{
+    position:absolute;top:calc(100% + 6px);right:0;min-width:180px;
+    background:#fff;border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow);
+    padding:4px;display:none;z-index:60;
+  }
+  .notes-menu.open .menu{display:block}
+  .notes-menu .menu button{
+    display:block;width:100%;text-align:left;padding:8px 10px;border:none;background:transparent;
+    border-radius:6px;cursor:pointer;font-size:12.5px;color:var(--ink);font-weight:500;
+  }
+  .notes-menu .menu button:hover{background:var(--chip);color:var(--indigo-deep)}
+  .notes-menu .menu .sep{height:1px;background:var(--border);margin:4px 6px}
+  .notes-menu .menu .danger{color:var(--red)}
+  .notes-menu .btn:disabled{opacity:.5;cursor:not-allowed}
+  .notes-menu .btn .badge{display:inline-block;background:var(--amber);color:#fff;font-size:10px;padding:0 5px;border-radius:999px;margin-left:4px;font-weight:700}
+
+  /* BACK-TO-TOP */
+  .back-to-top{
+    position:fixed;bottom:24px;right:24px;width:42px;height:42px;border-radius:50%;
+    background:var(--indigo);color:#fff;border:none;cursor:pointer;font-size:18px;font-weight:700;
+    box-shadow:0 4px 14px rgba(99,102,241,.35);opacity:0;pointer-events:none;
+    transition:opacity .2s, transform .2s;z-index:50;display:grid;place-items:center;
+  }
+  .back-to-top.visible{opacity:1;pointer-events:auto}
+  .back-to-top:hover{background:var(--indigo-deep);transform:translateY(-2px)}
+
+  /* PRINT */
+  @media print {
+    @page { size: A4; margin: 12mm; }
+    body { background:#fff; font-size:12px; }
+    .shell { max-width:none; padding:0; }
+    .topbar { position:static; box-shadow:none; backdrop-filter:none; background:#fff; }
+    .topbar .btn, .topbar .notes-menu, .navchips, .tabs, .checklist-sort,
+    .viz-toolbar, .back-to-top, .notepad, .notepad-tab, .more-toggle, .teaser-dots { display:none !important; }
+    .summary.clamped .more { display:block !important; }
+    .summary .teaser-dots { display:none !important; }
+    .panel { box-shadow:none; border:1px solid #d1d5db; break-inside:avoid; page-break-inside:avoid; margin-bottom:10px; padding:12px 14px; }
+    .kpi { box-shadow:none; break-inside:avoid; }
+    .tab-body { display:block !important; }
+    .tab-body + .tab-body { margin-top:14px; border-top:1px dashed #d1d5db; padding-top:10px; }
+    /* Findings & Behavioral: hide toggle, print one complete view each */
+    .fview-toggle { display:none !important; }
+    #findings .fview { display:none !important; }
+    #findings .fview[data-view="timeline"] { display:block !important; }
+    .ftl-item { break-inside:avoid; }
+    #behavioral .fview { display:none !important; }
+    #behavioral .fview[data-view="bars"] { display:block !important; }
+    /* Bars groups are collapsible on screen — force every group open for print */
+    #behavioral .bf-card-body { display:block !important; }
+    #behavioral .bf-chev { display:none !important; }
+    .bf-card { break-inside:avoid; }
+    .bf-row { break-inside:avoid; }
+    /* Portfolio viz: hide explore controls, force exposure detail open */
+    #charts .expo-right { display:block !important; }
+    #charts .expo-toggle { display:none !important; }
+    /* Quick-view legend: flatten the +more popover inline for paper */
+    #charts .sv-pop { display:flex !important; position:static; box-shadow:none; border:none; padding:0; flex-direction:row; flex-wrap:wrap; gap:4px 12px; max-height:none; }
+    #charts .sv-more-btn { display:none !important; }
+    .split-row, .expo-wrap { break-inside:avoid; }
+    /* Per-account DPD: show clean history, hide interactive controls */
+    #dpd .dpd-clean-list { display:block !important; }
+    #dpd .dpd-clean-toggle, #dpd .dpd-win { display:none !important; }
+    .dpd-lane { break-inside:avoid; }
+    .chart-wrap { height:200px; page-break-inside:avoid; }
+    .chart-wrap.sm { height:170px; }
+    .chart-wrap.ts { height:260px; }
+    table.data { font-size:11px; }
+    table.data th { background:#f3f4f6 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    .check, .loan-card, .verdict-pill, .kpi, .summary, .sc-signal, .tile,
+    .tag, .rf-item, .heat-row .cells div { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    a[href]::after { content:""; }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  {# =================================================================== #}
+  {# HEADER                                                              #}
+  {# =================================================================== #}
+  <div class="topbar">
+    <div class="brand"><div class="logo">K</div>Bureau Analyser Report</div>
+    {% if bureau_report %}
+    <div class="cust">
+      <div><b>Customer:</b> {{ bureau_report.meta.customer_id|mask_id }}</div>
+      <div><b>Tradelines:</b> {{ bureau_report.executive_inputs.total_tradelines }}</div>
+      {% if bureau_report.meta.generated_at %}<div><b>Generated:</b> {{ bureau_report.meta.generated_at[:10] }}</div>{% endif %}
+    </div>
+    {% endif %}
+    <div class="spacer"></div>
+    {% if scorecard %}
+    <span class="verdict-pill {{ scorecard.verdict_rag }}">{{ scorecard.verdict }}</span>
+    {% endif %}
+    <div class="notes-menu" id="exportMenu">
+      <button class="btn" onclick="toggleExportMenu(event)" title="Export this report">Export ⤓</button>
+      <div class="menu" role="menu">
+        <button onclick="closeExportMenu(); window.print();">Download as PDF</button>
+        <button onclick="closeExportMenu(); exportRiskTrailCSV();">Download as CSV</button>
+        <button onclick="closeExportMenu(); downloadRiskTrail();">Download as JSON</button>
+      </div>
+    </div>
+    <div class="notes-menu" id="notesMenu">
+      <button class="btn" id="notesDownloadBtn" onclick="toggleNotesMenu(event)" disabled title="Download analyst review notes">Notes ⤓<span class="badge" id="notesCount" style="display:none">0</span></button>
+      <div class="menu" role="menu">
+        <button onclick="downloadNotes('md')">Download as Markdown (.md)</button>
+        <button onclick="downloadNotes('json')">Download as JSON (.json)</button>
+        <div class="sep"></div>
+        <button class="danger" onclick="clearAllNotes()">Clear all notes</button>
+      </div>
+    </div>
+  </div>
+
+  {# =================================================================== #}
+  {# NAV CHIPS + CALIBRATION DISCLAIMER                                  #}
+  {# =================================================================== #}
+  <div class="navchips">
+    {% if v2 and v2.kpis %}<a href="#kpis">Overview</a>{% endif %}
+    {% if bureau_checklist %}<a href="#checklist">Checklist{% if v2 and v2.nav_badges.checklist_flagged %} <span class="badge">{{ v2.nav_badges.checklist_flagged }}</span>{% endif %}</a>{% endif %}
+    {% if (v2 and v2.profile) or (persona and persona.profiles) %}<a href="#profile">Profile &amp; Persona</a>{% endif %}
+    {% if scorecard %}<a href="#signals">Risk Signals</a>{% endif %}
+    {% if bureau_report and bureau_report.narrative %}<a href="#summary">Summary</a>{% endif %}
+    {% if bureau_report %}<a href="#portfolio">Portfolio</a>{% endif %}
+    {% if chart_data %}<a href="#charts">Charts</a>{% endif %}
+    {% if bureau_report %}<a href="#dpd" id="navDpd">DPD History</a>{% endif %}
+    {% if key_findings %}<a href="#findings">Findings{% if v2 and v2.nav_badges.findings_high %} <span class="badge">{{ v2.nav_badges.findings_high }}</span>{% endif %}</a>{% endif %}
+    {% if vectors_data %}<a href="#products">Products</a>{% endif %}
+    {% if tl_features %}<a href="#behavioral">Behavioral</a>{% endif %}
+  </div>
+  <div class="disclaimer">ⓘ Bins, thresholds &amp; verification values are calibrated on Jan '26 FPD PL FT portfolio behaviour.</div>
+
+  {# =================================================================== #}
+  {# KPI STRIP                                                           #}
+  {# =================================================================== #}
+  {% if v2 and v2.kpis %}
+  {% set k = v2.kpis %}
+  <div class="kpis" id="kpis">
+    <div class="kpi {{ k.cibil.rag }}">
+      <div class="label">CIBIL Score</div>
+      <div class="value">{{ k.cibil.value }}</div>
+      <div class="sub">{{ k.cibil.sub }}</div>
+    </div>
+    <div class="kpi {{ k.max_dpd.rag }}">
+      <div class="label">Max DPD</div>
+      <div class="value">{{ k.max_dpd.value }}</div>
+      <div class="sub">{{ k.max_dpd.sub }}</div>
+    </div>
+    <div class="kpi {{ k.foir.rag }}">
+      <div class="label">FOIR (Bureau)</div>
+      <div class="value">{{ k.foir.value }}</div>
+      <div class="sub">{{ k.foir.sub }}</div>
+    </div>
+    <div class="kpi {{ k.exposure.rag }}">
+      <div class="label">Total Outstanding</div>
+      <div class="value">{{ k.exposure.value }}</div>
+      <div class="sub">{{ k.exposure.sub }}</div>
+      {% if k.exposure.series %}<div class="spark"><canvas id="sparkExposure"></canvas></div>{% endif %}
+    </div>
+    <div class="kpi {{ k.verdict.rag }}">
+      <div class="label">Overall Risk</div>
+      <div class="value">{{ k.verdict.value }}</div>
+      <div class="stress-gauge"><div class="bar"><div class="fill" style="width:{{ k.verdict.stress_pct }}%"></div></div></div>
+      <div class="sub">{{ k.verdict.sub }}</div>
+    </div>
+  </div>
+  {% endif %}
+
+  {# =================================================================== #}
+  {# QUICK ASSESSMENT CHECKLIST                                          #}
+  {# =================================================================== #}
+  {% if bureau_checklist %}
+  <div class="panel" id="checklist">
+    <h2>Quick Assessment Checklist
+      <select class="checklist-sort" onchange="sortChecklist(this, 'checklistGrid')">
+        <option value="default">Sort: Default</option>
+        <option value="severity">Sort: Severity</option>
+        <option value="status">Sort: Status</option>
+      </select>
+    </h2>
+    <div class="checks" id="checklistGrid">
+      {% for item in bureau_checklist %}
+      {% set chk_color = 'red' if item.severity == 'high' else ('amber' if item.severity == 'medium' else ('green' if item.severity == 'positive' else 'neutral')) %}
+      <div class="check {{ chk_color }}" data-severity="{{ item.severity }}" data-checked="{{ 'yes' if item.checked else 'no' }}" data-order="{{ loop.index }}">
+        <div class="ico">{{ '✓' if item.checked else '✗' }}</div>
+        <div class="lbl">{{ item.label }}{% if item.detail %}<span class="det">{{ item.detail }}</span>{% endif %}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {# =================================================================== #}
+  {# CUSTOMER PROFILE & PERSONA                                          #}
+  {# =================================================================== #}
+  {% if (v2 and v2.profile) or (persona and persona.profiles) %}
+  <div class="panel" id="profile">
+    <h2>Customer Profile &amp; Persona <span class="count">Relationship profile · deterministic persona waterfall</span></h2>
+    <div style="display:grid;grid-template-columns:1fr 1.4fr;gap:16px;align-items:start">
+      {% if v2 and v2.profile %}
+      <div class="loan-card">
+        <div class="head"><b>Customer Profile</b>{% if v2.profile.ktk_rel %}<span class="tag cat">{{ v2.profile.ktk_rel }}</span>{% endif %}</div>
+        {% if v2.profile.customer_segment %}<div class="row"><span>Segment</span><b>{{ v2.profile.customer_segment }}</b></div>{% endif %}
+        {% if v2.profile.income_source %}<div class="row"><span>Income Source</span><b>{{ v2.profile.income_source }}</b></div>{% endif %}
+        {% if v2.profile.affluence_amt is not none %}<div class="row"><span>Affluence (6M income est.)</span><b>₹ {{ "{:,.0f}".format(v2.profile.affluence_amt) }}</b></div>{% endif %}
+        {% if v2.profile.bu_grp %}<div class="row"><span>Bureau Thickness</span><b>{{ v2.profile.bu_grp }}</b></div>{% endif %}
+        {% if v2.profile.bank_grp %}<div class="row"><span>Banking Thickness</span><b>{{ v2.profile.bank_grp }}</b></div>{% endif %}
+        {% if v2.profile.node %}<div class="row"><span>Node</span><b>{{ v2.profile.node }}</b></div>{% endif %}
+      </div>
+      {% endif %}
+      {% if persona and persona.profiles %}
+      <div>
+        <h3 style="margin-top:0">Probable Customer Persona</h3>
+        <ul class="persona-list">
+          {% for p in persona.profiles %}
+          <li>
+            <div class="rank">{{ loop.index }}</div>
+            <div>
+              <div class="name">{{ p.label }} <span class="tag cat">{{ p.track }}</span></div>
+              {% if p.detail %}<div class="meta">{{ p.detail }}</div>{% endif %}
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+        {% if persona.stress_flags %}
+        <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+          <span style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px">Stress indicators:</span>
+          {% for s in persona.stress_flags %}
+          <span class="tag {{ 'red' if s.severity == 'high' else ('amber' if s.severity == 'moderate' else 'neutral') }}" {% if s.detail %}title="{{ s.detail }}"{% endif %}>{{ s.label }}{% if s.detail %} — {{ s.detail }}{% endif %}</span>
+          {% endfor %}
+        </div>
+        {% endif %}
+        {% if persona.summary %}<div class="muted" style="margin-top:10px">{{ persona.summary }}.</div>{% endif %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  {# =================================================================== #}
+  {# RISK VARIABLES & SNAPSHOT                                           #}
+  {# =================================================================== #}
+  {% if scorecard %}
+  <div class="panel" id="signals">
+    <h2>Risk Variables &amp; Snapshot <span class="count">Deterministic signal scorecard</span></h2>
+    <div style="margin-bottom:14px"><span class="verdict-pill {{ scorecard.verdict_rag }}">Overall Risk: {{ scorecard.verdict }}</span></div>
+    <div class="sc-grid">
+      <div class="sc-col sc-col-green">
+        <div class="sc-col-head">✓ Strengths</div>
+        {% for s in scorecard.strengths %}<div class="sc-col-item"><span class="sc-col-bullet" style="color:var(--green)">●</span><span>{{ s }}</span></div>{% else %}<div class="muted" style="font-size:11px">None identified</div>{% endfor %}
+      </div>
+      <div class="sc-col sc-col-red">
+        <div class="sc-col-head">⚠ Concerns</div>
+        {% for c in scorecard.concerns %}<div class="sc-col-item"><span class="sc-col-bullet" style="color:var(--red)">●</span><span>{{ c }}</span></div>{% else %}<div class="muted" style="font-size:11px">None identified</div>{% endfor %}
+      </div>
+    </div>
+    {% if scorecard.signals or tl_features %}
+    <div class="sc-signals-grid">
+      {% for s in scorecard.signals %}
+      <div class="sc-signal sc-rag-{{ s.rag }}">
+        <div class="sc-sig-label">{{ s.label }}</div>
+        <div class="sc-sig-value">{{ s.value }}</div>
+        <div class="sc-sig-note">{{ s.note }}</div>
+        {% if s.tooltip %}<div class="sc-tooltip">{{ s.tooltip }}</div>{% endif %}
+      </div>
+      {% endfor %}
+      {% if tl_features %}
+      {# monsnclasttrop_uns_onc: Green <32.18 | Red otherwise #}
+      <div class="sc-signal {% if tl_features.months_since_last_trade_uns is not none and tl_features.months_since_last_trade_uns < 32.18 %}sc-rag-green{% else %}sc-rag-red{% endif %}">
+        <div class="sc-sig-label">Mo Last Uns</div>
+        <div class="sc-sig-value">{{ "%.1f"|format(tl_features.months_since_last_trade_uns) if tl_features.months_since_last_trade_uns is not none else "N/A" }}</div>
+        <div class="sc-sig-note">{% if tl_features.months_since_last_trade_uns is none %}Missing{% elif tl_features.months_since_last_trade_uns < 9.66 %}Super/Green{% elif tl_features.months_since_last_trade_uns < 32.18 %}Green{% else %}Red{% endif %}</div>
+        <div class="sc-tooltip">monsnclasttrop_uns_onc&#10;Months since last unsecured trade&#10;&#10;&lt;9.66 → Super Green / Green&#10;9.66–32.18 → Green ✓&#10;&gt;32.18 → Red&#10;Missing → Red</div>
+      </div>
+      {# no_trades_all_onc: Green ≥18.5 | Red <18.5 | Neutral if null #}
+      <div class="sc-signal {% if tl_features.total_trades is none %}sc-rag-neutral{% elif tl_features.total_trades >= 18.5 %}sc-rag-green{% else %}sc-rag-red{% endif %}">
+        <div class="sc-sig-label">Total Trades</div>
+        <div class="sc-sig-value">{{ tl_features.total_trades if tl_features.total_trades is not none else "N/A" }}</div>
+        <div class="sc-sig-note">{% if tl_features.total_trades is none %}No Seg{% elif tl_features.total_trades < 3.5 %}Red{% elif tl_features.total_trades < 18.5 %}Amber{% else %}Green{% endif %}</div>
+        <div class="sc-tooltip">no_trades_all_onc&#10;Total number of all trades&#10;&#10;&lt;3.5 → Red&#10;3.5–18.5 → Amber&#10;&gt;18.5 → Green ✓&#10;Missing → No segment</div>
+      </div>
+      {# mon_sin_last_0p_uns_op: Green if null (clean) | Red if has value (delinquency) #}
+      <div class="sc-signal {% if tl_features.months_since_last_0p_uns is none %}sc-rag-green{% else %}sc-rag-red{% endif %}">
+        <div class="sc-sig-label">Mo 0+DPD Uns</div>
+        <div class="sc-sig-value">{{ "%.1f"|format(tl_features.months_since_last_0p_uns) if tl_features.months_since_last_0p_uns is not none else "N/A" }}</div>
+        <div class="sc-sig-note">{% if tl_features.months_since_last_0p_uns is none %}Green (clean){% else %}Red (event){% endif %}</div>
+        <div class="sc-tooltip">mon_sin_last_0p_uns_op&#10;Months since last 0+ DPD (unsecured)&#10;&#10;Missing → Green ✓ (no delinquency)&#10;Any value → Red (had 0+ DPD event)</div>
+      </div>
+      {# pct_0p_l24m_all_onc: Green <1.15 | Red otherwise #}
+      <div class="sc-signal {% if tl_features.pct_0plus_24m_all is not none and tl_features.pct_0plus_24m_all < 1.15 %}sc-rag-green{% else %}sc-rag-red{% endif %}">
+        <div class="sc-sig-label">% 0+DPD 24M</div>
+        <div class="sc-sig-value">{{ "%.2f"|format(tl_features.pct_0plus_24m_all) if tl_features.pct_0plus_24m_all is not none else "N/A" }}</div>
+        <div class="sc-sig-note">{% if tl_features.pct_0plus_24m_all is none %}Missing{% elif tl_features.pct_0plus_24m_all < 1.15 %}Green{% elif tl_features.pct_0plus_24m_all < 2.35 %}Amber{% else %}Red{% endif %}</div>
+        <div class="sc-tooltip">pct_0p_l24m_all_onc&#10;% of months with 0+ DPD, last 24M (all)&#10;&#10;&lt;1.15% → Green ✓&#10;1.15–2.35% → Amber&#10;&gt;2.35% → Red&#10;Missing → Red</div>
+      </div>
+      {# pct_0p_l24m_pl_onc: Green <1.71 | Red otherwise #}
+      <div class="sc-signal {% if tl_features.pct_0plus_24m_pl is not none and tl_features.pct_0plus_24m_pl < 1.71 %}sc-rag-green{% else %}sc-rag-red{% endif %}">
+        <div class="sc-sig-label">% 0+DPD 24M PL</div>
+        <div class="sc-sig-value">{{ "%.2f"|format(tl_features.pct_0plus_24m_pl) if tl_features.pct_0plus_24m_pl is not none else "N/A" }}</div>
+        <div class="sc-sig-note">{% if tl_features.pct_0plus_24m_pl is none %}Missing{% elif tl_features.pct_0plus_24m_pl < 1.71 %}Green{% else %}Amber/Red{% endif %}</div>
+        <div class="sc-tooltip">pct_0p_l24m_pl_onc&#10;% of months with 0+ DPD, last 24M (PL)&#10;&#10;&lt;1.71% → Green ✓&#10;&gt;=1.71% → Amber&#10;Missing → Red</div>
+      </div>
+      {# pct_tr_0p_l12m_all_onc: Green if null | Red if not null (all bins Amber/Red) #}
+      <div class="sc-signal {% if tl_features.pct_trades_0plus_12m is none %}sc-rag-green{% else %}sc-rag-red{% endif %}">
+        <div class="sc-sig-label">% Tr 0+DPD 12M</div>
+        <div class="sc-sig-value">{{ "%.2f"|format(tl_features.pct_trades_0plus_12m) if tl_features.pct_trades_0plus_12m is not none else "N/A" }}</div>
+        <div class="sc-sig-note">{% if tl_features.pct_trades_0plus_12m is none %}Green (clean){% elif tl_features.pct_trades_0plus_12m < 19.52 %}Amber{% else %}Red{% endif %}</div>
+        <div class="sc-tooltip">pct_tr_0p_l12m_all_onc&#10;% trades with 0+ DPD, last 12M (all)&#10;&#10;Missing → Green ✓ (no delinquency)&#10;&lt;19.52% → Amber&#10;&gt;=19.52% → Red</div>
+      </div>
+      {# tr_to_enq_ratio_uns_l24m: Green ≥13.74 | Red otherwise #}
+      <div class="sc-signal {% if tl_features.trade_to_enquiry_ratio_uns_24m is not none and tl_features.trade_to_enquiry_ratio_uns_24m >= 13.74 %}sc-rag-green{% else %}sc-rag-red{% endif %}">
+        <div class="sc-sig-label">Tr/Enq Uns 24M</div>
+        <div class="sc-sig-value">{{ "%.1f"|format(tl_features.trade_to_enquiry_ratio_uns_24m) if tl_features.trade_to_enquiry_ratio_uns_24m is not none else "N/A" }}</div>
+        <div class="sc-sig-note">{% if tl_features.trade_to_enquiry_ratio_uns_24m is none %}Missing{% elif tl_features.trade_to_enquiry_ratio_uns_24m >= 13.74 %}Green{% else %}Red{% endif %}</div>
+        <div class="sc-tooltip">tr_to_enq_ratio_uns_l24m&#10;Trade-to-enquiry ratio (unsecured, 24M)&#10;&#10;&gt;=13.74 → Green ✓&#10;&lt;13.74 → Red&#10;Missing → Red</div>
+      </div>
+      {# interpurchase_time_l24m_all: Green ≥2.54 | Red <2.54 | Neutral if 0.0 (no recent loans) #}
+      <div class="sc-signal {% if tl_features.interpurchase_time_24m_all is not none and tl_features.interpurchase_time_24m_all > 0 and tl_features.interpurchase_time_24m_all >= 2.54 %}sc-rag-green{% elif tl_features.interpurchase_time_24m_all is none or tl_features.interpurchase_time_24m_all == 0 %}sc-rag-neutral{% else %}sc-rag-red{% endif %}">
+        <div class="sc-sig-label">IP 24M All</div>
+        <div class="sc-sig-value">{{ "%.2f"|format(tl_features.interpurchase_time_24m_all) if tl_features.interpurchase_time_24m_all is not none and tl_features.interpurchase_time_24m_all > 0 else "N/A" }}</div>
+        <div class="sc-sig-note">{% if tl_features.interpurchase_time_24m_all is none or tl_features.interpurchase_time_24m_all == 0 %}No recent loans{% elif tl_features.interpurchase_time_24m_all < 2.54 %}Amber{% elif tl_features.interpurchase_time_24m_all < 4.22 %}Green{% else %}Super Green{% endif %}</div>
+        <div class="sc-tooltip">interpurchase_time_l24m_all&#10;Avg months between all loan opens (24M)&#10;&#10;0 / missing → No recent loan openings&#10;&lt;2.54 → Amber&#10;2.54–4.22 → Green ✓&#10;&gt;4.22 → Super Green ✓</div>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+    {% if section_flags.show_scorecard_narrative and scorecard.narrative %}
+    <div class="sc-narrative">{{ scorecard.narrative }}</div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% if bureau_report %}
+
+  {# =================================================================== #}
+  {# BUREAU EXECUTIVE SUMMARY (LLM narrative)                            #}
+  {# =================================================================== #}
+  {% if bureau_report.narrative %}
+  <div class="panel" id="summary">
+    <h2>Bureau Executive Summary <span class="count">LLM-generated narrative</span></h2>
+    {% set _n = bureau_report.narrative %}
+    {% if _n|length > 480 %}
+    <div class="summary clamped" id="sum">{{ _n[:480] }}<span class="teaser-dots">… <span class="more-toggle" onclick="toggleSummary()">read more</span></span><span class="more">{{ _n[480:] }} <span class="more-toggle" onclick="toggleSummary()">show less</span></span></div>
+    {% else %}
+    <div class="summary" id="sum">{{ _n }}</div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {# =================================================================== #}
+  {# PORTFOLIO SUMMARY                                                   #}
+  {# =================================================================== #}
+  {% set ei = bureau_report.executive_inputs %}
+  <div class="panel" id="portfolio">
+    <h2>Portfolio Summary <span class="count">{{ ei.total_tradelines }} tradelines · {{ ei.live_tradelines }} live</span></h2>
+    <div class="tabs">
+      <button class="active" onclick="tab(event,'pf-overview')">Overview</button>
+      {% if ei.on_us_total_tradelines > 0 %}<button onclick="tab(event,'pf-onus')">Kotak (On-Us)</button>{% endif %}
+      {% if ei.defaulted_loan_summaries %}<button onclick="tab(event,'pf-defaulted')">Defaulted / Delinquent ({{ ei.defaulted_loan_summaries|length }})</button>{% endif %}
+    </div>
+
+    <div class="tab-body active" id="pf-overview">
+      <div class="tile-grid">
+        <div class="tile">
+          <label>Total / Live / Closed</label>
+          <div class="value">{{ ei.total_tradelines }} / {{ ei.live_tradelines }} / {{ ei.closed_tradelines }}</div>
+        </div>
+        <div class="tile">
+          <label>Total Sanction Amount</label>
+          <div class="value">INR {{ ei.total_sanctioned|inr_units }}</div>
+        </div>
+        <div class="tile">
+          <label>Total Outstanding</label>
+          <div class="value">INR {{ ei.total_outstanding|inr_units }}
+            {% if ei.total_sanctioned > 0 %}<small>({{ "%.0f"|format(ei.total_outstanding / ei.total_sanctioned * 100) }}% of sanctioned)</small>{% endif %}
+          </div>
+        </div>
+        <div class="tile">
+          <label>Unsecured Sanction Amount</label>
+          <div class="value">INR {{ ei.unsecured_sanctioned|inr_units }}
+            {% if ei.total_sanctioned > 0 %}<small>({{ "%.0f"|format(ei.unsecured_sanctioned / ei.total_sanctioned * 100) }}% of total)</small>{% endif %}
+          </div>
+        </div>
+        <div class="tile">
+          <label>Unsecured Outstanding</label>
+          <div class="value">INR {{ ei.unsecured_outstanding|inr_units }}
+            <small>
+              {% if ei.total_outstanding > 0 %}({{ "%.0f"|format(ei.unsecured_outstanding / ei.total_outstanding * 100) }}% of outstanding{% endif %}
+              {% if ei.total_sanctioned > 0 %}{% if ei.total_outstanding > 0 %} | {% else %}({% endif %}{{ "%.0f"|format(ei.unsecured_outstanding / ei.total_sanctioned * 100) }}% of sanctioned){% elif ei.total_outstanding > 0 %}){% endif %}
+            </small>
+          </div>
+        </div>
+        <div class="tile">
+          <label>Max DPD</label>
+          <div class="value {% if ei.max_dpd and ei.max_dpd > 30 %}risk{% endif %}">
+            {% if ei.max_dpd is not none %}{{ ei.max_dpd }}
+              {% if ei.max_dpd_months_ago is not none or ei.max_dpd_loan_type %}
+              <small>({% if ei.max_dpd_months_ago is not none %}{{ ei.max_dpd_months_ago }} months ago{% endif %}{% if ei.max_dpd_months_ago is not none and ei.max_dpd_loan_type %}, {% endif %}{% if ei.max_dpd_loan_type %}{{ ei.max_dpd_loan_type }}{% endif %})</small>
+              {% endif %}
+            {% else %}N/A{% endif %}
+          </div>
+        </div>
+        {% if bureau_report.tradeline_features and bureau_report.tradeline_features.foir is not none %}
+        <div class="tile">
+          <label>FOIR (Bureau · aff_emi ÷ income)</label>
+          <div class="value {% if bureau_report.tradeline_features.foir > 65 %}risk{% elif bureau_report.tradeline_features.foir > 40 %}warning{% endif %}">
+            {{ "%.1f"|format(bureau_report.tradeline_features.foir) }}%
+            {% if bureau_report.tradeline_features.foir_unsec is not none %}<small>· Unsec: {{ "%.1f"|format(bureau_report.tradeline_features.foir_unsec) }}%</small>{% endif %}
+          </div>
+        </div>
+        {% endif %}
+        {% if bureau_report.tradeline_features and bureau_report.tradeline_features.aff_emi is not none %}
+        <div class="tile">
+          <label>EMI Obligation (Bureau)</label>
+          <div class="value">INR {{ "{:,.0f}".format(bureau_report.tradeline_features.aff_emi) }}
+            {% if bureau_report.tradeline_features.unsecured_emi is not none %}<small>· Unsec: INR {{ "{:,.0f}".format(bureau_report.tradeline_features.unsecured_emi) }}</small>{% endif %}
+          </div>
+        </div>
+        {% endif %}
+        {% if ei.max_single_sanction_amount > 0 %}
+        <div class="tile">
+          <label>Largest Single Loan</label>
+          <div class="value">INR {{ ei.max_single_sanction_amount|inr_units }}
+            {% if ei.max_single_sanction_loan_type %}<small>({{ ei.max_single_sanction_loan_type }})</small>{% endif %}
+          </div>
+        </div>
+        {% endif %}
+        {% if ei.total_joint_count > 0 %}
+        <div class="tile">
+          <label>Joint Loans</label>
+          <div class="value">{{ ei.total_joint_count }} tradeline(s)
+            <small>({{ ei.joint_product_types|join(", ") }})</small>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if ei.on_us_total_tradelines > 0 %}
+    <div class="tab-body" id="pf-onus">
+      <div class="onus-block">
+        <div class="blk-title">Kotak Relationship (On-Us)</div>
+        <div class="tile-grid">
+          <div class="tile"><label>On-Us Tradelines</label><div class="value">{{ ei.on_us_total_tradelines }} <small>({{ ei.on_us_live_tradelines }} live)</small></div></div>
+          <div class="tile"><label>Products</label><div class="value">{{ ei.on_us_product_types|join(", ") }}</div></div>
+          <div class="tile"><label>Sanctioned</label><div class="value">INR {{ ei.on_us_total_sanctioned|inr_units }}</div></div>
+          <div class="tile"><label>Outstanding</label><div class="value">INR {{ ei.on_us_total_outstanding|inr_units }}</div></div>
+          {% if ei.on_us_max_dpd is not none and ei.on_us_max_dpd > 0 %}
+          <div class="tile"><label>On-Us Max DPD</label><div class="value risk">{{ ei.on_us_max_dpd }}</div></div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if ei.defaulted_loan_summaries %}
+    <div class="tab-body" id="pf-defaulted">
+      <table class="data">
+        <thead><tr>
+          <th>Loan Type</th><th class="num">Sanctioned</th>
+          <th class="num">Outstanding</th><th>Max DPD</th>
+          <th>Kotak (On-Us)</th>
+        </tr></thead>
+        <tbody>
+        {% for d in ei.defaulted_loan_summaries %}
+        <tr>
+          <td>{{ d.type }}</td>
+          <td class="num">{{ d.sanction|inr }}</td>
+          <td class="num">{{ d.outstanding|inr }}</td>
+          <td class="ctr"><span class="tag red">{{ d.dpd }}</span></td>
+          <td class="ctr">{{ "Yes" if d.on_us else "No" }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+  </div>
+
+  {# =================================================================== #}
+  {# PORTFOLIO VISUALIZATIONS                                            #}
+  {# =================================================================== #}
+  {% if chart_data %}
+  <div class="panel" id="charts">
+    <h2>Portfolio Visualizations <span class="count">Mix · exposure · explore</span></h2>
+
+    {# At-a-glance header (deterministic) #}
+    {% if v2 and v2.viz %}
+    <div class="viz-head">
+      <div class="viz-takeaway">{{ v2.viz.takeaway }}</div>
+      <div class="viz-chips">
+        {% for c in v2.viz.chips %}<span class="viz-chip"><span class="k">{{ c.label }}</span><span class="v">{{ c.value }}</span></span>{% endfor %}
+      </div>
+    </div>
+    {% elif exposure_summary %}
+    <p style="font-size:12.5px;color:var(--muted);line-height:1.6;margin-bottom:14px">{{ exposure_summary }}</p>
+    {% endif %}
+
+    <div class="tabs">
+      <button class="active" onclick="tab(event,'viz-explore')">Explore</button>
+      <button onclick="tab(event,'viz-quick')">Quick Views</button>
+      <button onclick="tab(event,'viz-time')">Exposure</button>
+    </div>
+
+    {# Interactive explorer — key metric chips + 'More', pick a chart type #}
+    <div class="tab-body active" id="viz-explore">
+      <div class="viz-toolbar">
+        <span class="grp-label">Metric</span>
+        <div class="chipgrp" id="vizMetric"><!-- key chips populated from data --></div>
+        <div class="viz-moremenu" id="vizMoreWrap">
+          <button type="button" class="viz-more" id="vizMore" aria-expanded="false">More ▾</button>
+          <div class="viz-morelist" id="vizMoreList" hidden><!-- list populated from data --></div>
+        </div>
+        <label class="viz-multi"><input type="checkbox" id="vizMulti"> Compare multiple</label>
+      </div>
+      <div class="viz-charts">
+        <div class="vc"><div class="chart-wrap sm"><canvas id="cmbChartBar"></canvas></div></div>
+        <div class="vc"><div class="chart-wrap sm"><canvas id="cmbChartDonut"></canvas></div></div>
+      </div>
+      <div class="muted" id="vizCaption" style="margin-top:8px"></div>
+    </div>
+
+    {# Curated quick views — compact horizontal split bars (server-rendered) #}
+    <div class="tab-body" id="viz-quick">
+      {% if v2 and v2.viz %}
+      <div class="split-list">
+        {% for s in v2.viz.splits %}
+        <div class="split-row">
+          <div class="split-name">{{ s.name }}</div>
+          <div class="split-barwrap">
+            <div class="split-bar">{% if s.has_data %}{% for seg in s.segments %}<div class="split-seg" style="width:{{ seg.pct }}%;background:{{ seg.color }}" title="{{ seg.label }}: {{ seg.display }} ({{ seg.pct }}%)"></div>{% endfor %}{% endif %}</div>
+          </div>
+          <div class="split-legend">
+            {% if s.has_data %}
+              {% for seg in s.segments[:2] %}<span class="sv"><span class="dot" style="background:{{ seg.color }}"></span>{{ seg.label }} <b>{{ seg.display }}</b></span>{% endfor %}
+              {% if s.segments|length > 2 %}
+              <div class="sv-more">
+                <button type="button" class="sv-more-btn">+{{ s.segments|length - 2 }} more</button>
+                <div class="sv-pop" hidden>
+                  {% for seg in s.segments %}<span class="svp"><span class="dot" style="background:{{ seg.color }}"></span>{{ seg.label }} <b>{{ seg.display }}</b> · {{ seg.pct }}%</span>{% endfor %}
+                </div>
+              </div>
+              {% endif %}
+            {% else %}<span class="split-empty">No data</span>{% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+
+    {# Exposure — sparkline + key numbers, per-product detail on demand #}
+    <div class="tab-body" id="viz-time">
+      {% if v2 and v2.viz and v2.viz.exposure %}
+      {% set ex = v2.viz.exposure %}
+      <div class="expo-wrap" id="expoWrap">
+        <div class="expo-left">
+          <div class="expo-right-title">Total exposure</div>
+          <div class="expo-spark">{{ ex.spark | safe }}</div>
+          <div class="expo-stats">
+            <div class="es"><span class="k">Peak</span><span class="v">{{ ex.peak }}</span><span class="sub">{{ ex.peak_when }}</span></div>
+            <div class="es"><span class="k">Now</span><span class="v">{{ ex.now }}</span><span class="sub">{{ ex.down_from_peak }}% below peak</span></div>
+            <div class="es"><span class="k">Trend</span><span class="v">{{ ex.trend|capitalize }}</span><span class="sub">sanctioned exposure</span></div>
+          </div>
+        </div>
+        <div class="expo-right" id="expoRight">
+          <div class="expo-right-title">By product</div>
+          <div class="chart-wrap expo-chart"><canvas id="cmbChartTimeseries"></canvas></div>
+        </div>
+      </div>
+      {% elif exposure_summary %}
+      <p class="muted">{{ exposure_summary }}</p>
+      {% else %}
+      <div class="absence-note">Exposure history is not available for this customer.</div>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  {# =================================================================== #}
+  {# DPD HISTORY — heatmap + event timeline                              #}
+  {# =================================================================== #}
+  {# One DPD swimlane (label + monthly cells); oldest 12 hidden unless 36M on #}
+  {% macro dpd_lane(a, months) %}
+        <div class="dpd-lane">
+          <div class="dol" title="{{ a.product }}{% if a.sanction_disp %} · {{ a.sanction_disp }}{% endif %}{% if a.on_us %} · Kotak{% endif %} · {{ a.status }}">
+            <span class="dpd-nm">{{ a.product }}</span>
+            <span class="dpd-sb">{% if a.opened_year %}{{ a.opened_year }}{% endif %}{% if a.sanction_disp %} · {{ a.sanction_disp }}{% endif %}{% if a.on_us %} · KTK{% endif %}</span>
+          </div>
+          <div class="dob">{% for c in a.cells %}<span class="dpd-c s-{{ c.state }} lvl{{ c.lvl }}{% if loop.index0 < (a.cells|length - 24) %} dpd-old{% endif %}" title="{{ months[loop.index0] }}{% if c.v is not none %} · {{ c.v }}{% endif %}"></span>{% endfor %}</div>
+        </div>
+  {% endmacro %}
+  <div class="panel" id="dpd">
+    <h2>DPD History <span class="count">Per-account payment-history timeline</span></h2>
+    <div class="tabs">
+      {% if v2 and v2.dpd_accounts %}<button class="active" id="dpdAcctTabBtn" onclick="tab(event,'dpd-acct')">Per-Account</button>{% endif %}
+      <button {% if not (v2 and v2.dpd_accounts) %}class="active" {% endif %}id="dpdHeatTabBtn" onclick="tab(event,'dpd-heat')">By Type</button>
+      <button id="dpdTimelineTabBtn" onclick="tab(event,'dpd-timeline')">Event Timeline</button>
+    </div>
+
+    {% if v2 and v2.dpd_accounts %}
+    {% set da = v2.dpd_accounts %}
+    {% set ev = da.accounts | selectattr('has_event') | list %}
+    {% set cl = da.accounts | rejectattr('has_event') | list %}
+    <div class="tab-body active" id="dpd-acct">
+      <div class="dpd-acct" id="dpdAcct">
+        <div class="dpd-acct-bar">
+          {% if da.all_clean %}<span class="tag green">✓ All {{ da.n_total }} accounts on-time across every reported month</span>
+          {% else %}<span class="tag red">{{ da.n_event }} of {{ da.n_total }} account{{ 's' if da.n_total != 1 }} with delinquency</span>{% endif %}
+          <span class="dpd-win">
+            <button type="button" class="dpd-win-btn active" data-win="24">24M</button>
+            <button type="button" class="dpd-win-btn" data-win="36">36M</button>
+          </span>
+        </div>
+
+        {# C — portfolio worst-DPD overview band #}
+        <div class="dpd-lane dpd-ov">
+          <div class="dol"><span class="dpd-nm">Portfolio</span><span class="dpd-sb">worst DPD / month</span></div>
+          <div class="dob">{% for o in da.overview %}<span class="dpd-c s-{{ 'dpd' if o.worst else 'ok' }} lvl{{ o.worst }}{% if loop.index0 < (da.overview|length - 24) %} dpd-old{% endif %}" title="{{ da.months[loop.index0] }} · {{ o.delinquent }} delinquent"></span>{% endfor %}</div>
+        </div>
+
+        {# B — delinquent accounts first #}
+        {% for a in ev %}{{ dpd_lane(a, da.months) }}{% endfor %}
+
+        {# clean accounts collapsed (shown as all-green positive proof on expand) #}
+        {% if cl %}
+        <div class="dpd-clean">
+          <button type="button" class="dpd-clean-toggle" id="dpdCleanToggle" aria-expanded="false">▸ {{ cl|length }} clean account{{ 's' if cl|length != 1 }} — show all-green history</button>
+          <div class="dpd-clean-list" id="dpdCleanList" hidden>
+            {% for a in cl %}{{ dpd_lane(a, da.months) }}{% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <div class="dpd-legend2">
+          <span class="dl"><i class="dpd-c s-ok lvl0"></i> On-time</span>
+          <span class="dl"><i class="dpd-c s-dpd lvl1"></i> 1–29</span>
+          <span class="dl"><i class="dpd-c s-dpd lvl2"></i> 30–59</span>
+          <span class="dl"><i class="dpd-c s-dpd lvl3"></i> 60–89</span>
+          <span class="dl"><i class="dpd-c s-dpd lvl4"></i> 90+/adverse</span>
+          <span class="dl"><i class="dpd-c s-none"></i> Not reported</span>
+          <span class="dpd-cap">Each cell = 1 month · hover for detail</span>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="tab-body{% if not (v2 and v2.dpd_accounts) %} active{% endif %}" id="dpd-heat">
+      <div class="heat-wrap" id="dpdHeatmap"></div>
+      <div class="heat-axis" id="dpdHeatmapAxis"></div>
+      <div class="heat-legend">
+        Clean <span style="display:inline-block;width:12px;height:12px;background:#e2e8f0;margin:0 2px;border-radius:2px"></span>
+        <span style="display:inline-block;width:12px;height:12px;background:#c7d2fe;margin:0 2px;border-radius:2px"></span>
+        <span style="display:inline-block;width:12px;height:12px;background:#818cf8;margin:0 2px;border-radius:2px"></span>
+        <span style="display:inline-block;width:12px;height:12px;background:#6366f1;margin:0 2px;border-radius:2px"></span>
+        <span style="display:inline-block;width:12px;height:12px;background:#4338ca;margin:0 2px;border-radius:2px"></span>
+        90+ DPD / adverse · 1–29 → 30–59 → 60–89 → 90+/flag
+      </div>
+      <div class="muted" id="dpdHeatEmpty" style="display:none;margin-top:8px">No delinquency events in the reported payment history — clean grid.</div>
+    </div>
+    <div class="tab-body" id="dpd-timeline">
+      <div id="cmbDpdTimelineCard">
+        <h3 style="margin-top:0">DPD Event Timeline — Max DPD by Month (Days Past Due)</h3>
+        <div class="chart-wrap"><canvas id="cmbChartDpdTimeline"></canvas></div>
+      </div>
+      <div class="muted" id="dpdTimelineEmpty" style="display:none">No DPD events in the last 24 months.</div>
+      <div class="hist-events" id="dpdHistorical" style="display:none">
+        <span style="font-weight:600;text-transform:uppercase;letter-spacing:.4px;font-size:10.5px">Older events (&gt;24M ago):</span>
+      </div>
+    </div>
+  </div>
+
+  {# =================================================================== #}
+  {# KEY FINDINGS & INFERENCES                                           #}
+  {# =================================================================== #}
+  {% if key_findings %}
+  {# Severity → display parts, shared by every view below #}
+  {% set SEVMAP = {
+    'high_risk':     {'key': 'red',    'word': 'HIGH RISK', 'ico': '!'},
+    'moderate_risk': {'key': 'amber',  'word': 'MODERATE',  'ico': '!'},
+    'concern':       {'key': 'yellow', 'word': 'CONCERN',   'ico': '▲'},
+    'positive':      {'key': 'green',  'word': 'POSITIVE',  'ico': '✓'},
+    'neutral':       {'key': 'grey',   'word': 'INFO',      'ico': 'i'}
+  } %}
+  <div class="panel" id="findings">
+    <h2>Key Findings &amp; Inferences <span class="count">{{ key_findings|length }} findings</span></h2>
+
+    {# View switcher #}
+    <div class="fview-toggle" id="findingsViewToggle">
+      <button type="button" data-view="carousel" class="active" title="Carousel — one at a time">◧ Carousel</button>
+      <button type="button" data-view="reader" title="List + reader pane">▤ Reader</button>
+      <button type="button" data-view="timeline" title="Vertical timeline">≣ Timeline</button>
+      <button type="button" data-view="tiles" title="Expandable tiles">▦ Tiles</button>
+    </div>
+
+    {# ── VIEW: CAROUSEL ── #}
+    <div class="fview active" data-view="carousel">
+      <div class="carousel" id="findingsCarousel" tabindex="0">
+        <div class="ffilter" id="findingsFilter"><!-- severity filter chips injected --></div>
+        <div class="carousel-viewport">
+          <div class="carousel-track">
+            {% for finding in key_findings %}
+            {% set sv = SEVMAP.get(finding.severity, SEVMAP['neutral']) %}
+            <div class="carousel-slide" data-severity="{{ finding.severity }}">
+              <div class="fcard f-{{ sv.key }}">
+                <div class="fmeta">
+                  <span class="sev-ico s-{{ sv.key }}">{{ sv.ico }}</span>
+                  <span class="sev-label s-{{ sv.key }}">{{ sv.word }}</span>
+                  <span class="fcat">{{ finding.category }}</span>
+                </div>
+                <div class="ftext">{{ finding.finding }}</div>
+                <div class="finf">{{ finding.inference }}</div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="carousel-nav">
+          <button class="carousel-arrow" type="button" data-dir="-1" aria-label="Previous finding">‹</button>
+          <div class="carousel-dots" id="findingsDots"></div>
+          <button class="carousel-arrow" type="button" data-dir="1" aria-label="Next finding">›</button>
+        </div>
+      </div>
+    </div>
+
+    {# ── VIEW: LIST + READER PANE ── #}
+    <div class="fview" data-view="reader">
+      <div class="reader" id="findingsReader">
+        <div class="reader-list">
+          {% for finding in key_findings %}
+          {% set sv = SEVMAP.get(finding.severity, SEVMAP['neutral']) %}
+          <button type="button" class="reader-item{% if loop.first %} active{% endif %}" data-idx="{{ loop.index0 }}">
+            <span class="ri-dot s-{{ sv.key }}"></span>
+            <span class="ri-text">{{ finding.finding }}</span>
+          </button>
+          {% endfor %}
+        </div>
+        <div class="reader-detail">
+          {% for finding in key_findings %}
+          {% set sv = SEVMAP.get(finding.severity, SEVMAP['neutral']) %}
+          <div class="reader-pane f-{{ sv.key }}{% if loop.first %} active{% endif %}" data-idx="{{ loop.index0 }}">
+            <div class="fmeta">
+              <span class="sev-ico s-{{ sv.key }}">{{ sv.ico }}</span>
+              <span class="sev-label s-{{ sv.key }}">{{ sv.word }}</span>
+              <span class="fcat">{{ finding.category }}</span>
+            </div>
+            <div class="ftext">{{ finding.finding }}</div>
+            <div class="finf">{{ finding.inference }}</div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    {# ── VIEW: TIMELINE ── #}
+    <div class="fview" data-view="timeline">
+      <div class="ftimeline">
+        {% for finding in key_findings %}
+        {% set sv = SEVMAP.get(finding.severity, SEVMAP['neutral']) %}
+        <div class="ftl-item">
+          <div class="ftl-node s-{{ sv.key }}">{{ sv.ico }}</div>
+          <div class="ftl-card f-{{ sv.key }}">
+            <div class="fmeta">
+              <span class="sev-label s-{{ sv.key }}">{{ sv.word }}</span>
+              <span class="fcat">{{ finding.category }}</span>
+            </div>
+            <div class="ftext">{{ finding.finding }}</div>
+            <div class="finf">{{ finding.inference }}</div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    {# ── VIEW: TILES (expandable) ── #}
+    <div class="fview" data-view="tiles">
+      <div class="ftiles" id="findingsTiles">
+        {% for finding in key_findings %}
+        {% set sv = SEVMAP.get(finding.severity, SEVMAP['neutral']) %}
+        <button type="button" class="ftile f-{{ sv.key }}">
+          <div class="fmeta">
+            <span class="sev-ico s-{{ sv.key }}">{{ sv.ico }}</span>
+            <span class="sev-label s-{{ sv.key }}">{{ sv.word }}</span>
+            <span class="fcat">{{ finding.category }}</span>
+          </div>
+          <div class="ftext">{{ finding.finding }}</div>
+          <div class="finf">{{ finding.inference }}</div>
+        </button>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {# =================================================================== #}
+  {# PRODUCT PORTFOLIO DETAIL                                            #}
+  {# =================================================================== #}
+  {% if vectors_data %}
+  <div class="panel" id="products">
+    <h2>Product Portfolio Detail <span class="count">{{ vectors_data|length }} products</span></h2>
+    <div class="tabs">
+      <button class="active" onclick="tab(event,'pr-breakdown')">Breakdown</button>
+      <button onclick="tab(event,'pr-vintage')">Vintage &amp; Activity</button>
+      <button onclick="tab(event,'pr-timeline')">Vintage Timeline</button>
+    </div>
+
+    <div class="tab-body active" id="pr-breakdown">
+      <table class="data">
+        <thead>
+          <tr>
+            <th>Loan Type</th><th>Secured</th><th>Count</th><th>Live</th><th>Closed</th>
+            <th class="num">Sanctioned</th><th class="num">Outstanding</th>
+            <th>Max DPD</th><th>Util %</th><th>On-Us</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for vec in vectors_data %}
+          <tr>
+            <td><b>{{ vec.loan_type_display }}</b></td>
+            <td class="ctr"><span class="tag {{ 'green' if vec.secured else 'amber' }}">{{ "Yes" if vec.secured else "No" }}</span></td>
+            <td class="ctr">{{ vec.loan_count }}</td>
+            <td class="ctr">{{ vec.live_count }}</td>
+            <td class="ctr">{{ vec.closed_count }}</td>
+            <td class="num">{{ vec.total_sanctioned_amount|inr }}</td>
+            <td class="num">{{ vec.total_outstanding_amount|inr }}</td>
+            <td class="ctr">{% if vec.max_dpd is not none and vec.max_dpd > 0 %}<span class="tag red">{{ vec.max_dpd }}</span>{% elif vec.max_dpd is not none %}{{ vec.max_dpd }}{% else %}–{% endif %}</td>
+            <td class="ctr">{{ "{:.0f}".format(vec.utilization_ratio * 100) if vec.utilization_ratio is not none else "–" }}</td>
+            <td class="ctr">{{ vec.on_us_count }}</td>
+          </tr>
+          {% endfor %}
+          <tr class="total">
+            <td>TOTAL</td><td></td>
+            <td class="ctr">{{ ei.total_tradelines }}</td>
+            <td class="ctr">{{ ei.live_tradelines }}</td>
+            <td class="ctr">{{ ei.closed_tradelines }}</td>
+            <td class="num">{{ ei.total_sanctioned|inr }}</td>
+            <td class="num">{{ ei.total_outstanding|inr }}</td>
+            <td class="ctr">{{ ei.max_dpd if ei.max_dpd is not none else "–" }}</td>
+            <td></td><td></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="tab-body" id="pr-vintage">
+      <table class="data">
+        <thead>
+          <tr>
+            <th>Loan Type</th><th>Avg Vintage (mo)</th><th>First Opened</th><th>Last Opened</th>
+            <th>Last Closed</th><th>Mo. Since Last Payment</th><th>Joint</th><th>On-Us Live</th><th>Adverse Flags</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for vec in vectors_data %}
+          <tr>
+            <td><b>{{ vec.loan_type_display }}</b></td>
+            <td class="ctr">{{ "%.0f"|format(vec.avg_vintage_months) if vec.avg_vintage_months is not none else "–" }}</td>
+            <td class="ctr">{{ vec.earliest_opened or "–" }}</td>
+            <td class="ctr">{{ vec.latest_opened or "–" }}</td>
+            <td class="ctr">{{ vec.latest_closed or ("–" if vec.live_count == 0 else "Live") }}</td>
+            <td class="ctr">{{ vec.months_since_last_payment if vec.months_since_last_payment is not none else "–" }}</td>
+            <td class="ctr">{{ vec.joint_count or "–" }}</td>
+            <td class="ctr">{{ vec.on_us_live_count or "–" }}</td>
+            <td>{% if vec.forced_event_flags %}{% for f in vec.forced_event_flags %}<span class="tag red">{{ f }}</span> {% endfor %}{% else %}<span class="tag green">Clean</span>{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="tab-body" id="pr-timeline">
+      <div id="vintageCard">
+        <p class="muted" style="margin-bottom:10px">Span from first opened tradeline to last closure (or today, if any tradeline is live) per product.</p>
+        <div class="chart-wrap"><canvas id="cmbChartVintage"></canvas></div>
+      </div>
+      <div class="muted" id="vintageEmpty" style="display:none">No open-date information available for the vintage timeline.</div>
+    </div>
+  </div>
+  {% endif %}
+
+  {# =================================================================== #}
+  {# BEHAVIORAL & RISK FEATURES                                          #}
+  {# =================================================================== #}
+  {% if tl_features and v2 and v2.behavioral %}
+  {% set bf = v2.behavioral %}
+  {# Shared metric row — used by both the Summary cards and the Bars view #}
+  {% macro bf_metric_row(m) %}
+        <div class="bf-row" title="{{ m.hint }}">
+          <div class="bf-label">{{ m.label }}{% if m.hint %} <span class="bf-hint">({{ m.hint }})</span>{% endif %}</div>
+          <div class="bf-track">
+            {% if m.kind == 'bar' %}
+            <div class="bf-bar">
+              {% for s in m.segments %}<div class="bf-seg {{ s.rag }}" style="width:{{ s.w }}%"></div>{% endfor %}
+              <div class="bf-marker" style="left:{{ m.marker }}%"></div>
+            </div>
+            {% else %}
+            <div class="bf-strip {{ m.status }}">{{ m.strip_label }}</div>
+            {% endif %}
+          </div>
+          <div class="bf-val {{ m.status }}">{{ m.display }}</div>
+        </div>
+  {% endmacro %}
+  <div class="panel" id="behavioral">
+    <h2>Behavioral &amp; Risk Features <span class="count">{{ bf.summary.safe }} ok · {{ bf.summary.warn }} watch · {{ bf.summary.risk }} risk · {{ bf.summary.neutral }} ref/no-data</span></h2>
+
+    <div class="fview-toggle" id="behavioralViewToggle">
+      <button type="button" data-view="bars" class="active" title="Threshold bars by group">▬ Bars</button>
+      <button type="button" data-view="table" title="Sortable table">▤ Table</button>
+    </div>
+
+    {# ── VIEW: BARS (group accordion cards, worst-first; all closed) ── #}
+    <div class="fview active" data-view="bars">
+      <div class="bf-cards" id="bfCards">
+        {% for g in bf.groups %}
+        <div class="bf-card bf-acc-{{ g.status }}">
+          <button type="button" class="bf-card-head" title="{{ g.takeaway }}" aria-expanded="false">
+            <div class="bf-card-title">
+              <span class="bf-chev">▶</span>
+              <span class="bf-card-name">{{ g.name }}</span>
+              <span class="bf-take">{{ g.takeaway }}</span>
+            </div>
+            <div class="bf-card-meter">
+              <span class="bf-dots" title="{{ g.count_label }}">{% for i in range(5) %}<span class="dot{% if i < g.dots %} on{% endif %}"></span>{% endfor %}</span>
+              <span class="bf-card-count">{{ g.count_label }}</span>
+            </div>
+          </button>
+          <div class="bf-card-body">
+            <div class="bf-list">
+              {% for m in g.metrics %}{{ bf_metric_row(m) }}{% endfor %}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <p class="muted" style="margin-top:10px">Groups are ordered most-attention-first. Click a group to open its metrics — opening one closes the others.</p>
+    </div>
+
+    {# ── VIEW: SORTABLE TABLE (flat, risk-first) ── #}
+    <div class="fview" data-view="table">
+      <table class="data" id="bfTable">
+        <thead><tr>
+          <th class="bf-sort" data-sort="status">Status <span class="sort-ind">▲</span></th>
+          <th class="bf-sort" data-sort="label">Metric <span class="sort-ind"></span></th>
+          <th class="bf-sort num" data-sort="value">Value <span class="sort-ind"></span></th>
+          <th>Healthy when</th>
+        </tr></thead>
+        <tbody>
+          {% for m in bf.flat %}
+          <tr data-status="{{ m.status }}" data-value="{{ m.value if m.value is not none else '' }}" data-label="{{ m.label }}">
+            <td><span class="bf-dot {{ m.status }}"></span><span class="bf-stext {{ m.status }}">{{ m.strip_label if m.kind == 'strip' else (m.status|upper) }}</span></td>
+            <td>{{ m.label }}</td>
+            <td class="num">{{ m.display }}</td>
+            <td><span class="hw">{{ m.hint }}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <p class="muted" style="margin-top:8px">Sorted risk-first so weak areas rise to the top. Click a column header to re-sort.</p>
+    </div>
+  </div>
+  {% endif %}
+
+  {% else %}
+  {# Bureau data not available #}
+  <div class="panel">
+    <div class="absence-note">Bureau tradeline data is not available for this customer.</div>
+  </div>
+  {% endif %}
+
+  <div class="foot">{% if bureau_report %}Generated {{ bureau_report.meta.generated_at[:10] }} · {% endif %}BUREAU_ANALYSER v2</div>
+</div>
+
+{# Floating analyst notepad #}
+<div class="notepad" id="notepad">
+  <div class="head">
+    <span class="icon">📝</span>
+    <span class="lbl">Review Notes</span>
+    <span class="ctx" id="notepadCtx" title="Section currently in view">—</span>
+    <button class="x" onclick="hideNotepad()" title="Hide (your notes stay saved)" aria-label="Hide notepad">×</button>
+  </div>
+  <textarea id="notepadText" placeholder="Jot anything here while you review. Auto-saves locally; download as .md or .json from the Notes ⤓ button up top."></textarea>
+  <div class="foot">
+    <button class="insert" onclick="insertSectionTag()" title="Insert the current section as a heading">+ insert section heading</button>
+    <span class="ts" id="notepadTs"></span>
+  </div>
+</div>
+<button class="notepad-tab" id="notepadTab" onclick="showNotepad()" title="Open review notes" aria-label="Open notepad">📝 Add review notes <span class="dot" id="notepadTabDot" style="display:none"></span></button>
+<div class="notepad-hint" id="notepadHint" role="status">
+  <button class="x" onclick="dismissNotepadHint()" aria-label="Dismiss hint">×</button>
+  Jot review notes here while you scroll. Auto-saves to this browser; export from <b>Notes ⤓</b>.
+</div>
+
+<button class="back-to-top" id="backToTop" onclick="scrollToTop()" title="Back to top" aria-label="Back to top">↑</button>
+
+{# Risk-trail payload — embedded once for client-side JSON/CSV export. #}
+<script id="risk-trail-data" type="application/json">
+{{ {
+  "customer_id": (bureau_report.meta.customer_id if bureau_report else None),
+  "generated_at": (bureau_report.meta.generated_at if bureau_report else None),
+  "verdict": (scorecard.verdict if scorecard else None),
+  "verdict_rag": (scorecard.verdict_rag if scorecard else None),
+  "kpis": (v2.kpis if v2 else None),
+  "checklist": bureau_checklist,
+  "persona": persona,
+  "scorecard_signals": (scorecard.signals if scorecard else None),
+  "strengths": (scorecard.strengths if scorecard else None),
+  "concerns": (scorecard.concerns if scorecard else None),
+  "exposure_summary": exposure_summary,
+  "key_findings": key_findings
+}|tojson }}
+</script>
+
+{# v2-only chart payloads (pre-serialized in Python) #}
+<script id="v2-chart-data" type="application/json">{% if v2 %}{{ v2.charts | safe }}{% else %}null{% endif %}</script>
+
+<script>
+  // ---- TABS / SUMMARY TOGGLE ------------------------------------------------
+  function tab(e, id){
+    const wrap = e.target.closest('.panel');
+    wrap.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));
+    e.target.classList.add('active');
+    wrap.querySelectorAll('.tab-body').forEach(b=>b.classList.remove('active'));
+    const target = wrap.querySelector('#'+id);
+    if(target){
+      target.classList.add('active');
+      // Charts built while their tab was hidden render at 0 size — resize on show.
+      if(window.Chart){
+        target.querySelectorAll('canvas').forEach(cv=>{
+          const ch = Chart.getChart(cv);
+          if(ch) ch.resize();
+        });
+      }
+    }
+  }
+  function toggleSummary(){ const s=document.getElementById('sum'); if(s) s.classList.toggle('clamped'); }
+
+  // ---- CHECKLIST SORT -------------------------------------------------------
+  function sortChecklist(selectEl, gridId){
+    const grid = document.getElementById(gridId);
+    if(!grid) return;
+    const items = Array.from(grid.querySelectorAll('.check'));
+    const criteria = selectEl.value;
+    const severityOrder = { high: 0, medium: 1, neutral: 2, positive: 3 };
+    items.sort(function(a, b){
+      if(criteria === 'severity'){
+        const sa = severityOrder[a.dataset.severity] !== undefined ? severityOrder[a.dataset.severity] : 9;
+        const sb = severityOrder[b.dataset.severity] !== undefined ? severityOrder[b.dataset.severity] : 9;
+        if(sa !== sb) return sa - sb;
+        return parseInt(a.dataset.order) - parseInt(b.dataset.order);
+      } else if(criteria === 'status'){
+        const ca = a.dataset.checked === 'yes' ? 0 : 1;
+        const cb = b.dataset.checked === 'yes' ? 0 : 1;
+        if(ca !== cb) return ca - cb;
+        return parseInt(a.dataset.order) - parseInt(b.dataset.order);
+      }
+      return parseInt(a.dataset.order) - parseInt(b.dataset.order);
+    });
+    items.forEach(item => grid.appendChild(item));
+  }
+
+  // ---- KEY FINDINGS CAROUSEL (with severity filters) ------------------------
+  (function(){
+    const root = document.getElementById('findingsCarousel');
+    if(!root) return;
+    const track = root.querySelector('.carousel-track');
+    const allSlides = Array.from(root.querySelectorAll('.carousel-slide'));
+    const dotsBox = root.querySelector('.carousel-dots');
+    const filterBox = root.querySelector('.ffilter');
+    const prev = root.querySelector('[data-dir="-1"]');
+    const next = root.querySelector('[data-dir="1"]');
+    if(!track || !allSlides.length) return;
+
+    // Severity metadata — colour + display order
+    const SEV = {
+      high_risk:     { label: 'High Risk', dot: '#ef4444', bg: '#fee2e2', bd: '#fca5a5', fg: '#991b1b' },
+      moderate_risk: { label: 'Moderate',  dot: '#f59e0b', bg: '#fef3c7', bd: '#fcd34d', fg: '#92400e' },
+      concern:       { label: 'Concern',   dot: '#eab308', bg: '#fef9c3', bd: '#fde047', fg: '#713f12' },
+      positive:      { label: 'Positive',  dot: '#10b981', bg: '#d1fae5', bd: '#6ee7b7', fg: '#065f46' },
+      neutral:       { label: 'Info',      dot: '#94a3b8', bg: '#f1f5f9', bd: '#cbd5e1', fg: '#475569' },
+    };
+    const SEV_ORDER = ['high_risk', 'moderate_risk', 'concern', 'positive', 'neutral'];
+
+    let filter = 'all';
+    let visible = allSlides.slice();
+    let idx = 0;
+    let dots = [];
+
+    // Build severity filter chips (only for severities actually present)
+    const counts = {};
+    allSlides.forEach(s => { const k = s.dataset.severity || 'neutral'; counts[k] = (counts[k] || 0) + 1; });
+    const chips = [];
+    function makeChip(key, label, dotColor, count){
+      const c = document.createElement('button');
+      c.type = 'button'; c.className = 'fchip'; c.dataset.filter = key;
+      const dot = document.createElement('span'); dot.className = 'dot'; dot.style.background = dotColor;
+      const txt = document.createElement('span'); txt.textContent = label;
+      const cnt = document.createElement('span'); cnt.className = 'cnt'; cnt.textContent = count;
+      c.appendChild(dot); c.appendChild(txt); c.appendChild(cnt);
+      c.addEventListener('click', () => setFilter(key));
+      filterBox.appendChild(c); chips.push(c);
+    }
+    makeChip('all', 'All', '#6366f1', allSlides.length);
+    SEV_ORDER.forEach(k => { if(counts[k]) makeChip(k, SEV[k].label, SEV[k].dot, counts[k]); });
+
+    function paintChips(){
+      chips.forEach(c => {
+        const on = c.dataset.filter === filter;
+        const sev = SEV[c.dataset.filter];
+        if(on){
+          c.style.background = sev ? sev.bg : '#eef2ff';
+          c.style.borderColor = sev ? sev.bd : '#6366f1';
+          c.style.color = sev ? sev.fg : '#4338ca';
+        } else {
+          c.style.background = '#fff'; c.style.borderColor = '#e2e8f0'; c.style.color = '#64748b';
+        }
+      });
+    }
+
+    function rebuildDots(){
+      dotsBox.innerHTML = '';
+      dots = visible.map((_, i) => {
+        const b = document.createElement('button');
+        b.type = 'button'; b.setAttribute('aria-label', 'Go to finding ' + (i + 1));
+        b.addEventListener('click', () => go(i));
+        dotsBox.appendChild(b);
+        return b;
+      });
+    }
+
+    function go(i){
+      if(!visible.length) return;
+      idx = Math.max(0, Math.min(visible.length - 1, i));
+      // Visible slides are contiguous (filtered-out ones are display:none), so
+      // translating by index works cleanly.
+      track.style.transform = 'translateX(' + (-idx * 100) + '%)';
+      dots.forEach((d, j) => d.classList.toggle('active', j === idx));
+      if(prev) prev.disabled = (idx === 0);
+      if(next) next.disabled = (idx === visible.length - 1);
+    }
+
+    function setFilter(key){
+      filter = key;
+      allSlides.forEach(s => {
+        const show = (key === 'all' || s.dataset.severity === key);
+        s.style.display = show ? '' : 'none';
+      });
+      visible = allSlides.filter(s => s.style.display !== 'none');
+      paintChips();
+      rebuildDots();
+      go(0);
+    }
+
+    if(prev) prev.addEventListener('click', () => go(idx - 1));
+    if(next) next.addEventListener('click', () => go(idx + 1));
+    root.addEventListener('keydown', e => {
+      if(e.key === 'ArrowLeft'){ go(idx - 1); e.preventDefault(); }
+      else if(e.key === 'ArrowRight'){ go(idx + 1); e.preventDefault(); }
+    });
+    let x0 = null;
+    root.addEventListener('touchstart', e => { x0 = e.touches[0].clientX; }, {passive:true});
+    root.addEventListener('touchend', e => {
+      if(x0 === null) return;
+      const dx = e.changedTouches[0].clientX - x0;
+      if(Math.abs(dx) > 40) go(idx + (dx < 0 ? 1 : -1));
+      x0 = null;
+    });
+
+    setFilter('all');
+  })();
+
+  // ---- BACK-TO-TOP ----------------------------------------------------------
+  function scrollToTop(){ window.scrollTo({top:0, behavior:'smooth'}); }
+  (function(){
+    const btn = document.getElementById('backToTop');
+    if(!btn) return;
+    const onScroll = () => btn.classList.toggle('visible', window.scrollY > 400);
+    window.addEventListener('scroll', onScroll, {passive:true});
+    onScroll();
+  })();
+
+  // ---- ANALYST NOTEPAD ------------------------------------------------------
+  const NOTE_SECTIONS = {
+    kpis:       'Overview',
+    checklist:  'Quick Assessment Checklist',
+    profile:    'Profile & Persona',
+    signals:    'Risk Variables & Snapshot',
+    summary:    'Bureau Executive Summary',
+    portfolio:  'Portfolio Summary',
+    charts:     'Portfolio Visualizations',
+    dpd:        'DPD History',
+    findings:   'Key Findings',
+    products:   'Product Portfolio Detail',
+    behavioral: 'Behavioral & Risk Features'
+  };
+  const NOTES_CUSTOMER = {{ (bureau_report.meta.customer_id if bureau_report else 'unknown')|tojson }};
+  const NOTES_KEY = 'bureau_v2_notepad::' + NOTES_CUSTOMER;
+  const NOTES_VIS_KEY = 'bureau_v2_notepad_visible::' + NOTES_CUSTOMER;
+  const NOTES_INTRO_KEY = 'bureau_v2_notepad_intro_seen';
+
+  function loadNote(){
+    try { return JSON.parse(localStorage.getItem(NOTES_KEY) || 'null'); } catch(e){ return null; }
+  }
+  function saveNote(text){
+    try {
+      if (!text || !text.trim()) localStorage.removeItem(NOTES_KEY);
+      else localStorage.setItem(NOTES_KEY, JSON.stringify({
+        customer_id: NOTES_CUSTOMER,
+        note: text,
+        updated_at: new Date().toISOString()
+      }));
+    } catch(e){ console.warn('localStorage write failed', e); }
+    updateNotesUI();
+  }
+
+  function currentSectionId(){
+    const ids = Object.keys(NOTE_SECTIONS);
+    let active = ids[0];
+    const threshold = 140;
+    for (const id of ids){
+      const el = document.getElementById(id);
+      if (!el) continue;
+      const top = el.getBoundingClientRect().top;
+      if (top <= threshold) active = id;
+    }
+    return active;
+  }
+
+  function showNotepad(){
+    const pad = document.getElementById('notepad');
+    const tabEl = document.getElementById('notepadTab');
+    if (pad) pad.classList.remove('hidden');
+    if (tabEl) tabEl.classList.remove('visible');
+    try { localStorage.setItem(NOTES_VIS_KEY, '1'); } catch(e){}
+    setTimeout(() => { const ta = document.getElementById('notepadText'); if (ta) ta.focus(); }, 250);
+  }
+  function hideNotepad(){
+    const pad = document.getElementById('notepad');
+    const tabEl = document.getElementById('notepadTab');
+    if (pad) pad.classList.add('hidden');
+    if (tabEl) tabEl.classList.add('visible');
+    try { localStorage.setItem(NOTES_VIS_KEY, '0'); } catch(e){}
+  }
+
+  function insertSectionTag(){
+    const ta = document.getElementById('notepadText');
+    if (!ta) return;
+    const id = currentSectionId();
+    const heading = '\n\n## ' + (NOTE_SECTIONS[id] || id) + '\n';
+    const before = ta.value.slice(0, ta.selectionStart);
+    const after = ta.value.slice(ta.selectionEnd);
+    ta.value = (before.trimEnd() + heading + after).replace(/^\n+/, '');
+    ta.focus();
+    onNoteInput();
+  }
+
+  let noteSaveTimer = null;
+  function onNoteInput(){
+    const ta = document.getElementById('notepadText');
+    const ts = document.getElementById('notepadTs');
+    if (!ta) return;
+    clearTimeout(noteSaveTimer);
+    noteSaveTimer = setTimeout(() => {
+      saveNote(ta.value);
+      if (ts) ts.textContent = ta.value.trim() ? 'Saved just now' : '';
+    }, 350);
+  }
+
+  function clearAllNotes(){
+    const data = loadNote();
+    if (!data) return;
+    if (!confirm('Clear the review notes for this customer? This cannot be undone.')) return;
+    saveNote('');
+    const ta = document.getElementById('notepadText');
+    if (ta) ta.value = '';
+    const ts = document.getElementById('notepadTs');
+    if (ts) ts.textContent = '';
+    closeNotesMenu();
+  }
+
+  function downloadNotes(format){
+    const data = loadNote();
+    if (!data || !data.note || !data.note.trim()){ alert('No notes to download.'); return; }
+    const stamp = new Date().toISOString().slice(0,10);
+    let blob, filename;
+    if (format === 'json'){
+      blob = new Blob([JSON.stringify({...data, exported_at: new Date().toISOString()}, null, 2)], {type:'application/json'});
+      filename = `bureau_notes_${NOTES_CUSTOMER}_${stamp}.json`;
+    } else {
+      const md =
+        `# Bureau Review Notes — Customer ${NOTES_CUSTOMER}\n\n` +
+        `_Exported ${new Date().toLocaleString()} · last saved ${new Date(data.updated_at).toLocaleString()}_\n\n` +
+        data.note.trim() + '\n';
+      blob = new Blob([md], {type:'text/markdown'});
+      filename = `bureau_notes_${NOTES_CUSTOMER}_${stamp}.md`;
+    }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 0);
+    closeNotesMenu();
+  }
+
+  function updateNotesUI(){
+    const data = loadNote();
+    const has = !!(data && data.note && data.note.trim());
+    const btn = document.getElementById('notesDownloadBtn');
+    const badge = document.getElementById('notesCount');
+    const tabDot = document.getElementById('notepadTabDot');
+    if (btn) btn.disabled = !has;
+    if (badge){
+      badge.textContent = has ? '●' : '';
+      badge.style.display = has ? 'inline-block' : 'none';
+    }
+    if (tabDot) tabDot.style.display = has ? 'inline-block' : 'none';
+  }
+
+  function toggleNotesMenu(ev){
+    if (ev) ev.stopPropagation();
+    const m = document.getElementById('notesMenu');
+    if (!m || m.querySelector('button.btn').disabled) return;
+    m.classList.toggle('open');
+  }
+  function closeNotesMenu(){
+    const m = document.getElementById('notesMenu');
+    if (m) m.classList.remove('open');
+  }
+  function toggleExportMenu(ev){
+    if (ev) ev.stopPropagation();
+    const m = document.getElementById('exportMenu');
+    if (m) m.classList.toggle('open');
+  }
+  function closeExportMenu(){
+    const m = document.getElementById('exportMenu');
+    if (m) m.classList.remove('open');
+  }
+  document.addEventListener('click', (e) => {
+    const m = document.getElementById('notesMenu');
+    if (m && !m.contains(e.target)) closeNotesMenu();
+    const x = document.getElementById('exportMenu');
+    if (x && !x.contains(e.target)) closeExportMenu();
+  });
+
+  function refreshNotepadCtx(){
+    const ctx = document.getElementById('notepadCtx');
+    if (!ctx) return;
+    const id = currentSectionId();
+    ctx.textContent = NOTE_SECTIONS[id] || '—';
+  }
+
+  function dismissNotepadHint(){
+    const h = document.getElementById('notepadHint');
+    if (h) h.classList.remove('visible');
+    try { localStorage.setItem(NOTES_INTRO_KEY, '1'); } catch(e){}
+  }
+
+  function playNotepadIntro(){
+    let seen = false;
+    try { seen = localStorage.getItem(NOTES_INTRO_KEY) === '1'; } catch(e){}
+    if (seen) return;
+    showNotepad();
+    const pad = document.getElementById('notepad');
+    const tabEl = document.getElementById('notepadTab');
+    const hint = document.getElementById('notepadHint');
+    if (pad){
+      pad.classList.add('intro-pulse');
+      setTimeout(() => pad.classList.remove('intro-pulse'), 5000);
+    }
+    if (tabEl){
+      tabEl.classList.add('intro-pulse');
+      setTimeout(() => tabEl.classList.remove('intro-pulse'), 5000);
+    }
+    if (hint){
+      hint.classList.add('visible');
+      setTimeout(() => { if (hint.classList.contains('visible')) dismissNotepadHint(); }, 8000);
+    }
+  }
+
+  function initNotes(){
+    const ta = document.getElementById('notepadText');
+    const ts = document.getElementById('notepadTs');
+    const data = loadNote();
+    if (ta && data && data.note){
+      ta.value = data.note;
+      if (ts) ts.textContent = 'Saved ' + new Date(data.updated_at).toLocaleString();
+    }
+    if (ta) ta.addEventListener('input', onNoteInput);
+    if (ta) ta.addEventListener('focus', dismissNotepadHint);
+    let visible = true;
+    try { visible = localStorage.getItem(NOTES_VIS_KEY) !== '0'; } catch(e){}
+    if (!visible) hideNotepad();
+    refreshNotepadCtx();
+    window.addEventListener('scroll', refreshNotepadCtx, {passive:true});
+    updateNotesUI();
+    playNotepadIntro();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initNotes);
+  else initNotes();
+
+  // ---- RISK TRAIL JSON EXPORT ----------------------------------------------
+  function downloadRiskTrail(){
+    try{
+      const node = document.getElementById('risk-trail-data');
+      if(!node) return;
+      const payload = JSON.parse(node.textContent || '{}');
+      payload._exported_at = new Date().toISOString();
+      const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const cust = payload.customer_id || 'customer';
+      const stamp = new Date().toISOString().slice(0,10);
+      a.href = url; a.download = `bureau_risk_trail_${cust}_${stamp}.json`;
+      document.body.appendChild(a); a.click();
+      setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 0);
+    }catch(e){ console.error('risk trail export failed', e); alert('Risk trail export failed — see console.'); }
+  }
+
+  // ---- RISK TRAIL CSV EXPORT ------------------------------------------------
+  function exportRiskTrailCSV(){
+    try{
+      const node = document.getElementById('risk-trail-data');
+      if(!node) return;
+      const payload = JSON.parse(node.textContent || '{}');
+      const rows = [];
+      const esc = v => {
+        if (v === null || v === undefined) return '';
+        const s = typeof v === 'object' ? JSON.stringify(v) : String(v);
+        return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
+      };
+      const flatten = (obj, prefix) => {
+        if (obj === null || obj === undefined) { rows.push([prefix, '']); return; }
+        if (Array.isArray(obj)) {
+          obj.forEach((v, i) => flatten(v, `${prefix}[${i}]`));
+          return;
+        }
+        if (typeof obj === 'object') {
+          for (const k of Object.keys(obj)) flatten(obj[k], prefix ? `${prefix}.${k}` : k);
+          return;
+        }
+        rows.push([prefix, obj]);
+      };
+      flatten(payload, '');
+      const csv = ['key,value', ...rows.map(r => `${esc(r[0])},${esc(r[1])}`)].join('\n');
+      const blob = new Blob([csv], {type:'text/csv'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const cust = payload.customer_id || 'customer';
+      const stamp = new Date().toISOString().slice(0,10);
+      a.href = url; a.download = `bureau_risk_trail_${cust}_${stamp}.csv`;
+      document.body.appendChild(a); a.click();
+      setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 0);
+    }catch(e){ console.error('CSV export failed', e); alert('CSV export failed — see console.'); }
+  }
+
+  // ---- KEY FINDINGS: view toggle + reader + tiles ---------------------------
+  (function(){
+    const panel = document.getElementById('findings');
+    if(!panel) return;
+
+    // View switcher (Carousel / Reader / Timeline / Tiles), remembered per customer
+    const toggle = document.getElementById('findingsViewToggle');
+    const views = Array.from(panel.querySelectorAll('.fview'));
+    if(toggle && views.length){
+      const VKEY = 'bureau_v2_findings_view::' + NOTES_CUSTOMER;
+      const buttons = Array.from(toggle.querySelectorAll('button'));
+      function setView(name){
+        if(!buttons.some(b => b.dataset.view === name)) return;
+        buttons.forEach(b => b.classList.toggle('active', b.dataset.view === name));
+        views.forEach(v => v.classList.toggle('active', v.dataset.view === name));
+        try { localStorage.setItem(VKEY, name); } catch(e){}
+      }
+      buttons.forEach(b => b.addEventListener('click', () => setView(b.dataset.view)));
+      let saved = null;
+      try { saved = localStorage.getItem(VKEY); } catch(e){}
+      if(saved) setView(saved);
+    }
+
+    // Reader: clicking a headline swaps the detail pane
+    const reader = document.getElementById('findingsReader');
+    if(reader){
+      const items = Array.from(reader.querySelectorAll('.reader-item'));
+      const panes = Array.from(reader.querySelectorAll('.reader-pane'));
+      items.forEach(it => it.addEventListener('click', () => {
+        const idx = it.dataset.idx;
+        items.forEach(x => x.classList.toggle('active', x === it));
+        panes.forEach(p => p.classList.toggle('active', p.dataset.idx === idx));
+      }));
+    }
+
+    // Tiles: click to expand/collapse the inference
+    const tiles = document.getElementById('findingsTiles');
+    if(tiles){
+      tiles.querySelectorAll('.ftile').forEach(t => t.addEventListener('click', () => t.classList.toggle('open')));
+    }
+  })();
+
+  // ---- BEHAVIORAL: view toggle (Summary/Bars/Table) + accordion + table sort -
+  (function(){
+    const panel = document.getElementById('behavioral');
+    if(!panel) return;
+
+    const toggle = document.getElementById('behavioralViewToggle');
+    const views = Array.from(panel.querySelectorAll('.fview'));
+    if(toggle && views.length){
+      const VKEY = 'bureau_v2_behavioral_view::' + NOTES_CUSTOMER;
+      const buttons = Array.from(toggle.querySelectorAll('button'));
+      function setView(name){
+        if(!buttons.some(b => b.dataset.view === name)) return;
+        buttons.forEach(b => b.classList.toggle('active', b.dataset.view === name));
+        views.forEach(v => v.classList.toggle('active', v.dataset.view === name));
+        try { localStorage.setItem(VKEY, name); } catch(e){}
+      }
+      buttons.forEach(b => b.addEventListener('click', () => setView(b.dataset.view)));
+      let saved = null; try { saved = localStorage.getItem(VKEY); } catch(e){}
+      if(saved) setView(saved);
+    }
+
+    // Summary accordion — one group card open at a time
+    const cards = panel.querySelector('#bfCards');
+    if(cards){
+      const items = Array.from(cards.querySelectorAll('.bf-card'));
+      items.forEach(card => {
+        const head = card.querySelector('.bf-card-head');
+        if(!head) return;
+        head.addEventListener('click', () => {
+          const willOpen = !card.classList.contains('open');
+          items.forEach(c => {
+            c.classList.remove('open');
+            const h = c.querySelector('.bf-card-head');
+            if(h) h.setAttribute('aria-expanded', 'false');
+          });
+          if(willOpen){ card.classList.add('open'); head.setAttribute('aria-expanded', 'true'); }
+        });
+      });
+    }
+
+    // Sortable table (Status puts risk first)
+    const table = document.getElementById('bfTable');
+    if(table){
+      const tbody = table.querySelector('tbody');
+      const rows = Array.from(tbody.querySelectorAll('tr'));
+      const SEV = { risk:0, warn:1, neutral:2, safe:3 };
+      let curKey = null, dir = 1;
+      table.querySelectorAll('th.bf-sort').forEach(th => {
+        th.addEventListener('click', () => {
+          const key = th.dataset.sort;
+          if(curKey === key) dir = -dir; else { curKey = key; dir = 1; }
+          const sorted = rows.slice().sort((a, b) => {
+            if(key === 'status') return (SEV[a.dataset.status] - SEV[b.dataset.status]) * dir;
+            if(key === 'value'){
+              const av = a.dataset.value === '' ? -Infinity : parseFloat(a.dataset.value);
+              const bv = b.dataset.value === '' ? -Infinity : parseFloat(b.dataset.value);
+              return (av - bv) * dir;
+            }
+            return (a.dataset[key] || '').localeCompare(b.dataset[key] || '') * dir;
+          });
+          sorted.forEach(r => tbody.appendChild(r));
+          table.querySelectorAll('.sort-ind').forEach(s => s.textContent = '');
+          const ind = th.querySelector('.sort-ind');
+          if(ind) ind.textContent = dir > 0 ? '▲' : '▼';
+        });
+      });
+    }
+  })();
+
+  // ---- PER-ACCOUNT DPD: window (24/36) + clean-accounts expander ------------
+  (function(){
+    const acct = document.getElementById("dpdAcct");
+    if(!acct) return;
+    acct.querySelectorAll(".dpd-win-btn").forEach(b => b.addEventListener("click", () => {
+      acct.querySelectorAll(".dpd-win-btn").forEach(x => x.classList.remove("active"));
+      b.classList.add("active");
+      acct.classList.toggle("show-36", b.dataset.win === "36");
+    }));
+    const tog = document.getElementById("dpdCleanToggle");
+    const list = document.getElementById("dpdCleanList");
+    if(tog && list){
+      tog.addEventListener("click", () => {
+        const open = list.hasAttribute("hidden");
+        if(open) list.removeAttribute("hidden"); else list.setAttribute("hidden","");
+        tog.setAttribute("aria-expanded", String(open));
+        tog.textContent = (open ? "▾ " : "▸ ") + tog.textContent.replace(/^[▸▾]\s*/, "");
+      });
+    }
+  })();
+
+  // ---- QUICK-VIEW legend "+N more" popovers ---------------------------------
+  (function(){
+    const wraps = Array.from(document.querySelectorAll('.sv-more'));
+    if(!wraps.length) return;
+    function closeAll(){ document.querySelectorAll('.sv-pop').forEach(p => p.setAttribute('hidden','')); }
+    wraps.forEach(w => {
+      const btn = w.querySelector('.sv-more-btn'), pop = w.querySelector('.sv-pop');
+      if(!btn || !pop) return;
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const open = pop.hasAttribute('hidden');
+        closeAll();
+        if(open) pop.removeAttribute('hidden');
+      });
+    });
+    document.addEventListener('click', closeAll);
+  })();
+
+  // ---- KPI SPARKLINE (total exposure) ---------------------------------------
+  {% if v2 and v2.kpis and v2.kpis.exposure.series %}
+  new Chart(document.getElementById('sparkExposure'),{
+    type:'line',
+    data:{labels:{{ v2.kpis.exposure.labels|tojson }},datasets:[{data:{{ v2.kpis.exposure.series|tojson }},borderColor:'#6366f1',backgroundColor:'rgba(99,102,241,.12)',fill:true,tension:.35,pointRadius:0,borderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}}}
+  });
+  {% endif %}
+</script>
+
+{% if bureau_report and chart_data %}
+<script>
+(function() {
+    // Fixed per-product color map — consistent across ALL charts.
+    const PRODUCT_COLORS = {
+        // Short names
+        "PL":   "#4E79A7", "CC":   "#F28E2B", "HL":   "#59A14F",
+        "AL":   "#E15759", "BL":   "#B07AA1", "LAP":  "#9C755F",
+        "LAS":  "#86BCB6", "LAD":  "#D37295", "GL":   "#EDC948",
+        "TWL":  "#76B7B2", "CD":   "#FF9DA7", "CMVL": "#A0CBE8",
+        "OTHER":"#BAB0AC",
+        // Display names (donuts receive these from Python)
+        "Personal Loan":          "#4E79A7",
+        "Credit Card":            "#F28E2B",
+        "Home Loan":              "#59A14F",
+        "Auto Loan":              "#E15759",
+        "Business Loan":          "#B07AA1",
+        "LAP":                    "#9C755F",
+        "LAS":                    "#86BCB6",
+        "LAD":                    "#D37295",
+        "Gold Loan":              "#EDC948",
+        "Two Wheeler Loan":       "#76B7B2",
+        "Consumer Durable":       "#FF9DA7",
+        "Commercial Vehicle Loan":"#A0CBE8",
+        "Other":                  "#BAB0AC",
+    };
+    const FALLBACK_PALETTE = [
+        "#4E79A7","#F28E2B","#59A14F","#E15759","#B07AA1",
+        "#9C755F","#86BCB6","#D37295","#EDC948","#76B7B2",
+        "#FF9DA7","#A0CBE8","#BAB0AC"
+    ];
+    const productColor = (name, idx) => PRODUCT_COLORS[name] || FALLBACK_PALETTE[idx % FALLBACK_PALETTE.length];
+
+    const SECURED_COLORS = ["#10b981","#f59e0b"];
+    const ONUS_COLORS    = ["#6366f1","#94a3b8"];
+
+    const COMMON_OPTS = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { position: "bottom", labels: { font: { size: 11 }, boxWidth: 12, padding: 8 } },
+            tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed}` } }
+        },
+    };
+
+    function mkDonut(canvasId, labels, values, colorFn) {
+        const ctx = document.getElementById(canvasId);
+        if (!ctx) return;
+        const filtered = labels.map((l, i) => [l, values[i], colorFn(l, i)])
+                               .filter(x => x[1] > 0);
+        if (!filtered.length) { ctx.parentElement.innerHTML = "<p style='color:#94a3b8;font-size:12px;text-align:center;padding-top:80px'>No data</p>"; return; }
+        new Chart(ctx, {
+            type: "doughnut",
+            data: {
+                labels: filtered.map(x => x[0]),
+                datasets: [{ data: filtered.map(x => x[1]), backgroundColor: filtered.map(x => x[2]),
+                             borderWidth: 2, borderColor: "#fff", hoverOffset: 6 }]
+            },
+            options: { ...COMMON_OPTS, cutout: "55%" }
+        });
+    }
+
+    const CD = {{ chart_data | safe }};
+    let V2C = null;
+    try { V2C = JSON.parse(document.getElementById('v2-chart-data').textContent || 'null'); } catch(e){ V2C = null; }
+
+    // INR / value formatter shared by the explorer
+    function fmtMetric(v, fmt){
+        if (v === null || v === undefined) return "—";
+        if (fmt === "inr") return "₹" + (v >= 1e7 ? (v/1e7).toFixed(2)+" Cr" : v >= 1e5 ? (v/1e5).toFixed(2)+" L" : v >= 1e3 ? (v/1e3).toFixed(1)+"K" : Math.round(v));
+        if (fmt === "pct") return v.toFixed(1) + "%";
+        if (fmt === "num") return v.toFixed(1);
+        return String(Math.round(v));
+    }
+
+    // Interactive Portfolio Explorer — bar + donut side by side. Single metric
+    // by default (picking one replaces the last); tick "Compare multiple" to
+    // overlay several metrics on the bar (donut always shows the first).
+    (function(){
+        const EX = V2C && V2C.explorer;
+        const barCanvas = document.getElementById("cmbChartBar");
+        const donutCanvas = document.getElementById("cmbChartDonut");
+        const metricBox = document.getElementById("vizMetric");
+        const caption = document.getElementById("vizCaption");
+        const multiBox = document.getElementById("vizMulti");
+        if (!barCanvas || !metricBox || !EX || !EX.products || !EX.products.length) return;
+
+        const products = EX.products;
+        const colors = products.map((p, i) => productColor(p, i));
+        const metricKeys = Object.keys(EX.metrics);
+        const UNIT = { inr: "₹", pct: "%", int: "#", num: "avg" };
+        const METRIC_PALETTE = ["#6366f1","#ef4444","#10b981","#f59e0b","#06b6d4","#a855f7","#f43f5e","#84cc16","#0ea5e9","#fb923c","#14b8a6"];
+        const STORE_KEY = "bureau_v2_explorer::" + NOTES_CUSTOMER;
+
+        let state = { metrics: [EX.metrics["outstanding"] ? "outstanding" : metricKeys[0]], multi: false };
+        try {
+            const s = JSON.parse(localStorage.getItem(STORE_KEY) || "null");
+            if (s) {
+                if (Array.isArray(s.metrics)) state.metrics = s.metrics;
+                else if (s.metric) state.metrics = [s.metric];
+                if (typeof s.multi === "boolean") state.multi = s.multi;
+            }
+        } catch(e){}
+        state.metrics = state.metrics.filter(k => EX.metrics[k]);
+        if (!state.metrics.length) state.metrics = [metricKeys[0]];
+        if (!state.multi && state.metrics.length > 1) state.metrics = [state.metrics[0]];
+
+        // Key metrics show as chips; the rest live in a "More" dropdown list.
+        const KEY_METRICS = ["outstanding", "sanctioned", "live", "overdue"];
+        const moreList = document.getElementById("vizMoreList");
+        const moreWrap = document.getElementById("vizMoreWrap");
+        const moreBtn  = document.getElementById("vizMore");
+
+        function toggleMetric(key){
+            if (state.multi) {
+                if (state.metrics.includes(key)) state.metrics = state.metrics.filter(x => x !== key);
+                else state.metrics.push(key);
+                if (!state.metrics.length) state.metrics = [key];   // never empty
+            } else {
+                state.metrics = [key];                              // single-select: replace
+            }
+            render();
+        }
+
+        metricKeys.forEach(key => {
+            const m = EX.metrics[key];
+            if (KEY_METRICS.includes(key)) {
+                const chip = document.createElement("button");
+                chip.type = "button"; chip.className = "viz-mchip"; chip.dataset.key = key;
+                const name = document.createElement("span"); name.textContent = m.label;
+                const unit = document.createElement("span"); unit.className = "u"; unit.textContent = UNIT[m.fmt] || "";
+                chip.appendChild(name); chip.appendChild(unit);
+                chip.onclick = () => toggleMetric(key);
+                metricBox.appendChild(chip);
+            } else if (moreList) {
+                const item = document.createElement("div");
+                item.className = "viz-mitem"; item.dataset.key = key;
+                const ck = document.createElement("span"); ck.className = "ck";
+                const name = document.createElement("span"); name.textContent = m.label;
+                const unit = document.createElement("span"); unit.className = "u"; unit.textContent = UNIT[m.fmt] || "";
+                item.appendChild(ck); item.appendChild(name); item.appendChild(unit);
+                item.onclick = () => toggleMetric(key);
+                moreList.appendChild(item);
+            }
+        });
+
+        if (moreBtn && moreList) {
+            moreBtn.onclick = (e) => {
+                e.stopPropagation();
+                const show = moreList.hasAttribute("hidden");
+                if (show) moreList.removeAttribute("hidden"); else moreList.setAttribute("hidden", "");
+                moreBtn.setAttribute("aria-expanded", String(show));
+            };
+            document.addEventListener("click", (e) => {
+                if (moreWrap && !moreWrap.contains(e.target)) moreList.setAttribute("hidden", "");
+            });
+        }
+        if (multiBox) {
+            multiBox.checked = state.multi;
+            multiBox.onchange = () => {
+                state.multi = multiBox.checked;
+                if (!state.multi && state.metrics.length > 1) state.metrics = [state.metrics[0]];
+                render();
+            };
+        }
+
+        let barChart = null, donutChart = null;
+        function render(){
+            metricBox.querySelectorAll(".viz-mchip").forEach(c => c.classList.toggle("active", state.metrics.includes(c.dataset.key)));
+            if (moreList) moreList.querySelectorAll(".viz-mitem").forEach(it => {
+                const on = state.metrics.includes(it.dataset.key);
+                it.classList.toggle("active", on);
+                const ck = it.querySelector(".ck"); if (ck) ck.textContent = on ? "✓" : "";
+            });
+            if (moreBtn) {
+                const ms = state.metrics.filter(k => !KEY_METRICS.includes(k)).length;
+                moreBtn.textContent = ms ? `More · ${ms} ▾` : "More ▾";
+            }
+            if (multiBox) multiBox.checked = state.multi;
+            try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch(e){}
+
+            const selected = state.metrics.filter(k => EX.metrics[k]);
+            if (!selected.length) {
+                if (barChart) { barChart.destroy(); barChart = null; }
+                if (donutChart) { donutChart.destroy(); donutChart = null; }
+                caption.textContent = "Pick a metric to plot.";
+                return;
+            }
+            const multi = state.multi && selected.length > 1;
+
+            // ── BAR (left): single → bars per product; multi → one dataset per metric ──
+            const axisOrder = [];
+            selected.forEach(k => { const f = EX.metrics[k].fmt; if (!axisOrder.includes(f)) axisOrder.push(f); });
+            const barDatasets = selected.map((k, i) => {
+                const m = EX.metrics[k];
+                const vals = m.values.map(v => (v == null) ? 0 : v);
+                const col = multi ? METRIC_PALETTE[i % METRIC_PALETTE.length] : null;
+                const ds = {
+                    label: m.label, data: vals,
+                    backgroundColor: multi ? col + "CC" : colors.map(c => c + "CC"),
+                    borderColor: multi ? col : colors, borderWidth: 1, borderRadius: 4,
+                    categoryPercentage: 0.6, barPercentage: 0.72, _fmt: m.fmt,
+                };
+                ds.yAxisID = "y" + (m.fmt === axisOrder[0] ? "Main" : "Sec");
+                return ds;
+            });
+            const scales = {
+                x: { ticks: { font: { size: 10 }, maxRotation: 30 } },
+                yMain: { position: "left", beginAtZero: true, ticks: { font: { size: 10 }, callback: v => fmtMetric(v, axisOrder[0]) } },
+            };
+            if (axisOrder.length > 1){
+                scales.ySec = { position: "right", beginAtZero: true, grid: { drawOnChartArea: false }, ticks: { font: { size: 10 }, callback: v => fmtMetric(v, axisOrder[1]) } };
+            }
+            if (barChart) barChart.destroy();
+            barChart = new Chart(barCanvas, {
+                type: "bar",
+                data: { labels: products, datasets: barDatasets },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    interaction: { mode: "index", intersect: false },
+                    plugins: {
+                        legend: { display: multi, position: "bottom", labels: { font: { size: 10 }, boxWidth: 12, padding: 8 } },
+                        tooltip: { callbacks: { label: c => ` ${multi ? c.dataset.label + " · " : ""}${c.label}: ${fmtMetric(c.parsed.y, c.dataset._fmt)}` } }
+                    },
+                    scales,
+                }
+            });
+
+            // ── DONUT (right): always one metric (the first selected) across products ──
+            if (donutCanvas){
+                const dm = EX.metrics[selected[0]];
+                const keep = dm.values.map(v => v != null && v > 0);
+                const dl = products.filter((_, i) => keep[i]);
+                const dv = dm.values.filter((_, i) => keep[i]);
+                const dc = colors.filter((_, i) => keep[i]);
+                if (donutChart) donutChart.destroy();
+                donutChart = dv.length ? new Chart(donutCanvas, {
+                    type: "doughnut",
+                    data: { labels: dl, datasets: [{ data: dv, backgroundColor: dc, borderColor: "#fff", borderWidth: 2, hoverOffset: 6 }] },
+                    options: {
+                        responsive: true, maintainAspectRatio: false, cutout: "58%",
+                        plugins: {
+                            legend: { position: "bottom", labels: { font: { size: 10 }, boxWidth: 12, padding: 8 } },
+                            tooltip: { callbacks: { label: c => ` ${c.label}: ${fmtMetric(c.parsed, dm.fmt)}` } },
+                            title: { display: true, text: dm.label + " · share by product", font: { size: 11 }, color: "#475569" },
+                        }
+                    }
+                }) : null;
+            }
+
+            // ── caption ──
+            if (multi){
+                caption.textContent = `Comparing ${selected.map(k => EX.metrics[k].label).join(", ")} across ${products.length} products · donut shows ${EX.metrics[selected[0]].label}`;
+            } else {
+                const m = EX.metrics[selected[0]];
+                const nums = m.values.filter(v => v != null);
+                const sum = nums.reduce((a, b) => a + b, 0);
+                caption.textContent = (m.fmt === "pct" || m.fmt === "num")
+                    ? `${m.label} — average ${fmtMetric(nums.length ? sum / nums.length : 0, m.fmt)} across ${nums.length} reporting`
+                    : `${m.label} — total ${fmtMetric(sum, m.fmt)} across ${products.length} products`;
+            }
+        }
+        render();
+    })();
+
+    // Quick Views (product mix / secured / on-us / live-closed) are now
+    // server-rendered split bars; their donut/bar charts were removed.
+
+    // Stacked area chart — portfolio exposure over time, product colors
+    (function() {
+        const ts = CD.timeseries;
+        const ctx = document.getElementById("cmbChartTimeseries");
+        if (!ctx || !ts || !ts.months.length) return;
+        const fmt = v => v >= 1e7 ? (v/1e7).toFixed(2)+" Cr" : v >= 1e5 ? (v/1e5).toFixed(2)+" L" : String(v);
+        // Sort largest exposure to bottom of stack (most stable base)
+        const entries = Object.entries(ts.series)
+            .map(([name, vals]) => [name, vals, vals.reduce((a, b) => a + b, 0)])
+            .sort((a, b) => b[2] - a[2]);
+        const datasets = entries.map(([name, vals], i) => {
+            const col = productColor(name, i);
+            return {
+                label: name, data: vals,
+                borderColor: col, backgroundColor: col + "BB",
+                tension: 0.3, fill: true, pointRadius: 0, pointHoverRadius: 4, borderWidth: 2,
+            };
+        });
+        new Chart(ctx, {
+            type: "line",
+            data: { labels: ts.months, datasets },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                interaction: { mode: "index", intersect: false },
+                plugins: {
+                    legend: { position: "top", labels: { font: { size: 10 }, boxWidth: 12, padding: 10 } },
+                    tooltip: {
+                        callbacks: {
+                            label: c => ` ${c.dataset.label}: ${fmt(c.parsed.y)}`,
+                            footer: items => `Total: ${fmt(items.reduce((s, c) => s + c.parsed.y, 0))}`,
+                        },
+                    },
+                },
+                scales: {
+                    x: { ticks: { font: { size: 9 }, maxRotation: 45, autoSkip: true, maxTicksLimit: 12 } },
+                    y: { stacked: true, ticks: { font: { size: 10 }, callback: fmt, maxTicksLimit: 9 }, beginAtZero: true },
+                },
+            },
+        });
+    })();
+
+    // Exposure summary + per-product chart show together; the timeseries canvas
+    // sits in a hidden tab at load, so tab() resizes it when Exposure is shown.
+
+    // DPD Event Timeline — bar chart of max-DPD events; historical chips for >24M
+    (function() {
+        const dpd = CD.dpd_timeline;
+        const card = document.getElementById("cmbDpdTimelineCard");
+        const emptyNote = document.getElementById("dpdTimelineEmpty");
+        const hasEvents = dpd && dpd.events && dpd.events.length;
+        if (!hasEvents) {
+            if (card) card.style.display = "none";
+            if (emptyNote) emptyNote.style.display = "block";
+        } else {
+            const ctx = document.getElementById("cmbChartDpdTimeline");
+            if (ctx) {
+                const byLt = {};
+                dpd.events.forEach(e => {
+                    if (!byLt[e.loan_type]) byLt[e.loan_type] = new Array(24).fill(null);
+                    byLt[e.loan_type][e.month_idx] = e.dpd;
+                });
+                const datasets = Object.entries(byLt).map(([lt, data], i) => ({
+                    label: lt, data,
+                    backgroundColor: productColor(lt, i) + "BB",
+                    borderColor: productColor(lt, i), borderWidth: 1
+                }));
+                new Chart(ctx, {
+                    type: "bar",
+                    data: { labels: dpd.months, datasets },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: "top", labels: { font: { size: 10 }, boxWidth: 12, padding: 10 } },
+                            tooltip: { callbacks: { label: c => ` ${c.dataset.label}: ${c.parsed.y} days DPD` } }
+                        },
+                        scales: {
+                            x: { ticks: { font: { size: 9 }, maxRotation: 45, autoSkip: true, maxTicksLimit: 12 } },
+                            y: { beginAtZero: true, title: { display: true, text: "Days Past Due" },
+                                 ticks: { font: { size: 10 } } }
+                        }
+                    }
+                });
+            }
+        }
+        // Surface historical events older than the 24M window (previously dropped)
+        const hist = dpd && dpd.historical;
+        const histEl = document.getElementById("dpdHistorical");
+        if (hist && hist.length && histEl) {
+            histEl.style.display = "flex";
+            hist.forEach(h => {
+                const t = document.createElement("span");
+                t.className = "tag amber";
+                t.textContent = `${h.loan_type} · ${h.dpd} DPD · ${h.months_ago}M ago`;
+                histEl.appendChild(t);
+            });
+        }
+    })();
+
+    // NEW: DPD heatmap — months × product grid from raw payment history
+    (function() {
+        const dg = V2C && V2C.dpd_grid;
+        const hm = document.getElementById("dpdHeatmap");
+        const axis = document.getElementById("dpdHeatmapAxis");
+        const heatBtn = document.getElementById("dpdHeatTabBtn");
+        const tlBtn = document.getElementById("dpdTimelineTabBtn");
+        const heatBody = document.getElementById("dpd-heat");
+        const tlBody = document.getElementById("dpd-timeline");
+        const emptyNote = document.getElementById("dpdHeatEmpty");
+        if (!hm) return;
+        if (!dg || !dg.rows || !dg.rows.length) {
+            // No raw payment-history grid — fall back to the event timeline tab
+            if (heatBtn) heatBtn.style.display = "none";
+            if (heatBody) heatBody.classList.remove("active");
+            if (tlBtn) tlBtn.classList.add("active");
+            if (tlBody) tlBody.classList.add("active");
+            return;
+        }
+        dg.rows.forEach(row => {
+            const r = document.createElement("div"); r.className = "heat-row";
+            const lbl = document.createElement("div"); lbl.className = "lbl"; lbl.textContent = row.product; lbl.title = row.product;
+            const cells = document.createElement("div"); cells.className = "cells";
+            row.cells.forEach((c, i) => {
+                const d = document.createElement("div");
+                if (c.level) d.className = "l" + c.level;
+                const val = (c.v === null || c.v === undefined) ? "no data" : (typeof c.v === "number" ? c.v + " DPD" : c.v);
+                d.title = `${row.product} · ${dg.months[i]} · ${val}`;
+                cells.appendChild(d);
+            });
+            r.appendChild(lbl); r.appendChild(cells); hm.appendChild(r);
+        });
+        if (axis) {
+            dg.months.forEach((m, i) => {
+                const d = document.createElement("div");
+                const [mon, yr] = m.split(" ");
+                d.textContent = (i % 3 === 0) ? `${mon} ${(yr || "").slice(2)}` : "";
+                axis.appendChild(d);
+            });
+        }
+        if (!dg.has_events && emptyNote) emptyNote.style.display = "block";
+    })();
+
+    // NEW: Vintage timeline — horizontal floating bars per product
+    (function() {
+        const vg = V2C && V2C.vintage;
+        const card = document.getElementById("vintageCard");
+        const emptyNote = document.getElementById("vintageEmpty");
+        const ctx = document.getElementById("cmbChartVintage");
+        if (!ctx) return;
+        if (!vg || !vg.items || !vg.items.length) {
+            if (card) card.style.display = "none";
+            if (emptyNote) emptyNote.style.display = "block";
+            return;
+        }
+        const axisLabels = vg.axis;
+        new Chart(ctx, {
+            type: "bar",
+            data: {
+                labels: vg.items.map(it => it.label),
+                datasets: [{
+                    label: "Active span",
+                    data: vg.items.map(it => [it.start, it.end]),
+                    backgroundColor: vg.items.map((it, i) => productColor(it.label, i) + "CC"),
+                    borderColor: vg.items.map((it, i) => productColor(it.label, i)),
+                    borderWidth: 1, borderSkipped: false, borderRadius: 4, barPercentage: 0.6,
+                }]
+            },
+            options: {
+                indexAxis: "y",
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: {
+                        label: c => {
+                            const [s, e] = c.raw;
+                            return ` ${axisLabels[s] || s} → ${axisLabels[Math.min(e, axisLabels.length - 1)] || e}`;
+                        }
+                    } }
+                },
+                scales: {
+                    x: {
+                        min: 0, max: axisLabels.length - 1,
+                        ticks: { font: { size: 9 }, autoSkip: true, maxTicksLimit: 14, callback: v => axisLabels[v] || "" }
+                    },
+                    y: { ticks: { font: { size: 11 } } }
+                }
+            }
+        });
+    })();
+})();
+</script>
+{% else %}
+<script>
+  // No bureau data — hide the DPD panel chrome if it rendered
+  (function(){ const p = document.getElementById('dpd'); if (p) p.style.display = 'none';
+               const n = document.getElementById('navDpd'); if (n) n.style.display = 'none'; })();
+</script>
+{% endif %}
+</body>
+</html>
