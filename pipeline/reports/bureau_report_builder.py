@@ -117,6 +117,14 @@ def build_bureau_report(customer_id: int) -> BureauReport:
     except Exception as e:
         logger.warning(f"Bureau income computation failed for {customer_id}: {e}")
 
+    # 4e. Sustained EMI — deterministic DuckDB-wrapped SQL (fail-soft)
+    sustained_emi = None
+    try:
+        from tools.sustained_emi import _calculate_sustained_emi
+        sustained_emi = _calculate_sustained_emi(customer_id)
+    except Exception as e:
+        logger.warning(f"Sustained EMI computation failed for {customer_id}: {e}")
+
     # 5. Assemble report
     report = BureauReport(
         meta=meta,
@@ -127,6 +135,7 @@ def build_bureau_report(customer_id: int) -> BureauReport:
         monthly_exposure=monthly_exposure,
         raw_loan_profile=raw_loan_profile,
         bureau_income=bureau_income,
+        sustained_emi=sustained_emi,
     )
 
     # 6. Validate (fail-soft: log warnings, return partial report)

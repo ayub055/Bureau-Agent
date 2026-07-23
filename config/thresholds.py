@@ -135,3 +135,11 @@ PERSONA_GOLD_HIGH_STRESS: float = 2_00_000          # 2L — High Asset Stress
 PERSONA_CV_FLEET_MIN_COUNT: int = 4                 # Fleet Owner minimum CV count
 PERSONA_AL_CLUSTER_MIN: int = 3                     # AL cluster for cab/taxi proxy
 PERSONA_BL_LARGE_MIN_COUNT: int = 3                 # Large Business minimum BL count
+
+# ---------------------------------------------------------------------------
+# Sustained EMI
+# ---------------------------------------------------------------------------
+# Assumed loan tenor (months) used by the sustained-EMI calc to cap a tradeline's
+# effective close date (date_opened + tenor). The source notebook read this per
+# tradeline; here it is a single tunable config value (the data has no `tenor`).
+SUSTAINED_EMI_TENOR_MONTHS: int = 60

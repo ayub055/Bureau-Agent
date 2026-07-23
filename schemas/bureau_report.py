@@ -27,3 +27,4 @@ class BureauReport:
     monthly_exposure: Optional[Dict[str, Any]] = None  # {"months": [...], "series": {...}}
     raw_loan_profile: Optional[Dict[str, Any]] = None  # raw loan type counts for persona
     bureau_income: Optional[Dict[str, Any]] = None  # {"bureau_income": float, "stamp_loan": str, ...}
+    sustained_emi: Optional[Dict[str, Any]] = None  # {"sustained_emi": float, "cc_income": float, ...}

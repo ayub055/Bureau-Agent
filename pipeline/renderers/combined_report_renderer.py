@@ -1538,14 +1538,14 @@ def _compute_v2_context(
     }
 
     # ── Customer profile card ──────────────────────────────────────────
+    _bi = getattr(bureau_report, "bureau_income", None) or {}
+    _se = getattr(bureau_report, "sustained_emi", None) or {}
     profile = {
         "ktk_rel": tl.get("ktk_rel"),
-        "customer_segment": tl.get("customer_segment"),
-        "income_source": tl.get("income_source"),
-        "bank_grp": tl.get("bank_grp"),
+        "bureau_income": _bi.get("bureau_income"),
+        "stamp_loan": (_bi.get("stamp_loan") if _bi.get("stamp_loan") not in (None, "NA") else None),
+        "sustained_emi": _se.get("sustained_emi"),
         "bu_grp": tl.get("bu_grp"),
-        "affluence_amt": tl.get("affluence_amt"),
-        "node": tl.get("node"),
     }
     v2["profile"] = profile if any(val is not None for val in profile.values()) else None
 

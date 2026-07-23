@@ -1,0 +1,847 @@
+================================================================================
+FILE: Sustained_EMI.ipynb
+Total cells: 22
+================================================================================
+
+########## CELL 0 (code) ##########
+-- Check for index in 2027
+
+########## CELL 1 (code) ##########
+drop table if exists sc_buv2_tradeline_data;
+CREATE TABLE sc_buv2_tradeline_data as
+SELECT distinct 
+ a.CRN
+,Loan_Status
+,Loan_Type_new
+,Sanction_Amount
+,out_standing_balance
+,DATE_OPENED
+,DATE_CLOSED
+,emi
+,last_payment_date
+,Pay_Hist_Start_Date
+,Pay_Hist_end_Date
+,Ownership_type
+,CREDITLIMIT
+,High_Credit_Amount
+,interest_rates
+,tenor
+,Sector
+,Over_due_amount
+,Dpd_string
+,report_month
+,report_month || '01'  AS report_month_date
+
+-- FROM kmbl_risk.public.ntb_scrub1 A
+
+FROM kmbl_dex.srcl_vw.ebix_cibil_data_tl A
+where a.report_month = '202607' and upper(a.BASE) in ('ASSET','RL')
+-- and crn in (100001582,100005657,100011846,10002770,100032644,100126869,100131908,100135098,100702046,109537500,11057810,11061164,115440585,116048753,116369867,116604067,117453260,12791038,13232440,178154446)
+
+
+-- and crn in (select distinct crn FROM kmbl_dex.srcl_vw.ebix_cibil_data_tl A
+-- where a.report_month = '202601' and upper(a.BASE) in ('ASSET','RL') ORDER by random() limit 10000)
+
+########## CELL 2 (code) ##########
+select count(*), count(DISTINCT crn) from sc_buv2_tradeline_data;
+
+########## CELL 3 (markdown) ##########
+EXTRACTING DPD FROM DPD STRING
+
+########## CELL 4 (code) ##########
+drop table if exists sc_buv2_tradeline_data1;
+CREATE TABLE sc_buv2_tradeline_data1 as
+with replace_dpd as (
+    SELECT 
+        *
+        ,DATEADD(day, -1, to_date(report_month_date,'YYYYMMDD')) :: DATE AS scrub_date,
+        
+        REPLACE(
+            REPLACE(
+                REPLACE(
+                    REPLACE(
+                        REPLACE(
+                            REPLACE(
+                                REPLACE(DPD_STRING, 'STD', '000'),
+                            'XXX', '000'),
+                        'DBT', '090'),
+                    'LSS', '090'),
+                'SMA', '090'),
+            'SUB', '090'),
+        ' ', '') AS REPLACED_STRING
+    FROM sc_buv2_tradeline_data
+    -- where crn in (select * from sc_buv2_tradeline_data_sample_crn)
+)
+
+SELECT *,
+
+CAST(NULLIF(TRIM(SUBSTRING(REPLACED_STRING, 1, 3)), '') AS INT) AS DPDF1,
+CAST(NULLIF(TRIM(SUBSTRING(REPLACED_STRING, 4, 3)), '') AS INT) AS DPDF2,
+CAST(NULLIF(TRIM(SUBSTRING(REPLACED_STRING, 7, 3)), '') AS INT) AS DPDF3,
+CAST(NULLIF(TRIM(SUBSTRING(REPLACED_STRING, 10, 3)), '') AS INT) AS DPDF4,
+CAST(NULLIF(TRIM(SUBSTRING(REPLACED_STRING, 13, 3)), '') AS INT) AS DPDF5,
+CAST(NULLIF(TRIM(SUBSTRING(REPLACED_STRING, 16, 3)), '') AS INT) AS DPDF6,
+CAST(NULLIF(TRIM(SUBSTRING(REPLACED_STRING, 19, 3)), '') AS INT) AS DPDF7,
+CAST(NULLIF(TRIM(SUBSTRING(REPLACED_STRING, 22, 3)), '') AS INT) AS DPDF8,
+CAST(NULLIF(TRIM(SUBSTRING(REPLACED_STRING, 25, 3)), '') AS INT) AS DPDF9,
+CAST(NULLIF(TRIM(SUBSTRING(REPLACED_STRING, 28, 3)), '') AS INT) AS DPDF10,
+CAST(NULLIF(TRIM(SUBSTRING(REPLACED_STRING, 31, 3)), '') AS INT) AS DPDF11,
+CAST(NULLIF(TRIM(SUBSTRING(REPLACED_STRING, 34, 3)), '') AS INT) AS DPDF12,
+CAST(NULLIF(TRIM(SUBSTRING(REPLACED_STRING, 37, 3)), '') AS INT) AS DPDF13,
+CAST(NULLIF(TRIM(SUBSTRING(REPLACED_STRING, 40, 3)), '') AS INT) AS DPDF14,
+CAST(NULLIF(TRIM(SUBSTRING(REPLACED_STRING, 43, 3)), '') AS INT) AS DPDF15,
+CAST(NULLIF(TRIM(SUBSTRING(REPLACED_STRING, 46, 3)), '') AS INT) AS DPDF16,
+CAST(NULLIF(TRIM(SUBSTRING(REPLACED_STRING, 49, 3)), '') AS INT) AS DPDF17,
+CAST(NULLIF(TRIM(SUBSTRING(REPLACED_STRING, 52, 3)), '') AS INT) AS DPDF18,
+CAST(NULLIF(TRIM(SUBSTRING(REPLACED_STRING, 55, 3)), '') AS INT) AS DPDF19,
+CAST(NULLIF(TRIM(SUBSTRING(REPLACED_STRING, 58, 3)), '') AS INT) AS DPDF20,
+CAST(NULLIF(TRIM(SUBSTRING(REPLACED_STRING, 61, 3)), '') AS INT) AS DPDF21,
+CAST(NULLIF(TRIM(SUBSTRING(REPLACED_STRING, 64, 3)), '') AS INT) AS DPDF22,
+CAST(NULLIF(TRIM(SUBSTRING(REPLACED_STRING, 67, 3)), '') AS INT) AS DPDF23,
+CAST(NULLIF(TRIM(SUBSTRING(REPLACED_STRING, 70, 3)), '') AS INT) AS DPDF24,
+CAST(NULLIF(TRIM(SUBSTRING(REPLACED_STRING, 73, 3)), '') AS INT) AS DPDF25,
+CAST(NULLIF(TRIM(SUBSTRING(REPLACED_STRING, 76, 3)), '') AS INT) AS DPDF26,
+CAST(NULLIF(TRIM(SUBSTRING(REPLACED_STRING, 79, 3)), '') AS INT) AS DPDF27,
+CAST(NULLIF(TRIM(SUBSTRING(REPLACED_STRING, 82, 3)), '') AS INT) AS DPDF28,
+CAST(NULLIF(TRIM(SUBSTRING(REPLACED_STRING, 85, 3)), '') AS INT) AS DPDF29,
+CAST(NULLIF(TRIM(SUBSTRING(REPLACED_STRING, 88, 3)), '') AS INT) AS DPDF30,
+CAST(NULLIF(TRIM(SUBSTRING(REPLACED_STRING, 91, 3)), '') AS INT) AS DPDF31,
+CAST(NULLIF(TRIM(SUBSTRING(REPLACED_STRING, 94, 3)), '') AS INT) AS DPDF32,
+CAST(NULLIF(TRIM(SUBSTRING(REPLACED_STRING, 97, 3)), '') AS INT) AS DPDF33,
+CAST(NULLIF(TRIM(SUBSTRING(REPLACED_STRING, 100, 3)), '') AS INT) AS DPDF34,
+CAST(NULLIF(TRIM(SUBSTRING(REPLACED_STRING, 103, 3)), '') AS INT) AS DPDF35,
+CAST(NULLIF(TRIM(SUBSTRING(REPLACED_STRING, 106, 3)), '') AS INT) AS DPDF36,
+
+
+case when Loan_Type_new in ('Gold Loan','Two-wheeler Loan','Tractor Loan','Loan Against Bank Deposits','Secured Credit Card'
+,'Loan Against Shares/Securities','Pradhan Mantri Awas Yojana - Credit Link Subsidy Scheme MAY CLSS'
+,'GECL Loan Secured','Microfinance - Housing Loan','Leasing','P2P Auto Loan','Housing Loan','Property Loan'
+,'Auto Loan (Personal)','Used Car Loan','Commercial Vehicle Loan','Construction Equipment Loan'
+,'Business Loan - Secured','Business Loan Against Bank Deposits') then 1
+else 0 end as sec_flag,
+
+Case when Loan_Type_new IN ('Business Loan - General', 'Business Loan - Priority Sector - Agriculture'
+          ,'Business Loan - Priority Sector - Others', 'Business Loan - Priority Sector - Small Business'
+          ,'Business Loan - Secured', 'Business Loan - Unsecured', 'Business Loan Against Bank Deposits'
+          ,'Business Non-Funded Credit Facility - Priority Sector-Others'
+          ,'Business Non-Funded Credit Facility - General'
+          ,'Business Non-Funded Credit Facility - Priority Sector - Agriculture'
+          ,'Business Non-Funded Credit Facility - Priority Sector - Small Business'
+          ,'Business Loan – General', 'Business Loan – Unsecured') then 1 else 0
+end as bl_flag,
+
+
+DATEDIFF('month',date_opened,scrub_date) as mob,
+
+DATEADD(month, TENOR, DATE_OPENED) :: DATE AS tenor_end_date,
+
+case 
+    when date_closed is null and out_standing_balance < 1000 then last_payment_date
+    else date_closed  
+end as date_closed1
+
+FROM replace_dpd;
+
+########## CELL 5 (code) ##########
+select count(*), count(DISTINCT crn) from sc_buv2_tradeline_data1;
+
+########## CELL 6 (code) ##########
+DROP TABLE IF EXISTS sc_buv2_tradeline_data2;
+CREATE TABLE sc_buv2_tradeline_data2 AS
+SELECT *
+    ,GREATEST(DPDF1, DPDF2, DPDF3, DPDF4, DPDF5, DPDF6) AS Max_DPD
+    ,GREATEST(DPDF1,DPDF2,DPDF3,DPDF4,DPDF5,DPDF6,DPDF7,DPDF8,DPDF9,DPDF10,DPDF11,DPDF12,DPDF13,DPDF14,DPDF15,DPDF16,DPDF17,DPDF18,DPDF19,DPDF20,DPDF21,DPDF22,DPDF23,DPDF24,DPDF25,DPDF26,DPDF27,DPDF28,DPDF29,DPDF30,DPDF31,DPDF32,DPDF33,DPDF34,DPDF35,DPDF36) AS TL_Max_DPD
+    -- Flags
+    ,CASE WHEN DPDF1 >= 0 AND DPDF2 >= 0 AND DPDF3 >= 0 THEN 1 ELSE 0 END AS DPD_3m
+    ,CASE WHEN DPDF1 >= 0 AND DPDF2 >= 0 AND DPDF3 >= 0 AND DPDF4 >= 0 AND DPDF5 >= 0 AND DPDF6 >= 0 THEN 1 ELSE 0 END AS DPD_6m
+    ,CASE WHEN DPDF1 >= 0 AND DPDF2 >= 0 AND DPDF3 >= 0 AND DPDF4 >= 0 AND DPDF5 >= 0 AND DPDF6 >= 0 AND DPDF7 >= 0 AND DPDF8 >= 0 AND DPDF9 >= 0 THEN 1 ELSE 0 END AS DPD_9m
+    ,CASE WHEN DPDF1 >= 0 AND DPDF2 >= 0 AND DPDF3 >= 0 AND DPDF4 >= 0 AND DPDF5 >= 0 AND DPDF6 >= 0 AND DPDF7 >= 0 AND DPDF8 >= 0 AND DPDF9 >= 0 AND DPDF10 >= 0 AND DPDF11 >= 0 AND DPDF12 >= 0 THEN 1 ELSE 0 END AS DPD_12m
+    ,CASE WHEN DPDF1 >= 0 AND DPDF2 >= 0 AND DPDF3 >= 0 AND DPDF4 >= 0 AND DPDF5 >= 0 AND DPDF6 >= 0 AND DPDF7 >= 0 AND DPDF8 >= 0 AND DPDF9 >= 0 AND DPDF10 >= 0 AND DPDF11 >= 0 AND DPDF12 >= 0 AND DPDF13 >= 0 AND DPDF14 >= 0 AND DPDF15 >= 0 AND DPDF16 >= 0 AND DPDF17 >= 0 AND DPDF18 >= 0 THEN 1 ELSE 0 END AS DPD_18m
+
+    
+    ,CASE
+     WHEN Loan_Type_new = 'Housing Loan' then 
+          CASE
+               WHEN Sanction_Amount > 0 and Sanction_Amount <= 500000 THEN Sanction_Amount * 0.0130
+               WHEN Sanction_Amount > 0 and Sanction_Amount <= 1000000 THEN Sanction_Amount * 0.0117
+               WHEN Sanction_Amount > 0 and Sanction_Amount <= 2000000 THEN Sanction_Amount * 0.0110
+               WHEN Sanction_Amount > 0 and Sanction_Amount <= 3000000 THEN Sanction_Amount * 0.0100
+               WHEN Sanction_Amount > 3000000 THEN Sanction_Amount * 0.0088
+               ELSE 0 
+          END
+
+     WHEN Loan_Type_new = 'Property Loan' then 
+           CASE
+               WHEN Sanction_Amount > 0 AND Sanction_Amount <= 500000 THEN Sanction_Amount * 0.0150
+               WHEN Sanction_Amount > 500000 AND Sanction_Amount <= 1000000 THEN Sanction_Amount * 0.0140
+               WHEN Sanction_Amount > 1000000 AND Sanction_Amount <= 2000000 THEN Sanction_Amount * 0.0135
+               WHEN Sanction_Amount > 2000000 AND Sanction_Amount <= 3000000 THEN Sanction_Amount * 0.0130
+               WHEN Sanction_Amount > 3000000 THEN Sanction_Amount * 0.0110
+               ELSE 0
+          END
+
+     -- WHEN Loan_Type_new IN ('Commercial Vehicle Loan', 'Construction Equipment Loan') THEN 
+     --      CASE
+     --           WHEN Sanction_Amount > 0 AND Sanction_Amount <= 50000 THEN Sanction_Amount * 0.10
+     --           WHEN Sanction_Amount > 50000 AND Sanction_Amount <= 150000 THEN Sanction_Amount * 0.068
+     --           WHEN Sanction_Amount > 150000 AND Sanction_Amount <= 300000 THEN Sanction_Amount * 0.041
+     --           WHEN Sanction_Amount > 300000 AND Sanction_Amount <= 500000 THEN Sanction_Amount * 0.033
+     --           WHEN Sanction_Amount > 500000 AND Sanction_Amount <= 1000000 THEN Sanction_Amount * 0.032
+     --           WHEN Sanction_Amount > 1000000 THEN Sanction_Amount * 0.028
+     --           ELSE 0
+     --      END 
+
+     WHEN bl_flag = 1 THEN 
+          CASE
+               WHEN Sanction_Amount > 0 AND Sanction_Amount <= 100000 THEN Sanction_Amount * 0.05
+               WHEN Sanction_Amount > 100000 AND Sanction_Amount <= 150000 THEN Sanction_Amount * 0.045
+               WHEN Sanction_Amount > 150000 AND Sanction_Amount <= 300000 THEN Sanction_Amount * 0.035
+               WHEN Sanction_Amount > 300000 AND Sanction_Amount <= 500000 THEN Sanction_Amount * 0.03
+               WHEN Sanction_Amount > 500000 THEN Sanction_Amount * 0.029
+               ELSE 0
+          END 
+
+     WHEN Loan_Type_new = 'Loan to Professional' THEN
+          CASE
+               WHEN Sanction_Amount > 15000 AND Sanction_Amount <= 25000 THEN Sanction_Amount * 0.097
+               WHEN Sanction_Amount > 25000 AND Sanction_Amount <= 50000 THEN Sanction_Amount * 0.090
+               WHEN Sanction_Amount > 50000 AND Sanction_Amount <= 100000 THEN Sanction_Amount * 0.055
+               WHEN Sanction_Amount > 100000 AND Sanction_Amount <= 150000 THEN Sanction_Amount * 0.036
+               WHEN Sanction_Amount > 150000 AND Sanction_Amount <= 300000 THEN Sanction_Amount * 0.028
+               WHEN Sanction_Amount > 300000 THEN Sanction_Amount * 0.024
+               ELSE 0
+          END
+
+     WHEN Loan_Type_new in ('Personal Loan','P2P Personal Loan') then 
+          CASE
+               WHEN Sanction_Amount > 0 AND Sanction_Amount <= 20000 THEN Sanction_Amount * 0.33
+               WHEN Sanction_Amount > 20000 AND Sanction_Amount <= 40000 THEN Sanction_Amount * 0.12
+               WHEN Sanction_Amount > 40000 AND Sanction_Amount <= 75000 THEN Sanction_Amount * 0.0930
+               WHEN Sanction_Amount > 75000 AND Sanction_Amount <= 100000 THEN Sanction_Amount * 0.0546
+               WHEN Sanction_Amount > 100000 AND Sanction_Amount <= 200000 THEN Sanction_Amount * 0.0350
+               WHEN Sanction_Amount > 200000 AND Sanction_Amount <= 500000 THEN Sanction_Amount * 0.027
+               WHEN Sanction_Amount > 500000 THEN Sanction_Amount * 0.022
+               ELSE 0
+          END 
+          
+     WHEN Loan_Type_new  in ('Auto Loan (Personal)' ) then 
+          CASE
+               WHEN Sanction_Amount > 0 AND Sanction_Amount <= 100000 THEN Sanction_Amount * 0.044
+               WHEN Sanction_Amount > 100000 AND Sanction_Amount <= 200000 THEN Sanction_Amount * 0.035
+               WHEN Sanction_Amount > 200000 AND Sanction_Amount <= 400000 THEN Sanction_Amount * 0.024
+               WHEN Sanction_Amount > 400000 AND Sanction_Amount <= 700000 THEN Sanction_Amount * 0.022
+               WHEN Sanction_Amount > 700000 THEN Sanction_Amount * 0.018
+               ELSE 0
+          END
+
+     WHEN Loan_Type_new  = 'Used Car Loan' then 
+          CASE
+              WHEN Sanction_Amount > 0 AND Sanction_Amount <= 100000 THEN Sanction_Amount * 0.0430
+              WHEN Sanction_Amount > 100000 AND Sanction_Amount <= 200000 THEN Sanction_Amount * 0.0350
+              WHEN Sanction_Amount > 200000 AND Sanction_Amount <= 400000 THEN Sanction_Amount * 0.0290
+              WHEN Sanction_Amount > 400000 AND Sanction_Amount <= 500000 THEN Sanction_Amount * 0.0250
+              WHEN Sanction_Amount > 500000 AND Sanction_Amount <= 800000 THEN Sanction_Amount * 0.0230
+              WHEN Sanction_Amount > 800000 THEN Sanction_Amount * 0.0220
+              ELSE 0
+          END
+     
+     WHEN Loan_Type_new  = 'Two-wheeler Loan' then 
+          CASE
+              WHEN Sanction_Amount > 0 AND Sanction_Amount <= 50000 THEN Sanction_Amount * 0.0533
+              WHEN Sanction_Amount > 50000 AND Sanction_Amount <= 75000 THEN Sanction_Amount * 0.0500
+              WHEN Sanction_Amount > 75000 AND Sanction_Amount <= 100000 THEN Sanction_Amount * 0.0450
+              WHEN Sanction_Amount > 100000 THEN Sanction_Amount * 0.0400
+              ELSE 0
+          END
+     ELSE null 
+
+END AS EMI_Cal
+
+,CASE WHEN DATE_CLOSED1 IS NOT NULL THEN LEAST(DATE_CLOSED1,tenor_end_date) ELSE NULL END AS DATE_CLOSED2
+
+FROM sc_buv2_tradeline_data1;
+
+########## CELL 7 (code) ##########
+DROP TABLE IF EXISTS sc_buv2_tradeline_data3;
+CREATE TABLE sc_buv2_tradeline_data3 AS
+SELECT *
+       , CASE 
+           WHEN Ownership_type = 'Joint' THEN SANCTION_AMOUNT / 2
+           ELSE SANCTION_AMOUNT
+         END AS SANCTION_AMOUNT_new
+
+      ,case when EMI > 1000 and cast(emi as float) / NULLIF(SANCTION_AMOUNT,0) <= 0.25 then emi 
+          else coalesce(EMI_Cal,0) 
+      end AS emi1
+
+,case 
+    when Loan_Type_new = 'Housing Loan' then
+        Case
+            when dpd_3m > 0  and coalesce(dpd_6m,0) <= 0 and date_opened > DATEADD(month, -5, DATE_TRUNC('month', SCRUB_DATE)) then DATEADD(month, -5, DATE_TRUNC('month', SCRUB_DATE))
+            -- when mob between 3 and 5 then DATEADD(month, -5, DATE_TRUNC('month', SCRUB_DATE))
+            when date_opened >= DATEADD(month, -95, DATE_TRUNC('month', SCRUB_DATE)) then date_opened
+            else DATEADD(month, -95, DATE_TRUNC('month', SCRUB_DATE))
+        end
+    
+    when Loan_Type_new = 'Credit Card' then
+        Case
+            when date_opened >= DATEADD(month, -95, DATE_TRUNC('month', SCRUB_DATE)) then date_opened
+            else DATEADD(month, -95, DATE_TRUNC('month', SCRUB_DATE))
+        end
+    when pay_hist_end_date >= DATEADD(month, -35, DATE_TRUNC('month', SCRUB_DATE)) then pay_hist_end_date 
+    else DATEADD(month, -35, DATE_TRUNC('month', SCRUB_DATE)) 
+end 
+as effective_start_date
+
+,Case 
+    when Loan_Type_new = 'Credit Card' then coalesce(date_closed,pay_hist_start_date)
+    else coalesce(date_closed2,pay_hist_start_date) 
+    end
+as effective_end_date
+
+,DATEDIFF(month, effective_end_date, scrub_date) AS TL_VIN_1
+      
+FROM sc_buv2_tradeline_data2
+WHERE Ownership_type NOT IN ('Guarantor', 'Authorised User(refers to supplementary card holder)')
+
+########## CELL 8 (code) ##########
+select count(*), count(distinct crn) from sc_buv2_tradeline_data3;
+
+########## CELL 9 (code) ##########
+drop table if exists sc_buv2_tradeline_data4;
+CREATE TABLE sc_buv2_tradeline_data4 as
+
+SELECT * 
+
+,CASE 
+     WHEN Ownership_type = 'Joint' THEN emi1 / 2
+     ELSE emi1
+END AS final_emi
+
+
+,CASE
+     WHEN Loan_Type_new = 'Housing Loan'                           
+          and TL_VIN_1 <= 96
+          and Max_DPD <= 15 and DPD_3m > 0
+          AND coalesce(Over_due_amount,0) < 2500 THEN 1
+
+     WHEN Loan_Type_new = 'Property Loan'
+          and TL_VIN_1 <= 36 
+          and Max_DPD <= 15 
+          and DPD_12m > 0 
+          AND coalesce(Over_due_amount,0) < 2500 THEN 1
+
+     WHEN Loan_Type_new in ('Personal Loan','P2P Personal Loan')
+          and TL_VIN_1 <= 36 
+          and TL_Max_DPD <= 15 
+          and DPD_12m > 0 
+          and UPPER(sector) = 'NOT DISCLOSED' 
+          and Sanction_Amount > 20000 
+          AND coalesce(Over_due_amount,0) < 2500 THEN 1
+
+     WHEN Loan_Type_new  in ('Auto Loan (Personal)')
+          and TL_VIN_1 <= 36 
+          and Max_DPD <= 15 
+          and DPD_9m > 0
+          AND coalesce(Over_due_amount,0) < 2500 THEN 1
+
+     WHEN Loan_Type_new  in ('Used Car Loan','Two-wheeler Loan' ) 
+          and TL_VIN_1 <= 36 
+          and TL_Max_DPD <= 15 
+          and DPD_12m > 0
+          AND coalesce(Over_due_amount,0) < 2500 THEN 1
+
+     WHEN (bl_flag = 1 or Loan_Type_new = 'Loan to Professional')
+          and TL_VIN_1 <= 36 
+          and TL_Max_DPD <= 15 
+          and DPD_12m > 0
+          AND coalesce(Over_due_amount,0) < 2500 THEN 1
+
+     WHEN Loan_Type_new = 'Credit Card'
+          and Max_DPD <= 15 
+          and DPD_18m > 0
+          and UPPER(sector) = 'NOT DISCLOSED' 
+          AND loan_status = 'Live'
+          AND coalesce(Over_due_amount,0) < 2500 THEN 1
+     ELSE 0
+END AS tl_eligibility
+
+
+,CASE 
+     WHEN Loan_Type_new IN ('Housing Loan','Property Loan','Personal Loan','P2P Personal Loan','Auto Loan (Personal)','Used Car Loan','Two-wheeler Loan') THEN 1
+     WHEN bl_flag = 1 or Loan_Type_new = 'Loan to Professional' THEN 0
+     WHEN LOAN_TYPE_NEW = 'Credit Card' THEN 2
+     ELSE NULL
+END AS non_business_flag
+
+,row_number() over() as tradeline_id
+
+FROM sc_buv2_tradeline_data3;
+
+########## CELL 10 (code) ##########
+DROP TABLE IF EXISTS SC_INFLATIONF_NC;
+
+CREATE TABLE SC_INFLATIONF_NC (
+    YEAR INT,
+    INDEX INT
+);
+
+INSERT INTO SC_INFLATIONF_NC (YEAR, INDEX)
+VALUES
+    (2001, 100),
+    (2002, 105),
+    (2003, 109),
+    (2004, 113),
+    (2005, 117),
+    (2006, 122),
+    (2007, 129),
+    (2008, 137),
+    (2009, 148),
+    (2010, 167),
+    (2011, 184),
+    (2012, 200),
+    (2013, 220),
+    (2014, 240),
+    (2015, 254),
+    (2016, 264),
+    (2017, 272),
+    (2018, 280),
+    (2019, 289),
+    (2020, 301),
+    (2021, 317),
+    (2022, 331),
+    (2023, 348),
+    (2024, 363),
+    (2025, 376),
+    (2026, 376);
+
+
+
+DROP TABLE IF EXISTS sc_buv2_tradeline_data5_1;
+
+CREATE TABLE sc_buv2_tradeline_data5_1 AS
+SELECT A.*
+,CASE 
+    WHEN B.INDEX >= 100 AND A.FINAL_EMI > 0 THEN A.FINAL_EMI * 376.0 / B.INDEX
+    ELSE A.FINAL_EMI
+  END AS FINAL_EMI_ADJ
+
+FROM sc_buv2_tradeline_data4 A 
+LEFT JOIN SC_INFLATIONF_NC AS B ON EXTRACT(YEAR FROM A.DATE_OPENED)= B.YEAR
+WHERE A.tl_eligibility = 1;
+
+########## CELL 11 (code) ##########
+DROP TABLE IF EXISTS sc_buv2_tradeline_data5;
+
+CREATE TABLE sc_buv2_tradeline_data5 AS
+WITH base AS (
+    SELECT
+        t.*,
+        crn || '_' ||
+        final_emi || '_' ||
+        sanction_amount              AS base_fp
+
+    FROM sc_buv2_tradeline_data5_1 t
+),
+
+ordered AS (
+    SELECT
+        b.*,
+
+        LAG(date_closed) OVER (
+            PARTITION BY base_fp
+            ORDER BY date_opened, effective_end_date desc
+        ) AS prev_end
+
+    FROM base b
+),
+
+chained AS (
+    SELECT
+        o.*,
+
+        CASE
+            WHEN prev_end IS NULL THEN 1
+            WHEN DATEDIFF(month, prev_end, date_opened) BETWEEN 0 AND 6 THEN 0
+            ELSE 1
+        END AS new_chain_flag
+
+    FROM ordered o
+),
+
+chain_numbered AS (
+    SELECT
+        c.*,
+        SUM(new_chain_flag) OVER (
+            PARTITION BY base_fp
+            ORDER BY date_opened , effective_end_date desc
+            ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+        ) AS chain_no
+
+    FROM chained c
+)
+
+SELECT
+    *,
+    base_fp || '_C' || chain_no AS loan_chain_id
+FROM chain_numbered;
+
+########## CELL 12 (code) ##########
+SELECT COUNT(*),COUNT(DISTINCT CRN) FROM sc_buv2_tradeline_data5_1;
+SELECT COUNT(*),COUNT(DISTINCT CRN) FROM sc_buv2_tradeline_data5;
+
+########## CELL 13 (code) ##########
+DROP TABLE IF EXISTS sc_buv2_tradeline_months;
+CREATE TABLE sc_buv2_tradeline_months AS
+WITH RECURSIVE
+
+params AS (
+    SELECT
+        6 AS min_months,
+        (select distinct scrub_date from sc_buv2_tradeline_data4) as scrub_date,
+        DATEADD(month, -95, DATE_TRUNC('month', SCRUB_DATE)) AS window_start_36
+),
+
+
+numbers(n) AS (
+    SELECT 1 AS n
+    UNION ALL
+    SELECT n + 1 FROM numbers WHERE n < 96
+),
+
+/* -----------------------------------------------------------
+   STEP 2: Expand tradelines into month-level rows
+----------------------------------------------------------- */
+tradeline_months AS (
+    SELECT
+        t.crn,
+        t.tradeline_id,
+        t.non_business_flag,
+        DATEADD(
+            month,
+            n.n,
+            DATE_TRUNC('month', t.effective_start_date)
+        ) AS month_start,
+        Case 
+            when t.Loan_Type_new = 'Credit Card' then coalesce(t.CreditLimit , t.High_Credit_Amount) 
+            else t.final_emi end as emi_amount,
+
+
+        Case 
+            when t.Loan_Type_new = 'Credit Card' then null 
+            else cast(t.FINAL_EMI_ADJ as bigint) end as emi_amount_adj    
+            
+    FROM sc_buv2_tradeline_data5 t
+    JOIN numbers n
+      ON DATEADD(
+             month,
+             n.n,
+             DATE_TRUNC('month', t.effective_start_date)
+         )
+         BETWEEN
+             (SELECT window_start_36 FROM params)
+             AND DATE_TRUNC('month', scrub_date )
+        AND 
+        DATEADD(
+             month,
+             n.n,
+             DATE_TRUNC('month', t.effective_start_date )
+         ) <= t.effective_end_date
+)
+
+SELECT * FROM tradeline_months;
+
+########## CELL 14 (code) ##########
+DROP TABLE IF EXISTS sc_buv2_tradeline_months_sum;
+CREATE TABLE sc_buv2_tradeline_months_sum AS
+WITH RECURSIVE
+
+params AS (
+    SELECT
+        6 AS min_months,
+        (select distinct scrub_date from sc_buv2_tradeline_data4) as scrub_date,
+        DATEADD(month, -95, DATE_TRUNC('month', SCRUB_DATE)) AS window_start_36
+),
+
+
+numbers(n) AS (
+    SELECT 0 AS n
+    UNION ALL
+    SELECT n + 1 FROM numbers WHERE n < 96
+),
+
+
+calendar_months AS (
+    SELECT
+        DATEADD(
+            month,
+            - n.n,
+            DATE_TRUNC('month', (SELECT SCRUB_DATE FROM params))
+        ) AS month_start
+    FROM numbers n
+),
+
+customer_calendar AS (
+    SELECT DISTINCT
+        c.crn,
+        m.month_start
+    FROM sc_buv2_tradeline_data5 c
+    CROSS JOIN calendar_months m
+),
+
+customer_month_emi AS (
+    SELECT
+        cc.crn,
+        cc.month_start,
+        COALESCE(SUM(Case when non_business_flag = 1 then tm.emi_amount end ), 0) AS total_emi,
+        COALESCE(SUM(Case when non_business_flag = 1 then tm.emi_amount_adj end), 0) AS total_emi_adj,
+        COALESCE(SUM(Case when non_business_flag = 0 then tm.emi_amount end ), 0) AS total_emi_bl,
+        COALESCE(SUM(Case when non_business_flag = 0 then tm.emi_amount_adj end), 0) AS total_emi_adj_bl,
+
+        COALESCE(max(Case when non_business_flag = 2 then tm.emi_amount end ), 0) AS max_cc_limit
+    
+    FROM customer_calendar cc
+    LEFT JOIN sc_buv2_tradeline_months tm
+      ON cc.crn = tm.crn
+     AND cc.month_start = tm.month_start
+    GROUP BY cc.crn, cc.month_start
+)
+
+SELECT * FROM customer_month_emi;
+
+########## CELL 15 (code) ##########
+DROP TABLE IF EXISTS sc_buv2_tradeline_rolling_windows;
+CREATE TABLE sc_buv2_tradeline_rolling_windows AS
+WITH 
+
+params AS (
+    SELECT
+        6 AS min_months,
+        (select distinct scrub_date from sc_buv2_tradeline_data4) as scrub_date,
+        DATEADD(month, -95, DATE_TRUNC('month', SCRUB_DATE)) AS window_start_36
+),
+
+
+rolling_windows AS (
+    SELECT
+        crn,
+        month_start AS window_end,
+        DATEADD(
+            month,
+            - (SELECT min_months FROM params) + 1,
+            month_start
+        ) AS window_start,
+        MIN(total_emi) OVER (
+            PARTITION BY crn
+            ORDER BY month_start
+            ROWS BETWEEN 5 PRECEDING -- change as per min month window
+                AND CURRENT ROW
+        ) AS sustained_emi,
+        MIN(total_emi_adj) OVER (
+            PARTITION BY crn
+            ORDER BY month_start
+            ROWS BETWEEN 5 PRECEDING -- change as per min month window
+                AND CURRENT ROW
+        ) AS sustained_emi_adj,
+
+        MIN(total_emi_bl) OVER (
+            PARTITION BY crn
+            ORDER BY month_start
+            ROWS BETWEEN 5 PRECEDING -- change as per min month window
+                AND CURRENT ROW
+        ) AS sustained_emi_bl,
+
+        MIN(total_emi_adj_bl) OVER (
+            PARTITION BY crn
+            ORDER BY month_start
+            ROWS BETWEEN 5 PRECEDING -- change as per min month window
+                AND CURRENT ROW
+        ) AS sustained_emi_adj_bl,
+
+        MAX(max_cc_limit) OVER (
+            PARTITION BY crn,month_start
+        ) AS max_cc_limit
+
+    FROM sc_buv2_tradeline_months_sum tm
+),
+
+valid_windows AS (
+    SELECT *
+    FROM rolling_windows
+    WHERE window_start >= (SELECT window_start_36 FROM params)
+)
+
+SELECT * FROM valid_windows;
+
+########## CELL 16 (code) ##########
+DROP TABLE IF EXISTS sc_buv2_tradeline_best_rolling_window;
+CREATE TABLE sc_buv2_tradeline_best_rolling_window AS
+WITH 
+
+best_window AS (
+    SELECT
+        *,
+        ROW_NUMBER() OVER (
+            PARTITION BY crn
+            ORDER BY sustained_emi DESC, window_start ASC
+        ) AS rn,
+
+        ROW_NUMBER() OVER (
+            PARTITION BY crn
+            ORDER BY sustained_emi_bl DESC, window_start ASC
+        ) AS rn_bl,
+
+        ROW_NUMBER() OVER (
+            PARTITION BY crn
+            ORDER BY max_cc_limit DESC, window_start ASC
+        ) AS rn_cc
+
+    FROM sc_buv2_tradeline_rolling_windows
+)
+
+SELECT A.CRN 
+,B.window_start
+,B.window_end
+,B.sustained_emi
+,B.sustained_emi_adj
+
+,C.window_start as window_start_bl
+,C.window_end as window_end_bl
+,C.sustained_emi_bl
+,C.sustained_emi_adj_bl
+
+,D.window_end as cc_month
+,D.max_cc_limit
+
+FROM (SELECT DISTINCT CRN FROM best_window) A
+LEFT JOIN best_window B ON A.CRN = B.CRN AND B.RN = 1
+LEFT JOIN best_window C ON A.CRN = C.CRN AND C.RN_BL = 1
+LEFT JOIN best_window D ON A.CRN = D.CRN AND D.RN_CC = 1;
+
+########## CELL 17 (code) ##########
+SELECT count(*),count(distinct crn) FROM sc_buv2_tradeline_best_rolling_window;
+SELECT count(*),count(distinct crn) FROM sc_buv2_tradeline_best_rolling_window WHERE sustained_emi > 1 ;
+SELECT count(*),count(distinct crn) FROM sc_buv2_tradeline_best_rolling_window WHERE sustained_emi_bl > 1 ;
+SELECT count(*),count(distinct crn) FROM sc_buv2_tradeline_best_rolling_window WHERE max_cc_limit > 1 ;
+SELECT count(*),count(distinct crn) FROM sc_buv2_tradeline_best_rolling_window WHERE sustained_emi_bl > 1 or sustained_emi > 1  or max_cc_limit > 1;
+
+########## CELL 18 (code) ##########
+DROP TABLE IF EXISTS sc_buv2_tradeline_cc;
+CREATE TABLE sc_buv2_tradeline_cc AS
+WITH SUB AS (SELECT crn
+,cc_month
+,max_cc_limit
+
+,CASE 
+    WHEN cc_month >= '2022-01-01' AND max_cc_limit BETWEEN 10000 AND 229945 then LEAST(max_cc_limit / 4,57486) -- changed in jan 26 as per bhaskar sir suggestion
+    WHEN max_cc_limit BETWEEN 10000 AND 29999 THEN LEAST(max_cc_limit / 1.5, 20000)
+    WHEN max_cc_limit BETWEEN 30000 AND 49949 THEN LEAST(max_cc_limit / 1.75, 28543)
+    WHEN max_cc_limit BETWEEN 49950 AND 66999 THEN LEAST(max_cc_limit / 1.9, 35263)
+    WHEN max_cc_limit BETWEEN 67000 AND 87599 THEN LEAST(max_cc_limit / 2.2, 39818)
+    WHEN max_cc_limit BETWEEN 87600 AND 107999 THEN LEAST(max_cc_limit / 2.5, 43200)
+    WHEN max_cc_limit BETWEEN 108000 AND 134999 THEN LEAST(max_cc_limit / 2.7, 50000)
+    WHEN max_cc_limit BETWEEN 135000 AND 174999 THEN LEAST(max_cc_limit / 3, 58333)
+    WHEN max_cc_limit BETWEEN 175000 AND 229945 THEN LEAST(max_cc_limit / 3.5, 65699)
+    WHEN max_cc_limit BETWEEN 229946 AND 332999 THEN LEAST(max_cc_limit / 4.12, 80775)
+    WHEN max_cc_limit >= 333000 THEN LEAST(max_cc_limit / 4.5, 250000)
+    ELSE 0
+END AS CC_CL_MAX_AFFL
+
+,CASE 
+    WHEN cc_month >= '2022-01-01' THEN CC_CL_MAX_AFFL
+    WHEN max_cc_limit BETWEEN 10000 AND 29999 THEN 10000
+    WHEN max_cc_limit BETWEEN 30000 AND 49949 THEN 20000
+    WHEN max_cc_limit BETWEEN 49950 AND 66999 THEN 28543
+    WHEN max_cc_limit BETWEEN 67000 AND 87599 THEN 35263
+    WHEN max_cc_limit BETWEEN 87600 AND 107999 THEN 39818
+    WHEN max_cc_limit BETWEEN 108000 AND 134999 THEN 43200
+    WHEN max_cc_limit BETWEEN 135000 AND 174999 THEN 50000
+    WHEN max_cc_limit BETWEEN 175000 AND 229945 THEN 58333
+    WHEN max_cc_limit BETWEEN 229946 AND 332999 THEN 65699
+    WHEN max_cc_limit BETWEEN 333000 AND 4129999 THEN 80775
+    ELSE 0
+END AS CC_CL_min_AFFL
+
+FROM sc_buv2_tradeline_best_rolling_window
+where max_cc_limit > 0)
+
+SELECT * 
+,GREATEST(CC_CL_MAX_AFFL,CC_CL_min_AFFL) AS CC_INCOME
+
+FROM SUB;
+
+########## CELL 19 (code) ##########
+SELECT COUNT(*), COUNT(DISTINCT CRN) FROM sc_buv2_tradeline_cc;
+SELECT COUNT(*), COUNT(DISTINCT CRN) FROM sc_buv2_tradeline_cc WHERE CC_INCOME > 0;
+
+########## CELL 20 (code) ##########
+-- SELECT 
+-- -- CRN,bureau_income_v2, MAX_AFFL_INFL_ROLL,STAMP_LOAN
+
+--     -- PERCENTILE_CONT(0.05) WITHIN GROUP (ORDER BY bureau_income_v2) AS p05,
+--     -- PERCENTILE_CONT(0.10) WITHIN GROUP (ORDER BY bureau_income_v2) AS p10,
+--     -- PERCENTILE_CONT(0.20) WITHIN GROUP (ORDER BY bureau_income_v2) AS p20,
+--     -- PERCENTILE_CONT(0.30) WITHIN GROUP (ORDER BY bureau_income_v2) AS p30,
+--     -- PERCENTILE_CONT(0.40) WITHIN GROUP (ORDER BY bureau_income_v2) AS p40,
+--     -- PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY bureau_income_v2) AS p50,
+--     -- PERCENTILE_CONT(0.60) WITHIN GROUP (ORDER BY bureau_income_v2) AS p60,
+--     -- PERCENTILE_CONT(0.70) WITHIN GROUP (ORDER BY bureau_income_v2) AS p70,
+--     -- PERCENTILE_CONT(0.80) WITHIN GROUP (ORDER BY bureau_income_v2) AS p80,
+--     -- PERCENTILE_CONT(0.90) WITHIN GROUP (ORDER BY bureau_income_v2) AS p90,
+--     -- PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY bureau_income_v2) AS p95,
+--     -- PERCENTILE_CONT(0.99) WITHIN GROUP (ORDER BY bureau_income_v2) AS p99,
+--     -- PERCENTILE_CONT(1.00) WITHIN GROUP (ORDER BY bureau_income_v2) AS p100
+
+-- -- LOAN_TYPES
+
+-- CASE
+-- WHEN MAX_AFFL_INFL_ROLL > 0 and bureau_income_v2 > 0 and abs(MAX_AFFL_INFL_ROLL - bureau_income_v2) < 10 then 'G. No Change'
+-- WHEN MAX_AFFL_INFL_ROLL > 0 and bureau_income_v2 > 0 then 
+--     case
+--         when (MAX_AFFL_INFL_ROLL - bureau_income_v2)/ MAX_AFFL_INFL_ROLL < -0.4 then 'A.-<40%'
+--         when (MAX_AFFL_INFL_ROLL - bureau_income_v2)/ MAX_AFFL_INFL_ROLL < -0.2 then 'B.-20% to -40%'
+--         when (MAX_AFFL_INFL_ROLL - bureau_income_v2)/ MAX_AFFL_INFL_ROLL < 0 then 'C.0 to -20%'
+--         when (MAX_AFFL_INFL_ROLL - bureau_income_v2)/ MAX_AFFL_INFL_ROLL < 0.2 then 'D.0 TO 20% '
+--         when (MAX_AFFL_INFL_ROLL - bureau_income_v2)/ MAX_AFFL_INFL_ROLL < 0.4 then 'E.20% TO 40%'
+--         when (MAX_AFFL_INFL_ROLL - bureau_income_v2)/ MAX_AFFL_INFL_ROLL >= 0.4 then 'F. >=40%'
+--         ELSE ''
+--     END
+-- WHEN bureau_income_v2 > 0 then 'H. Only Modified Income'
+-- WHEN MAX_AFFL_INFL_ROLL > 0 then 'I. Only Original Income'
+-- ELSE NULL 
+-- END AS diff_bureau_income_v2
+
+-- -- ,STAMP_LOAN
+
+-- ,COUNT(*) AS CNT
+
+-- FROM SC_BUV2_DID1
+-- -- WHERE (MAX_AFFL_INFL_ROLL BETWEEN 1 and 10000) and bureau_income_v2 > 200000
+-- -- LOAN_TYPES = 'Two-wheeler Loan'
+-- -- and 
+-- -- (MAX_AFFL_INFL_ROLL IS NULL OR MAX_AFFL_INFL_ROLL <= 0) and bureau_income_v2 > 0
+-- -- and TOTAL_TL_COUNT > 1
+
+-- -- WHERE STAMP_LOAN NOT IN ('Credit Card -HCA','Credit Card','Business Loan','CV CE')
+
+-- GROUP BY 1
+-- -- , 2
+
+########## CELL 21 (code) ##########
+-- CREATE TABLE kmbl_risk.sandbox.sc_buv2_tradeline_best_rolling_window_jan26_file as
+-- SELECT * FROM sc_buv2_tradeline_best_rolling_window;
+
+-- CREATE TABLE kmbl_risk.sandbox.sc_buv2_tradeline_rolling_windows_jan26_file as
+-- SELECT * FROM sc_buv2_tradeline_rolling_windows;
+
+-- CREATE TABLE kmbl_risk.sandbox.sc_buv2_tradeline_tradeline_months_jan26_file as
+-- SELECT * FROM sc_buv2_tradeline_tradeline_months;
+
+-- CREATE TABLE kmbl_risk.sandbox.sc_buv2_tradeline_data4_jan26_file as
+-- SELECT * FROM sc_buv2_tradeline_data4;
+
+-- CREATE TABLE kmbl_risk.sandbox.sc_buv2_tradeline_sustained_emi_jan26_file as
+-- SELECT * FROM sc_buv2_tradeline_sustained_emi;
+
+-- CREATE TABLE kmbl_risk.sandbox.sc_buv2_sustained_emi_franchis2_jan26_file as
+-- SELECT * FROM sc_buv2_sustained_emi_franchis2;

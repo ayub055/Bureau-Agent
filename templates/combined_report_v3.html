@@ -699,12 +699,10 @@
       {% if v2 and v2.profile %}
       <div class="loan-card">
         <div class="head"><b>Customer Profile</b>{% if v2.profile.ktk_rel %}<span class="tag cat">{{ v2.profile.ktk_rel }}</span>{% endif %}</div>
-        {% if v2.profile.customer_segment %}<div class="row"><span>Segment</span><b>{{ v2.profile.customer_segment }}</b></div>{% endif %}
-        {% if v2.profile.income_source %}<div class="row"><span>Income Source</span><b>{{ v2.profile.income_source }}</b></div>{% endif %}
-        {% if v2.profile.affluence_amt is not none %}<div class="row"><span>Affluence (6M income est.)</span><b>₹ {{ "{:,.0f}".format(v2.profile.affluence_amt) }}</b></div>{% endif %}
+        {% if v2.profile.bureau_income is not none %}<div class="row"><span>Bureau Income</span><b>₹ {{ "{:,.0f}".format(v2.profile.bureau_income) }}</b></div>{% endif %}
+        {% if v2.profile.stamp_loan %}<div class="row"><span>Stamp Loan</span><b>{{ v2.profile.stamp_loan }}</b></div>{% endif %}
+        {% if v2.profile.sustained_emi is not none %}<div class="row" title="Maximum EMI the customer has paid consecutively for at least 6 months in the last 3 years (from scrub date)"><span>Sustained EMI</span><b>₹ {{ "{:,.0f}".format(v2.profile.sustained_emi) }}</b></div>{% endif %}
         {% if v2.profile.bu_grp %}<div class="row"><span>Bureau Thickness</span><b>{{ v2.profile.bu_grp }}</b></div>{% endif %}
-        {% if v2.profile.bank_grp %}<div class="row"><span>Banking Thickness</span><b>{{ v2.profile.bank_grp }}</b></div>{% endif %}
-        {% if v2.profile.node %}<div class="row"><span>Node</span><b>{{ v2.profile.node }}</b></div>{% endif %}
       </div>
       {% endif %}
       {% if persona and persona.profiles %}

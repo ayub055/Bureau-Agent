@@ -39,6 +39,7 @@ TEMPLATE_COLUMNS = [
     "TU Score",
     "Bureau Income",
     "Stamp Loan",
+    "Sustained EMI",
     "Concerns",
     "Intelligent Report",
 ]
@@ -153,6 +154,11 @@ def build_excel_row(
     else:
         row["Bureau Income"] = None
         row["Stamp Loan"] = None
+
+    # ── Sustained EMI (deterministic rolling-window EMI calc) ─────────────────
+    _se = getattr(bureau_report, "sustained_emi", None) if bureau_report else None
+    row["Sustained EMI"] = (round(_se["sustained_emi"], 2)
+                            if _se and _se.get("sustained_emi") is not None else None)
 
     # ── Concerns ─────────────────────────────────────────────────────────────
     # High/moderate risk key findings from bureau report
