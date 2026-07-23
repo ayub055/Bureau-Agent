@@ -103,7 +103,7 @@ def _compute_html_chart_data(vectors_data: list, ei, monthly_exposure=None) -> s
 def render_combined_report(
     bureau_report: Optional[BureauReport],
     output_path: Optional[str] = None,
-    theme: str = "v2",
+    theme: str = "v3",
 ) -> str:
     """Render the Bureau Analyser HTML report from the bureau report.
 
@@ -1540,11 +1540,14 @@ def _compute_v2_context(
     # ── Customer profile card ──────────────────────────────────────────
     _bi = getattr(bureau_report, "bureau_income", None) or {}
     _se = getattr(bureau_report, "sustained_emi", None) or {}
+    _ob = getattr(bureau_report, "obligation", None) or {}
     profile = {
         "ktk_rel": tl.get("ktk_rel"),
         "bureau_income": _bi.get("bureau_income"),
         "stamp_loan": (_bi.get("stamp_loan") if _bi.get("stamp_loan") not in (None, "NA") else None),
         "sustained_emi": _se.get("sustained_emi"),
+        "obligation": _ob.get("aff_emi"),
+        "obligation_unsec": _ob.get("emi_unsec"),
         "bu_grp": tl.get("bu_grp"),
     }
     v2["profile"] = profile if any(val is not None for val in profile.values()) else None
@@ -1638,16 +1641,16 @@ def _compute_v2_context(
     return v2
 
 
-# Theme name → template file. "v2" is the maintained default;
-# "v3" is the merged/de-duplicated variant (in development);
-# "original" and "emerald" are frozen legacy fallbacks.
+# Theme name → template file. "v3" is the maintained default (merged/de-duplicated
+# variant); "v2" is the previous default; "original" and "emerald" are frozen legacy
+# fallbacks.
 THEME_TEMPLATES = {
     "v2":       "combined_report_v2.html",
     "v3":       "combined_report_v3.html",
     "original": "combined_report_original.html",
     "emerald":  "combined_report.html",
 }
-DEFAULT_THEME = "v2"
+DEFAULT_THEME = "v3"
 
 
 def render_combined_report_html(

@@ -23,7 +23,7 @@ _EXCEL_OUTPUT_DIR = os.path.join(
 
 def generate_combined_report_pdf(
     customer_id: int,
-    theme: str = "v2",
+    theme: str = "v3",
 ) -> Tuple[Optional[BureauReport], str]:
     """Generate the Bureau Analyser report as HTML.
 
@@ -34,7 +34,7 @@ def generate_combined_report_pdf(
 
     Args:
         customer_id: The customer identifier (CRN).
-        theme: HTML theme name (default "v2"; "original" and "emerald" are legacy).
+        theme: HTML theme name (default "v3"; "original" and "emerald" are legacy).
 
     Returns:
         Tuple of (BureauReport | None, html_report_path).

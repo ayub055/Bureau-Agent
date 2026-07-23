@@ -143,3 +143,16 @@ PERSONA_BL_LARGE_MIN_COUNT: int = 3                 # Large Business minimum BL 
 # effective close date (date_opened + tenor). The source notebook read this per
 # tradeline; here it is a single tunable config value (the data has no `tenor`).
 SUSTAINED_EMI_TENOR_MONTHS: int = 60
+
+# ---------------------------------------------------------------------------
+# Bureau Obligation
+# ---------------------------------------------------------------------------
+# Per-tradeline loan tenor (months) used by the bureau-obligation calc to derive
+# `remain_tenor` (tenor - MOB) and `fo_flag`. The source Redshift procedure reads a
+# real per-row `tenor` and, when it is NULL, sets `remain_tenor = 0` (and COALESCE=0
+# in `fo_flag`). Our data has no `tenor` column, so the FAITHFUL default is None →
+# the calc injects NULL into `params_input` and every row takes the source's
+# `tenor IS NULL → 0` branch. Set to an int only to force a flat assumed tenor for
+# all rows. (Note: for the current data this value does not change any output — the
+# tenor-sensitive branches are gated out — but None keeps the port faithful.)
+OBLIGATION_TENOR_MONTHS: int | None = None

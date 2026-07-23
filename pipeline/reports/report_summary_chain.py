@@ -373,7 +373,7 @@ def _build_bureau_data_summary(executive_inputs, tradeline_features=None, monthl
         if any(v is not None for v in [aff_emi, foir, foir_unsec]):
             lines.append("\nObligation & FOIR:")
             if affluence_amt is not None:
-                lines.append(f"  Affluence Income (6M est.): INR {format_inr(affluence_amt)}")
+                lines.append(f"  Bureau Income: INR {format_inr(affluence_amt)}")
             if aff_emi is not None:
                 lines.append(f"  Total Bureau EMI Obligation (all products): INR {format_inr(aff_emi)}")
             if unsecured_emi is not None:

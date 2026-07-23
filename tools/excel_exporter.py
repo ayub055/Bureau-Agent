@@ -40,6 +40,11 @@ TEMPLATE_COLUMNS = [
     "Bureau Income",
     "Stamp Loan",
     "Sustained EMI",
+    "Aff EMI",
+    "EMI Unsec",
+    "Aff EMI Topup",
+    "EMI Unsec Topup",
+    "Current EMI",
     "Concerns",
     "Intelligent Report",
 ]
@@ -159,6 +164,15 @@ def build_excel_row(
     _se = getattr(bureau_report, "sustained_emi", None) if bureau_report else None
     row["Sustained EMI"] = (round(_se["sustained_emi"], 2)
                             if _se and _se.get("sustained_emi") is not None else None)
+
+    # ── Bureau Obligation (deterministic EMI-obligation calc) ─────────────────
+    _ob = getattr(bureau_report, "obligation", None) if bureau_report else None
+    for _col, _key in (("Aff EMI", "aff_emi"), ("EMI Unsec", "emi_unsec"),
+                       ("Aff EMI Topup", "aff_emi_topup"),
+                       ("EMI Unsec Topup", "emi_unsec_topup"),
+                       ("Current EMI", "current_emi")):
+        row[_col] = (round(_ob[_key], 2)
+                     if _ob and _ob.get(_key) is not None else None)
 
     # ── Concerns ─────────────────────────────────────────────────────────────
     # High/moderate risk key findings from bureau report

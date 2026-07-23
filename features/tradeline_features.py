@@ -46,10 +46,14 @@ class TradelineFeatures:
     trade_to_enquiry_ratio_uns_24m: Optional[float] = None   # tr_to_enq_ratio_uns_l24m
 
     # --- Obligation & FOIR ---
-    aff_emi: Optional[float] = None                          # aff_emi (total bureau EMI obligation)
-    unsecured_emi: Optional[float] = None                    # unsecured_emi (unsecured obligation)
-    foir: Optional[float] = None                             # foir (aff_emi / affluence_amt_6 × 100)
-    foir_unsec: Optional[float] = None                       # foir_unsec (unsecured_emi / affluence_amt_6 × 100)
+    # NOTE: seeded from tl_features.csv, but build_bureau_report() overrides these with
+    # the deterministic module values (tools/obligation + tools/bureau_income) when both
+    # are available, so aff_emi/unsecured_emi = module obligation, affluence_amt = Bureau
+    # Income, and foir/foir_unsec = obligation ÷ Bureau Income × 100.
+    aff_emi: Optional[float] = None                          # Bureau Obligation (total bureau EMI obligation)
+    unsecured_emi: Optional[float] = None                    # unsecured obligation (emi_unsec)
+    foir: Optional[float] = None                             # foir (aff_emi / Bureau Income × 100)
+    foir_unsec: Optional[float] = None                       # foir_unsec (unsecured_emi / Bureau Income × 100)
 
     # --- Customer Profile ---
     ktk_rel: Optional[str] = None                            # ktk_rel

@@ -28,3 +28,4 @@ class BureauReport:
     raw_loan_profile: Optional[Dict[str, Any]] = None  # raw loan type counts for persona
     bureau_income: Optional[Dict[str, Any]] = None  # {"bureau_income": float, "stamp_loan": str, ...}
     sustained_emi: Optional[Dict[str, Any]] = None  # {"sustained_emi": float, "cc_income": float, ...}
+    obligation: Optional[Dict[str, Any]] = None  # {"aff_emi": float, "emi_unsec": float, ...}

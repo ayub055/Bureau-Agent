@@ -703,6 +703,8 @@
         {% if v2.profile.bureau_income is not none %}<div class="row"><span>Bureau Income</span><b>₹ {{ "{:,.0f}".format(v2.profile.bureau_income) }}</b></div>{% endif %}
         {% if v2.profile.stamp_loan %}<div class="row"><span>Stamp Loan</span><b>{{ v2.profile.stamp_loan }}</b></div>{% endif %}
         {% if v2.profile.sustained_emi is not none %}<div class="row" title="Maximum EMI the customer has paid consecutively for at least 6 months in the last 3 years (from scrub date)"><span>Sustained EMI</span><b>₹ {{ "{:,.0f}".format(v2.profile.sustained_emi) }}</b></div>{% endif %}
+        {% if v2.profile.obligation is not none %}<div class="row" title="Total monthly EMI obligation across all bureau tradelines (loan-type EMI rate bands + credit-risk filters)"><span>Bureau Obligation</span><b>₹ {{ "{:,.0f}".format(v2.profile.obligation) }}</b></div>{% endif %}
+        {% if v2.profile.obligation_unsec is not none %}<div class="row" title="Unsecured share of the monthly EMI obligation"><span>Unsecured Obligation</span><b>₹ {{ "{:,.0f}".format(v2.profile.obligation_unsec) }}</b></div>{% endif %}
         {% if v2.profile.bu_grp %}<div class="row"><span>Bureau Thickness</span><b>{{ v2.profile.bu_grp }}</b></div>{% endif %}
       </div>
       {% endif %}

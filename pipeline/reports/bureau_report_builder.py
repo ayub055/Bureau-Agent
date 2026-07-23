@@ -125,6 +125,32 @@ def build_bureau_report(customer_id: int) -> BureauReport:
     except Exception as e:
         logger.warning(f"Sustained EMI computation failed for {customer_id}: {e}")
 
+    # 4f. Bureau obligation — deterministic DuckDB-wrapped SQL (fail-soft)
+    obligation = None
+    try:
+        from tools.obligation import _calculate_obligation
+        obligation = _calculate_obligation(customer_id)
+    except Exception as e:
+        logger.warning(f"Bureau obligation computation failed for {customer_id}: {e}")
+
+    # 4g. Bureau FOIR from the deterministic modules: Bureau Obligation ÷ Bureau Income.
+    # Overrides the pre-computed tl_features FOIR so the report's Income, Obligation and
+    # FOIR are mutually consistent (the tile shows module Income/Obligation, so FOIR must
+    # be computed from the same two numbers). Fail-soft: if either module is missing or
+    # income is non-positive, the tl_features FOIR values are left untouched.
+    try:
+        _inc = (bureau_income or {}).get("bureau_income")
+        _aff = (obligation or {}).get("aff_emi")
+        _uns = (obligation or {}).get("emi_unsec")
+        if tradeline_features is not None and _inc and _inc > 0 and _aff is not None:
+            tradeline_features.aff_emi = round(_aff, 2)
+            tradeline_features.unsecured_emi = (round(_uns, 2) if _uns is not None else None)
+            tradeline_features.affluence_amt = round(_inc, 2)
+            tradeline_features.foir = round(_aff / _inc * 100, 1)
+            tradeline_features.foir_unsec = (round(_uns / _inc * 100, 1) if _uns is not None else None)
+    except Exception as e:
+        logger.warning(f"FOIR override from bureau modules failed for {customer_id}: {e}")
+
     # 5. Assemble report
     report = BureauReport(
         meta=meta,
@@ -136,6 +162,7 @@ def build_bureau_report(customer_id: int) -> BureauReport:
         raw_loan_profile=raw_loan_profile,
         bureau_income=bureau_income,
         sustained_emi=sustained_emi,
+        obligation=obligation,
     )
 
     # 6. Validate (fail-soft: log warnings, return partial report)

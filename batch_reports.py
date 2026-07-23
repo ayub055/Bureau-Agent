@@ -53,7 +53,7 @@ def _load_crns_from_tl_features() -> list:
     return sorted(df["crn"].dropna().astype(int).unique().tolist())
 
 
-def run_batch(crns: list, output_excel: str, resume: bool = False, theme: str = "v2") -> None:
+def run_batch(crns: list, output_excel: str, resume: bool = False, theme: str = "v3") -> None:
     from tools.combined_report import generate_combined_report_pdf, _EXCEL_OUTPUT_DIR
     from tools.excel_exporter import merge_excel_reports
 

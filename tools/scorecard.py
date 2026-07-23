@@ -233,7 +233,8 @@ def _bureau_signals(bureau_report) -> list:
         })
 
     # 7. Bureau FOIR (obligation-to-income ratio from bureau data)
-    # Definition: aff_emi (total bureau EMI obligation) ÷ affluence_amt_6 (6M income estimate) × 100
+    # Definition: Bureau Obligation (aff_emi) ÷ Bureau Income × 100 — both from the
+    # deterministic modules (tools/obligation, tools/bureau_income).
     if tl and tl.foir is not None:
         foir_val = tl.foir
         rag = _rag(foir_val, green_max=40, amber_max=65)
@@ -243,9 +244,9 @@ def _bureau_signals(bureau_report) -> list:
         unsec_str = f"\nFOIR (unsecured only): {tl.foir_unsec:.1f}%" if tl.foir_unsec is not None else ""
         tooltip = (
             f"Bureau obligation-to-income ratio.\n"
-            f"Total EMI burden (aff_emi): {aff_emi_str}\n"
-            f"Affluence income (6M estimate): {aff_inc_str}\n"
-            f"FOIR = aff_emi ÷ affluence_amt × 100 = {foir_val:.1f}%{unsec_str}\n"
+            f"Bureau Obligation (aff_emi): {aff_emi_str}\n"
+            f"Bureau Income: {aff_inc_str}\n"
+            f"FOIR = Bureau Obligation ÷ Bureau Income × 100 = {foir_val:.1f}%{unsec_str}\n"
             f"Thresholds: ≤40% = comfortable · ≤65% = stretched · >65% = over-leveraged"
         )
         signals.append({
