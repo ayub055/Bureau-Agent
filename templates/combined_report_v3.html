@@ -653,9 +653,13 @@
   {% set k = v2.kpis %}
   <div class="kpis" id="kpis">
     <div class="kpi {{ k.cibil.rag }}">
-      <div class="label">CIBIL Score</div>
+      <div class="label">{{ k.cibil.label or 'CIBIL Score' }}</div>
       <div class="value">{{ k.cibil.value }}</div>
+      {% if k.cibil.sub_lines %}
+        {% for line in k.cibil.sub_lines %}<div class="sub">{{ line }}</div>{% endfor %}
+      {% else %}
       <div class="sub">{{ k.cibil.sub }}</div>
+      {% endif %}
     </div>
     <div class="kpi {{ k.max_dpd.rag }}">
       <div class="label">Max DPD</div>
