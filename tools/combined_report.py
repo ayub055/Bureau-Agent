@@ -2,8 +2,8 @@
 combined-report renderer/template.
 
 Builds the bureau report (deterministic feature extraction + aggregation),
-generates the LLM bureau narrative, then renders the bureau-only document
-(HTML + optional PDF) plus a one-row Excel export for batch merging.
+generates the LLM bureau narrative, then renders the bureau-only HTML document
+plus a one-row Excel export for batch merging.
 """
 
 import logging
@@ -11,7 +11,6 @@ import os
 from typing import Optional, Tuple
 
 from schemas.bureau_report import BureauReport
-from tools.bureau import generate_bureau_report_pdf
 
 logger = logging.getLogger(__name__)
 
@@ -25,44 +24,36 @@ _EXCEL_OUTPUT_DIR = os.path.join(
 def generate_combined_report_pdf(
     customer_id: int,
     theme: str = "v2",
-    save_intermediate: bool = True,
 ) -> Tuple[Optional[BureauReport], str]:
-    """Generate the Bureau Analyser report as HTML (+ optional PDF).
+    """Generate the Bureau Analyser report as HTML.
 
     Steps:
         1. Build bureau report + LLM narrative
-        2. Render bureau-only document (combined renderer/template)
+        2. Render bureau-only HTML document (combined renderer/template)
         3. Export a one-row Excel file for batch merging
 
     Args:
         customer_id: The customer identifier (CRN).
         theme: HTML theme name (default "v2"; "original" and "emerald" are legacy).
-        save_intermediate: When False, skip the standalone bureau PDF/HTML and
-            the report PDF — only save the report HTML and Excel.  Used by
-            batch_reports to avoid disk clutter.
 
     Returns:
-        Tuple of (BureauReport | None, report_path).
+        Tuple of (BureauReport | None, html_report_path).
     """
-    # 1. Bureau report (deterministic build + LLM narrative)
+    # 1. Bureau report (deterministic build + LLM narrative, fail-soft)
     bureau_report = None
     try:
-        if save_intermediate:
-            bureau_report, _ = generate_bureau_report_pdf(customer_id)
-        else:
-            # Build data + LLM narrative but skip the standalone bureau PDF/HTML
-            from pipeline.reports.bureau_report_builder import build_bureau_report
-            from pipeline.reports.report_summary_chain import generate_bureau_review
-            bureau_report = build_bureau_report(customer_id)
-            try:
-                bureau_report.narrative = generate_bureau_review(
-                    bureau_report.executive_inputs,
-                    tradeline_features=bureau_report.tradeline_features,
-                    monthly_exposure=bureau_report.monthly_exposure,
-                    customer_id=customer_id,
-                )
-            except Exception:
-                pass
+        from pipeline.reports.bureau_report_builder import build_bureau_report
+        from pipeline.reports.report_summary_chain import generate_bureau_review
+        bureau_report = build_bureau_report(customer_id)
+        try:
+            bureau_report.narrative = generate_bureau_review(
+                bureau_report.executive_inputs,
+                tradeline_features=bureau_report.tradeline_features,
+                monthly_exposure=bureau_report.monthly_exposure,
+                customer_id=customer_id,
+            )
+        except Exception:
+            pass
     except Exception as e:
         logger.warning(f"Bureau report unavailable for {customer_id}: {e}")
 
@@ -76,11 +67,9 @@ def generate_combined_report_pdf(
     except Exception as e:
         logger.warning(f"Exposure summary failed for {customer_id}: {e}")
 
-    # 2. Render bureau-only document
+    # 2. Render bureau HTML document
     from pipeline.renderers.combined_report_renderer import render_combined_report
-    report_path = render_combined_report(
-        bureau_report, theme=theme, save_pdf=save_intermediate,
-    )
+    report_path = render_combined_report(bureau_report, theme=theme)
 
     # 3. Export one-row Excel file for this customer (batch-merge later)
     try:

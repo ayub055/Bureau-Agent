@@ -1,11 +1,12 @@
 """Bureau Analyser report renderer - renders BureauReport into a rich PDF/HTML.
 
-Reuses ReportPDF base class and rendering helpers from the bureau renderer.
+Renders BureauReport into HTML.
 NO LLM calls - NO data manipulation - just rendering.
 
 The bureau_report may be None when bureau data is unavailable.
 """
 
+import calendar
 import json
 from dataclasses import asdict
 from datetime import date, datetime
@@ -13,284 +14,105 @@ from pathlib import Path
 from typing import Optional
 
 from jinja2 import Environment, FileSystemLoader
-from fpdf import FPDF
 
 import numpy as np
 import config.thresholds as T
 
 from schemas.bureau_report import BureauReport
 from schemas.loan_type import get_loan_type_display_name
-from .pdf_renderer import ReportPDF, _sanitize_text
-from .bureau_pdf_renderer import (
-    _render_key_finding, _render_group_header, _render_feature_pair,
-    _compute_html_chart_data,
-)
 from ..reports.key_findings import findings_to_dicts
 from utils.helpers import mask_customer_id, format_inr, format_inr_units, strip_segment_prefix
 
 
-class CombinedReportPDF(ReportPDF):
-    """Custom PDF class for the Bureau Analyser report — overrides header only."""
+def _compute_html_chart_data(vectors_data: list, ei, monthly_exposure=None) -> str:
+    """Compute chart datasets and return as a pre-serialized JSON string.
 
-    def header(self):
-        self.set_font("Helvetica", "B", 16)
-        self.cell(0, 10, "Bureau Analyser Report", align="C", new_x="LMARGIN", new_y="NEXT")
-        self.ln(5)
+    Pre-serializing in Python avoids Jinja2 tojson filter issues with
+    non-standard types (enums, numpy ints, etc.) that may be present in
+    the feature vector dicts after asdict() conversion.
+    """
+    product_labels = [str(v["loan_type_display"]) for v in vectors_data]
+    product_values = [int(v["loan_count"]) for v in vectors_data]
 
+    secured   = int(sum(int(v["loan_count"]) for v in vectors_data if v.get("secured")))
+    unsecured = int(sum(int(v["loan_count"]) for v in vectors_data if not v.get("secured")))
 
-def _render_absence_note(pdf: FPDF, source_name: str) -> None:
-    """Render a styled note indicating a data source is unavailable."""
-    pdf.set_font("Helvetica", "I", 10)
-    pdf.set_text_color(180, 60, 60)
-    pdf.cell(
-        0, 8,
-        f"  {source_name} data is not available for this customer.",
-        new_x="LMARGIN", new_y="NEXT",
-    )
-    pdf.set_text_color(0, 0, 0)
-    pdf.ln(5)
+    on_us  = int(sum(int(v.get("on_us_count", 0)) for v in vectors_data))
+    off_us = int(sum(int(v.get("off_us_count", 0)) for v in vectors_data))
 
+    unsec_out_labels = [
+        str(v["loan_type_display"]) for v in vectors_data
+        if not v.get("secured") and float(v.get("total_outstanding_amount") or 0) > 0
+    ]
+    unsec_out_values = [
+        float(v["total_outstanding_amount"]) for v in vectors_data
+        if not v.get("secured") and float(v.get("total_outstanding_amount") or 0) > 0
+    ]
 
-def _build_combined_pdf(
-    bureau_report: Optional[BureauReport],
-) -> FPDF:
-    """Build a single PDF document from the bureau report."""
-    pdf = CombinedReportPDF()
-    pdf.add_page()
+    # Normalise monthly_exposure series values to plain Python floats
+    ts: dict = {"months": [], "series": {}}
+    if monthly_exposure:
+        ts["months"] = [str(m) for m in monthly_exposure.get("months", [])]
+        ts["series"] = {
+            str(k): [float(x) for x in v]
+            for k, v in monthly_exposure.get("series", {}).items()
+        }
 
-    # =====================================================================
-    # META / REPORT INFORMATION
-    # =====================================================================
-    pdf.section_title("Report Information")
-    if bureau_report:
-        pdf.key_value("Customer ID", mask_customer_id(bureau_report.meta.customer_id))
-        if bureau_report.meta.generated_at:
-            pdf.key_value("Generated", bureau_report.meta.generated_at[:10])
-        pdf.key_value("Tradelines", str(bureau_report.executive_inputs.total_tradelines))
-    pdf.ln(5)
-
-    # =====================================================================
-    # BUREAU REPORT
-    # =====================================================================
-
-    pdf.set_font("Helvetica", "B", 14)
-    pdf.set_fill_color(44, 62, 80)
-    pdf.set_text_color(255, 255, 255)
-    pdf.cell(0, 12, "  Bureau Tradeline Analysis", fill=True, new_x="LMARGIN", new_y="NEXT")
-    pdf.set_text_color(0, 0, 0)
-    pdf.ln(8)
-
-    if bureau_report:
-        ei = bureau_report.executive_inputs
-
-        # Portfolio Summary
-        pdf.section_title("Portfolio Summary")
-        pdf.key_value("Live Tradelines", str(ei.live_tradelines))
-        pdf.key_value("Total Sanction Amount", f"INR {format_inr(ei.total_sanctioned)}")
-        pdf.key_value("Total Outstanding", f"INR {format_inr(ei.total_outstanding)}")
-        pdf.key_value("Unsecured Sanction Amount", f"INR {format_inr(ei.unsecured_sanctioned)}")
-        # Unsecured outstanding %
-        if ei.total_outstanding > 0:
-            unsec_os_pct = ei.unsecured_outstanding / ei.total_outstanding * 100
-            pdf.key_value("Unsecured Outstanding", f"{unsec_os_pct:.0f}% of total outstanding")
-        else:
-            pdf.key_value("Unsecured Outstanding", "N/A")
-        # Max DPD with timing
-        dpd_str = str(ei.max_dpd) if ei.max_dpd is not None else "N/A"
-        if ei.max_dpd is not None:
-            details = []
-            if ei.max_dpd_months_ago is not None:
-                details.append(f"{ei.max_dpd_months_ago} months ago")
-            if ei.max_dpd_loan_type:
-                details.append(ei.max_dpd_loan_type)
-            if details:
-                dpd_str += f" ({', '.join(details)})"
-        pdf.key_value("Max DPD", dpd_str)
-
-        # Largest Single Loan
-        if ei.max_single_sanction_amount > 0:
-            max_loan_str = f"INR {format_inr(ei.max_single_sanction_amount)}"
-            if ei.max_single_sanction_loan_type:
-                max_loan_str += f" ({ei.max_single_sanction_loan_type})"
-            pdf.key_value("Largest Single Loan", max_loan_str)
-
-        # Joint Loans
-        if ei.total_joint_count > 0:
-            joint_str = f"{ei.total_joint_count} tradeline(s) — {', '.join(ei.joint_product_types)}"
-            pdf.key_value("Joint Loans", joint_str)
-
-        # Kotak (On-Us) sub-section
-        if ei.on_us_total_tradelines > 0:
-            pdf.ln(3)
-            pdf.set_font("Helvetica", "B", 9)
-            pdf.cell(0, 6, "Kotak Relationship (On-Us)", new_x="LMARGIN", new_y="NEXT")
-            pdf.set_font("Helvetica", "", 9)
-            pdf.key_value("On-Us Tradelines", f"{ei.on_us_total_tradelines} ({ei.on_us_live_tradelines} live)")
-            pdf.key_value("Products", ", ".join(ei.on_us_product_types))
-            pdf.key_value("Sanctioned", f"INR {format_inr(ei.on_us_total_sanctioned)}")
-            pdf.key_value("Outstanding", f"INR {format_inr(ei.on_us_total_outstanding)}")
-            if ei.on_us_max_dpd is not None and ei.on_us_max_dpd > 0:
-                pdf.key_value("On-Us Max DPD", str(ei.on_us_max_dpd))
-
-        pdf.ln(5)
-
-        # Defaulted / Delinquent Loan Types table
-        if ei.defaulted_loan_summaries:
-            pdf.section_title("Defaulted / Delinquent Loan Types")
-            d_headers = ["Loan Type", "Sanctioned", "Outstanding", "Max DPD", "Kotak"]
-            d_widths = [40, 40, 40, 25, 20]
-            pdf.set_font("Helvetica", "B", 7)
-            pdf.set_fill_color(220, 220, 220)
-            for header, width in zip(d_headers, d_widths):
-                pdf.cell(width, 7, header, border=1, fill=True, align="C")
-            pdf.ln()
-            pdf.set_font("Helvetica", "", 7)
-            for d in ei.defaulted_loan_summaries:
-                vals = [
-                    d["type"],
-                    format_inr(d["sanction"]),
-                    format_inr(d["outstanding"]),
-                    str(d["dpd"]) if d["dpd"] is not None else "-",
-                    "Yes" if d["on_us"] else "No",
-                ]
-                for val, width in zip(vals, d_widths):
-                    pdf.cell(width, 6, val, border=1, align="C")
-                pdf.ln()
-            pdf.ln(3)
-
-        # Bureau Narrative
-        if bureau_report.narrative:
-            pdf.section_title("Bureau Executive Summary")
-            pdf.section_text(bureau_report.narrative)
-            pdf.ln(3)
-
-        # Key Findings
-        if bureau_report.key_findings:
-            pdf.add_page()
-            pdf.section_title("Key Findings & Inferences")
-            pdf.ln(2)
-            for finding in bureau_report.key_findings:
-                _render_key_finding(pdf, finding)
-
-        # Product-wise Table
-        pdf.add_page()
-        pdf.section_title("Product-wise Breakdown")
-        headers = [
-            "Type", "Sec", "Count", "Live", "Closed",
-            "Sanctioned", "Outstanding", "Max DPD", "Util%", "On-Us"
-        ]
-        widths = [30, 12, 16, 14, 16, 30, 30, 18, 14, 16]
-        pdf.set_font("Helvetica", "B", 7)
-        pdf.set_fill_color(220, 220, 220)
-        for header, width in zip(headers, widths):
-            pdf.cell(width, 7, header, border=1, fill=True, align="C")
-        pdf.ln()
-
-        pdf.set_font("Helvetica", "", 7)
-        for loan_type, vec in bureau_report.feature_vectors.items():
-            secured = "Y" if vec.secured else "N"
-            util = f"{vec.utilization_ratio * 100:.0f}" if vec.utilization_ratio is not None else "-"
-            max_dpd = str(vec.max_dpd) if vec.max_dpd is not None else "-"
-            values = [
-                get_loan_type_display_name(loan_type)[:14],
-                secured,
-                str(vec.loan_count),
-                str(vec.live_count),
-                str(vec.closed_count),
-                format_inr(vec.total_sanctioned_amount),
-                format_inr(vec.total_outstanding_amount),
-                max_dpd, util,
-                str(vec.on_us_count),
-            ]
-            for val, width in zip(values, widths):
-                pdf.cell(width, 6, str(val)[:14], border=1, align="C")
-            pdf.ln()
-
-        # Totals row
-        pdf.set_font("Helvetica", "B", 7)
-        totals = [
-            "TOTAL", "",
-            str(ei.total_tradelines),
-            str(ei.live_tradelines),
-            str(ei.closed_tradelines),
-            format_inr(ei.total_sanctioned),
-            format_inr(ei.total_outstanding),
-            str(ei.max_dpd) if ei.max_dpd is not None else "-",
-            "", ""
-        ]
-        for val, width in zip(totals, widths):
-            pdf.cell(width, 6, val, border=1, align="C")
-        pdf.ln()
-
-        # Behavioral & Risk Features
-        if bureau_report.tradeline_features is not None:
-            pdf.add_page()
-            pdf.section_title("Behavioral & Risk Features")
-            tf = bureau_report.tradeline_features
-
-            _render_group_header(pdf, "Loan Activity")
-            _render_feature_pair(pdf, "Months Since Last PL Trade Opened", tf.months_since_last_trade_pl)
-            _render_feature_pair(pdf, "Months Since Last Unsecured Trade Opened", tf.months_since_last_trade_uns)
-            _render_feature_pair(pdf, "New PL Trades in Last 6 Months", tf.new_trades_6m_pl)
-            pdf.ln(3)
-
-            _render_group_header(pdf, "DPD & Delinquency")
-            _render_feature_pair(pdf, "Max DPD Last 6M (CC)", tf.max_dpd_6m_cc)
-            _render_feature_pair(pdf, "Max DPD Last 6M (PL)", tf.max_dpd_6m_pl)
-            _render_feature_pair(pdf, "Max DPD Last 9M (CC)", tf.max_dpd_9m_cc)
-            _render_feature_pair(pdf, "Months Since Last 0+ DPD (Unsecured)", tf.months_since_last_0p_uns)
-            _render_feature_pair(pdf, "Months Since Last 0+ DPD (PL)", tf.months_since_last_0p_pl)
-            pdf.ln(3)
-
-            _render_group_header(pdf, "Payment Behavior")
-            _render_feature_pair(pdf, "% Trades with 0+ DPD in 24M (All)", tf.pct_0plus_24m_all)
-            _render_feature_pair(pdf, "% Trades with 0+ DPD in 24M (PL)", tf.pct_0plus_24m_pl)
-            _render_feature_pair(pdf, "% Missed Payments Last 18M", tf.pct_missed_payments_18m)
-            _render_feature_pair(pdf, "% Trades with 0+ DPD in 12M (All)", tf.pct_trades_0plus_12m)
-            _render_feature_pair(pdf, "Ratio Good Closed Loans (PL) %",
-                                tf.ratio_good_closed_pl * 100 if tf.ratio_good_closed_pl is not None else None)
-            pdf.ln(3)
-
-            _render_group_header(pdf, "Utilization")
-            _render_feature_pair(pdf, "CC Balance Utilization %", tf.cc_balance_utilization_pct)
-            _render_feature_pair(pdf, "PL Outstanding %", tf.pl_balance_remaining_pct)
-            pdf.ln(3)
-
-            _render_group_header(pdf, "Enquiry Behavior")
-            _render_feature_pair(pdf, "Unsecured Enquiries Last 12M", tf.unsecured_enquiries_12m)
-            _render_feature_pair(pdf, "Trade-to-Enquiry Ratio (Unsec 24M)", tf.trade_to_enquiry_ratio_uns_24m)
-            pdf.ln(3)
-
-            _render_group_header(pdf, "Loan Acquisition Velocity")
-            _render_feature_pair(pdf, "Avg Interpurchase Time 12M (PL/BL)", tf.interpurchase_time_12m_plbl)
-            _render_feature_pair(pdf, "Avg Interpurchase Time 6M (PL/BL)", tf.interpurchase_time_6m_plbl)
-            _render_feature_pair(pdf, "Avg Interpurchase Time 24M (All)", tf.interpurchase_time_24m_all)
-            _render_feature_pair(pdf, "Avg Interpurchase Time 9M (HL/LAP)", tf.interpurchase_time_9m_hl_lap)
-            _render_feature_pair(pdf, "Avg Interpurchase Time 24M (HL/LAP)", tf.interpurchase_time_24m_hl_lap)
-            _render_feature_pair(pdf, "Avg Interpurchase Time 24M (TWL)", tf.interpurchase_time_24m_twl)
-            _render_feature_pair(pdf, "Avg Interpurchase Time 12M (Consumer Loan)", tf.interpurchase_time_12m_cl)
+    # --- DPD Timeline ---
+    # Generate 24-month labels (reuse from monthly_exposure if available)
+    if ts["months"]:
+        months_24 = ts["months"]
     else:
-        _render_absence_note(pdf, "Bureau tradeline")
+        today = date.today()
+        months_24 = []
+        for i in range(23, -1, -1):
+            month = (today.month - 1 - i) % 12 + 1
+            year = today.year + (today.month - 1 - i) // 12
+            months_24.append(f"{calendar.month_abbr[month]} {year}")
 
-    return pdf
+    dpd_events = []
+    dpd_historical = []
+    for vec in vectors_data:
+        dpd = vec.get("max_dpd") or 0
+        months_ago = vec.get("max_dpd_months_ago")
+        lt = str(vec.get("loan_type_display", "Unknown"))
+        if dpd <= 0 or months_ago is None:
+            continue
+        idx = 23 - int(months_ago)   # months_24[23]=current month, [0]=23M ago
+        if 0 <= idx < 24:
+            dpd_events.append({
+                "loan_type": lt,
+                "dpd": int(dpd),
+                "month_idx": idx,
+                "month_label": months_24[idx],
+            })
+        else:
+            dpd_historical.append({"loan_type": lt, "dpd": int(dpd), "months_ago": int(months_ago)})
+
+    data = {
+        "product_mix":      {"labels": product_labels,              "values": product_values},
+        "secured_split":    {"labels": ["Secured", "Unsecured"],    "values": [secured, unsecured]},
+        "onus_offus":       {"labels": ["On-Us (Kotak)", "Off-Us"], "values": [on_us, off_us]},
+        "unsec_outstanding":{"labels": unsec_out_labels,            "values": unsec_out_values},
+        "timeseries":       ts,
+        "dpd_timeline":     {"months": months_24, "events": dpd_events, "historical": dpd_historical},
+    }
+    return json.dumps(data)
 
 
 def render_combined_report(
     bureau_report: Optional[BureauReport],
     output_path: Optional[str] = None,
     theme: str = "v2",
-    save_pdf: bool = True,
 ) -> str:
-    """Render the Bureau Analyser PDF + HTML from the bureau report.
+    """Render the Bureau Analyser HTML report from the bureau report.
 
     Args:
         bureau_report: Fully populated BureauReport, or None if unavailable.
-        output_path: Desired output file path (.pdf).
-                      Defaults to reports/bureau_analyser_{customer_id}_report.pdf.
-        save_pdf: When False, skip PDF generation — only save HTML.
+        output_path: Optional path; the .html output name is derived from it.
 
     Returns:
-        Path where the output was saved (PDF path if save_pdf, else HTML path).
+        Path to the saved HTML report.
     """
     if output_path is None:
         cid = bureau_report.meta.customer_id if bureau_report else "unknown"
@@ -298,11 +120,6 @@ def render_combined_report(
 
     output_file = Path(output_path)
     output_file.parent.mkdir(parents=True, exist_ok=True)
-
-    # Build and save PDF (optional)
-    if save_pdf:
-        pdf = _build_combined_pdf(bureau_report)
-        pdf.output(str(output_file))
 
     # Save HTML version alongside the PDF
     html_path = str(output_file).replace(".pdf", ".html")
@@ -317,7 +134,7 @@ def render_combined_report(
     with open(str(html_version_path), "w", encoding="utf-8") as f:
         f.write(html_content)
 
-    return str(output_file) if save_pdf else html_path
+    return html_path
 
 
 _ADVERSE_FLAGS = {"WRF", "SET", "SMA", "SUB", "DBT", "LSS", "WOF"}
@@ -1613,9 +1430,12 @@ def _compute_v2_context(
     tl = tl_features_data or {}
 
     # ── KPI strip ──────────────────────────────────────────────────────
+    # CIBIL score + bureau income merged into one KPI card: bureau income as the
+    # headline value, CIBIL score band as the accent colour, and CIBIL score +
+    # stamp loan in the sub-line.
     tu_score = getattr(ei, "tu_score", None)
     if tu_score is None:
-        cibil = {"value": "—", "sub": "Not available", "rag": "neutral"}
+        c_rag, c_note, cibil_txt = "neutral", "Not available", "CIBIL —"
     else:
         if tu_score >= 750:
             c_rag, c_note = "green", "Excellent"
@@ -1625,7 +1445,29 @@ def _compute_v2_context(
             c_rag, c_note = "amber", "Fair"
         else:
             c_rag, c_note = "red", "Poor"
-        cibil = {"value": str(tu_score), "sub": f"{c_note} · TransUnion", "rag": c_rag}
+        cibil_txt = f"CIBIL {tu_score}"
+
+    bi = getattr(bureau_report, "bureau_income", None) or {}
+    bi_val = bi.get("bureau_income")
+    bi_stamp = bi.get("stamp_loan")
+    stamp_txt = bi_stamp if bi_stamp and bi_stamp != "NA" else None
+    if bi_val and bi_val > 0:
+        cibil = {
+            "label": "Bureau Income & CIBIL",
+            "value": f"₹{format_inr_units(bi_val)}",
+            "sub_lines": [
+                f"Stamp Loan: {stamp_txt or '—'}",
+                f"CIBIL: {tu_score if tu_score is not None else '—'}",
+            ],
+            "rag": c_rag,
+        }
+    else:
+        cibil = {
+            "label": "CIBIL Score",
+            "value": str(tu_score) if tu_score is not None else "—",
+            "sub": f"{c_note} · TransUnion",
+            "rag": c_rag,
+        }
 
     if ei.max_dpd is None:
         max_dpd = {"value": "N/A", "sub": "No DPD data", "rag": "neutral"}

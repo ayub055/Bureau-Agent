@@ -1,6 +1,6 @@
 """Scorecard computation — one-page risk verdict for all report types.
 
-Computes a structured scorecard dict from CustomerReport and/or BureauReport.
+Computes a structured scorecard dict from a BureauReport.
 No LLM calls — pure deterministic threshold logic using config/thresholds.py.
 
 The scorecard contains:
@@ -262,137 +262,6 @@ def _bureau_signals(bureau_report) -> list:
     return signals
 
 
-def _banking_signals(customer_report, rg_salary_data: dict = None, affluence_amt=None, income_source=None) -> list:
-    """Compute banking risk signals from CustomerReport."""
-    signals = []
-    rg_salary_data = rg_salary_data or {}
-
-    # 7. Income — hierarchy: affluence_amt → rg_sal → rg_income → report.salary avg
-    rg_sal = rg_salary_data.get("rg_sal")
-    rg_income = rg_salary_data.get("rg_income")
-
-    # Build cross-reference lines for tooltip
-    def _xref_lines():
-        parts = []
-        if rg_sal:
-            amt = rg_sal.get("salary_amount") or 0
-            m = rg_sal.get("merchant", "")
-            parts.append(f"RG SAL: INR {amt:,.0f}/mo" + (f" · {m}" if m else ""))
-        if rg_income:
-            parts.append(f"RG Income (multi-source): INR {rg_income['total_income']:,.0f}/mo ({rg_income['source_count']} sources)")
-        if customer_report.salary:
-            parts.append(f"Txn avg: INR {customer_report.salary.avg_amount:,.0f} ({customer_report.salary.frequency} occurrences)")
-        return parts
-
-    if affluence_amt:
-        xref = _xref_lines()
-        tooltip = f"Source: Relationship Profile (Affluence Amount).\nINR {affluence_amt:,.0f} — 6-month income estimate from bureau relationship profiles."
-        if xref:
-            tooltip += "\n\nCross-references:\n" + "\n".join(xref)
-        signals.append({
-            "label": "Income",
-            "value": f"INR {format_inr(affluence_amt)}",
-            "rag": "green",
-            "note": income_source if income_source else "Relationship profile",
-            "tooltip": tooltip,
-        })
-    elif rg_sal:
-        amt = rg_sal.get("salary_amount") or 0
-        n = rg_sal.get("transaction_count") or 1
-        merchant = rg_sal.get("merchant", "")
-        rag = "green" if n >= 3 else "amber"
-        note = merchant if merchant else ("Consistent" if rag == "green" else "Irregular")
-        tooltip = (
-            f"Source: RG SAL (internal salary algorithm).\n"
-            f"Amount: INR {amt:,.0f}/mo · Transactions: {n}"
-            + (f" · Employer: {merchant}" if merchant else "")
-        )
-        signals.append({
-            "label": "Income",
-            "value": f"INR {format_inr(amt)} /mo",
-            "rag": rag,
-            "note": f"RG SAL · {note}",
-            "tooltip": tooltip,
-        })
-    elif rg_income:
-        total = rg_income.get("total_income") or 0
-        n_src = rg_income.get("source_count") or 1
-        rag = "green" if n_src >= 2 else "amber"
-        signals.append({
-            "label": "Income",
-            "value": f"INR {format_inr(total)} /mo",
-            "rag": rag,
-            "note": f"RG Income · {n_src} source{'s' if n_src != 1 else ''}",
-            "tooltip": (
-                f"Source: RG Income (multi-source total).\n"
-                f"Total: INR {total:,.0f}/mo across {n_src} contributing source{'s' if n_src != 1 else ''}.\n"
-                + (rg_income.get("observation", "") or "")
-            ),
-        })
-    elif customer_report.salary:
-        avg = customer_report.salary.avg_amount
-        freq = customer_report.salary.frequency
-        rag = "green" if freq >= 3 else "amber"
-        signals.append({
-            "label": "Income",
-            "value": f"INR {format_inr(avg)} avg",
-            "rag": rag,
-            "note": f"Txn avg · {'Consistent' if rag == 'green' else 'Irregular'}",
-            "tooltip": (
-                f"Source: banking transaction salary detection.\n"
-                f"Avg amount: INR {avg:,.0f} · Occurrences: {freq}"
-            ),
-        })
-    else:
-        signals.append({"label": "Income", "value": "Not detected", "rag": "red", "note": "No salary found",
-                        "tooltip": "No salary transactions detected in the analysis period."})
-
-    # 9. Red Flag Spending
-    betting = 0.0
-    if customer_report.category_overview:
-        for key in ("Digital_Betting_Gaming", "Betting_Gaming", "Betting", "Gaming"):
-            if key in customer_report.category_overview:
-                betting = customer_report.category_overview[key]
-                break
-    if betting > 0:
-        rag = "red" if betting >= 500 else "amber"
-        tooltip = (
-            f"Betting / Gaming spend detected: INR {betting:,.0f}.\n"
-            f"Thresholds: < INR 500 = amber · ≥ INR 500 = red flag"
-        )
-        signals.append({
-            "label": "Transaction Red flag",
-            "value": f"INR {format_inr(betting)}",
-            "rag": rag,
-            "note": "Betting/Gaming detected",
-            "tooltip": tooltip,
-        })
-    else:
-        signals.append({"label": "Transaction Red flag", "value": "None", "rag": "green", "note": "No flag categories",
-                        "tooltip": "No betting, gaming, or flagged transaction categories detected."})
-
-    # 10. Account Type (from account_quality)
-    if customer_report.account_quality:
-        aq           = customer_report.account_quality
-        account_type = aq.get("account_type", "unknown")
-        score        = aq.get("primary_score", 50)
-        rag_map      = {"primary": "green", "secondary": "amber", "conduit": "red", "unknown": "neutral"}
-        rag          = rag_map.get(account_type, "neutral")
-        tooltip = (
-            f"Account classification: {account_type.title()} · Confidence score: {score}/100.\n"
-            f"Primary = main salary/income account · Secondary = supplementary · Conduit = pass-through"
-        )
-        signals.append({
-            "label": "Account Type",
-            "value": account_type.title(),
-            "rag":   rag,
-            "note":  f"Score {score}/100",
-            "tooltip": tooltip,
-        })
-
-    return signals
-
-
 def _derive_strengths_concerns(bureau_report, signals: list) -> tuple:
     """Derive strengths, concerns, verify from key_findings + signal list."""
     strengths, concerns, verify = [], [], []
@@ -450,12 +319,11 @@ def _derive_strengths_concerns(bureau_report, signals: list) -> tuple:
     return strengths[:3], concerns[:3], verify[:3]
 
 
-def compute_scorecard(customer_report=None, bureau_report=None, rg_salary_data: dict = None) -> dict:
+def compute_scorecard(bureau_report=None) -> dict:
     """Compute a structured risk scorecard from available report data.
 
     Args:
-        customer_report: CustomerReport or None
-        bureau_report:   BureauReport or None
+        bureau_report: BureauReport or None
 
     Returns:
         dict with keys: verdict, verdict_rag, signals, strengths, concerns, verify, narrative
@@ -467,17 +335,6 @@ def compute_scorecard(customer_report=None, bureau_report=None, rg_salary_data: 
             signals.extend(_bureau_signals(bureau_report))
     except Exception as e:
         logger.warning("Bureau signal computation failed: %s", e)
-
-    try:
-        if customer_report:
-            _aff_amt = None
-            _income_source = None
-            if bureau_report and bureau_report.tradeline_features:
-                _aff_amt = bureau_report.tradeline_features.affluence_amt
-                _income_source = bureau_report.tradeline_features.income_source
-            signals.extend(_banking_signals(customer_report, rg_salary_data=rg_salary_data, affluence_amt=_aff_amt, income_source=_income_source))
-    except Exception as e:
-        logger.warning("Banking signal computation failed: %s", e)
 
     # Verdict from RED count
     red_count = sum(1 for s in signals if s["rag"] == "red")

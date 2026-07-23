@@ -37,6 +37,8 @@ TEMPLATE_COLUMNS = [
     "Foir",
     "Exposure Commentary",
     "TU Score",
+    "Bureau Income",
+    "Stamp Loan",
     "Concerns",
     "Intelligent Report",
 ]
@@ -142,6 +144,15 @@ def build_excel_row(
         row["TU Score"] = getattr(bureau_report.executive_inputs, "tu_score", None)
     else:
         row["TU Score"] = None
+
+    # ── Bureau Income (deterministic affluence calc) + Stamp Loan ────────────
+    _bi = getattr(bureau_report, "bureau_income", None) if bureau_report else None
+    if _bi and _bi.get("bureau_income"):
+        row["Bureau Income"] = round(_bi["bureau_income"], 2)
+        row["Stamp Loan"] = _bi.get("stamp_loan")
+    else:
+        row["Bureau Income"] = None
+        row["Stamp Loan"] = None
 
     # ── Concerns ─────────────────────────────────────────────────────────────
     # High/moderate risk key findings from bureau report

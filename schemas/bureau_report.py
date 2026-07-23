@@ -26,3 +26,4 @@ class BureauReport:
     key_findings: List = field(default_factory=list)
     monthly_exposure: Optional[Dict[str, Any]] = None  # {"months": [...], "series": {...}}
     raw_loan_profile: Optional[Dict[str, Any]] = None  # raw loan type counts for persona
+    bureau_income: Optional[Dict[str, Any]] = None  # {"bureau_income": float, "stamp_loan": str, ...}
