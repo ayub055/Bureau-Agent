@@ -22,10 +22,11 @@ docs/
 _archive/
 
 # ── Generated reports (HTML / PDF / Excel output) ───────────
-reports/
+# reports/
 
 # ── Data files ──────────────────────────────────────────────
 dpd_data.csv
+tl_features.csv        
 data/ayub_txns.csv
 *.bak
 
