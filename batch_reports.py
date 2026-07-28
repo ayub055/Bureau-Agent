@@ -98,6 +98,11 @@ def main() -> None:
     parser.add_argument("--crns", nargs="+", type=int, help="List of CRNs to process")
     parser.add_argument("--crn-file", type=str, help="Text file with one CRN per line")
     parser.add_argument(
+        "--xml", type=str, default=None,
+        help="Raw CIBIL XML to convert to scrub.csv/enq.csv first; the CRN is auto-derived "
+             "from it and becomes the (single) CRN processed",
+    )
+    parser.add_argument(
         "--source",
         choices=["dpd", "tl_features"],
         default="dpd",
@@ -137,15 +142,28 @@ def main() -> None:
     )
     args = parser.parse_args()
 
+    # --xml: convert a single raw CIBIL XML → scrub.csv/enq.csv (at the settings
+    # paths) first; the CRN is derived from the XML and becomes the only CRN.
+    xml_crn = None
+    if args.xml:
+        import config.settings as S
+        from bureau_data_xml_converter import convert
+        const = convert(args.xml, S.SCRUB_FILE, S.ENQ_FILE)
+        xml_crn = int(const["crn"])
+        logger.info("Converted %s → scrub.csv/enq.csv (crn=%s)", args.xml, xml_crn)
+
     # Ensure processed data is fresh before any CRN auto-discovery reads the CSVs.
     # No-op when raw inputs are absent or outputs are current; never raises.
+    # Force regeneration when we just wrote fresh extracts from --xml.
     try:
         from tools.bureau_data_generator import ensure_data
-        ensure_data()
+        ensure_data(force=bool(args.xml))
     except Exception:  # noqa: BLE001 - defensive; ensure_data is already fail-soft
         logger.warning("ensure_data() call failed; continuing with existing data.")
 
-    if args.crn_file:
+    if xml_crn is not None:
+        crns = [xml_crn]
+    elif args.crn_file:
         crns = [int(line.strip()) for line in open(args.crn_file) if line.strip()]
     elif args.crns:
         crns = args.crns

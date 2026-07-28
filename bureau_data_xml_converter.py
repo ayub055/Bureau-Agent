@@ -199,6 +199,24 @@ def write_csv(path, columns, rows):
     print(f"Written {len(rows)} rows to {path}")
 
 
+def convert(xml_file, scrub_path, enq_path):
+    """Parse a raw CIBIL XML and write the two extracts the pipeline consumes.
+
+    ``scrub_path`` / ``enq_path`` are the exact destinations (callers pass
+    ``config.settings.SCRUB_FILE`` / ``ENQ_FILE`` so output lands where
+    ``ensure_data()`` reads). Returns the per-pull constants dict
+    (``crn``, ``report_month``, ``reference_date``, ``tu_score``) so the caller
+    can derive the CRN without re-parsing.
+    """
+    root = load_root(xml_file)
+    const = _pull_constants(root)
+    for p in (scrub_path, enq_path):
+        Path(p).parent.mkdir(parents=True, exist_ok=True)
+    write_csv(scrub_path, SCRUB_COLUMNS, build_scrub_rows(root, const))
+    write_csv(enq_path, ENQ_COLUMNS, build_enq_rows(root, const))
+    return const
+
+
 def main():
     if len(sys.argv) < 2:
         print("Usage: python bureau_data_xml_converter.py <xml_file> [output_dir=data]")
@@ -209,13 +227,8 @@ def main():
     if not Path(xml_file).exists():
         print(f"Error: File not found: {xml_file}", file=sys.stderr)
         sys.exit(1)
-    output_dir.mkdir(parents=True, exist_ok=True)
 
-    root = load_root(xml_file)
-    const = _pull_constants(root)
-
-    write_csv(output_dir / "scrub.csv", SCRUB_COLUMNS, build_scrub_rows(root, const))
-    write_csv(output_dir / "enq.csv", ENQ_COLUMNS, build_enq_rows(root, const))
+    const = convert(xml_file, output_dir / "scrub.csv", output_dir / "enq.csv")
     print(f"Pull constants: {const}")
     if not LOAN_TYPE_CODE_MAP:
         print("WARNING: LOAN_TYPE_CODE_MAP is empty — loan_type_new emitted blank.",
