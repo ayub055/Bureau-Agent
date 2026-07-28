@@ -337,6 +337,34 @@ def compute_monthly_exposure(customer_id: int, n_months: int = 24) -> dict:
     }
 
 
+def compute_ratio_good_closed_pl(customer_id: int) -> Optional[float]:
+    """Share of a customer's closed personal loans that closed with no DPD.
+
+    ``ratio_good_closed_loans_pl`` is a warehouse-join field the bureau
+    generation script does not produce, so it arrives blank. Derive it from the
+    raw tradelines instead:
+
+        ratio = (closed PLs with max_dpd == 0) / (all closed PLs)
+
+    where PL is any loan whose ``loan_type_new`` normalises to ``LoanType.PL`` and
+    "closed" is ``loan_status`` in :data:`_CLOSED_STATUSES`. A closed PL counts as
+    "good" when it never went delinquent (``max_dpd`` of 0; a missing max_dpd is
+    treated as 0, matching :func:`_compute_max_dpd`). Returns a fraction in
+    ``[0, 1]``, or ``None`` when the customer has no closed personal loan.
+    """
+    rows = _load_bureau_data()
+    closed_pl = [
+        r for r in rows
+        if _safe_int(r.get("crn", "")) == customer_id
+        and normalize_loan_type(r.get("loan_type_new", "").strip()) == LoanType.PL
+        and r.get("loan_status", "").strip().lower() in _CLOSED_STATUSES
+    ]
+    if not closed_pl:
+        return None
+    good = sum(1 for r in closed_pl if _safe_int(r.get("max_dpd", ""), default=0) == 0)
+    return round(good / len(closed_pl), 4)
+
+
 def extract_bureau_features(customer_id: int) -> Dict[LoanType, BureauLoanFeatureVector]:
     """Extract bureau feature vectors for a customer.
 

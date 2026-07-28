@@ -125,6 +125,7 @@ MODE_SHIFT_MIN_MONTHS: int = 3              # Need ≥ 3 distinct months of data
 PERSONA_BL_LARGE_AVG_SANCTION: float = 50_00_000    # 50L — Large Business avg sanction
 PERSONA_BL_SME_MIN_SANCTION: float = 25_00_000      # 25L — SME minimum total
 PERSONA_BL_MICRO_MAX: float = 2_00_000              # 2L — Micro/shopkeeper ceiling
+PERSONA_BL_MIN_SANCTION: float = 1_00_000           # 1L — Small Business Owner minimum total BL sanction
 PERSONA_HL_MATURE_SANCTION: float = 50_00_000       # 50L — Mature Salaried HL
 PERSONA_HL_METRO_SANCTION: float = 75_00_000        # 75L — Metro Senior
 PERSONA_HL_AFFORDABLE_MAX: float = 20_00_000        # 20L — Affordable housing

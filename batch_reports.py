@@ -137,6 +137,14 @@ def main() -> None:
     )
     args = parser.parse_args()
 
+    # Ensure processed data is fresh before any CRN auto-discovery reads the CSVs.
+    # No-op when raw inputs are absent or outputs are current; never raises.
+    try:
+        from tools.bureau_data_generator import ensure_data
+        ensure_data()
+    except Exception:  # noqa: BLE001 - defensive; ensure_data is already fail-soft
+        logger.warning("ensure_data() call failed; continuing with existing data.")
+
     if args.crn_file:
         crns = [int(line.strip()) for line in open(args.crn_file) if line.strip()]
     elif args.crns:

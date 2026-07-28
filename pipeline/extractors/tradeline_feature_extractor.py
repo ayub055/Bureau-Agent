@@ -106,6 +106,25 @@ def _safe_optional_int(value: str) -> Optional[int]:
         return None
 
 
+def _compute_bu_grp(num_tradelines: Optional[int]) -> Optional[str]:
+    """Classify a customer's bureau BU-group ('BU thick' vs 'BU thin').
+
+    ``bu_grp`` is a warehouse-join field that the vendored bureau generation
+    script does not compute, so it arrives blank when data is regenerated on the
+    fly (see tools/bureau_data_generator.py). This fills it.
+
+    TODO: implement the real BU-group logic — the warehouse classification that
+    maps a customer's tradeline / business-unit footprint to its BU group.
+    Not implemented yet; the placeholder below is a stand-in only.
+
+    Placeholder rule (temporary): 'BU thick' if the customer has more than 10
+    tradelines, else 'BU thin'. Returns None when the count is unknown.
+    """
+    if num_tradelines is None:
+        return None
+    return "BU thick" if num_tradelines > 10 else "BU thin"
+
+
 def extract_tradeline_features(customer_id: int) -> Optional[TradelineFeatures]:
     """Extract pre-computed tradeline features for a customer.
 
@@ -163,5 +182,10 @@ def extract_tradeline_features(customer_id: int) -> Optional[TradelineFeatures]:
     pct_pl = kwargs.get("pct_0plus_24m_pl")
     if pct_all is not None and pct_pl is not None and pct_pl > pct_all:
         kwargs["pct_0plus_24m_all"] = pct_pl
+
+    # bu_grp is a warehouse-join field the generation script omits — fall back to a
+    # placeholder classification when it's blank (real logic TODO in _compute_bu_grp).
+    if not kwargs.get("bu_grp"):
+        kwargs["bu_grp"] = _compute_bu_grp(kwargs.get("total_trades"))
 
     return TradelineFeatures(**kwargs)

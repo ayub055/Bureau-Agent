@@ -77,6 +77,15 @@ def build_bureau_report(customer_id: int) -> BureauReport:
     except Exception as e:
         logger.warning(f"Tradeline feature extraction failed for {customer_id}: {e}")
 
+    # ratio_good_closed_pl is a warehouse-join field the generation script omits —
+    # derive it from the raw tradelines when the source value is missing (fail-soft).
+    if tradeline_features is not None and tradeline_features.ratio_good_closed_pl is None:
+        try:
+            from ..extractors.bureau_feature_extractor import compute_ratio_good_closed_pl
+            tradeline_features.ratio_good_closed_pl = compute_ratio_good_closed_pl(customer_id)
+        except Exception as e:
+            logger.warning(f"ratio_good_closed_pl computation failed for {customer_id}: {e}")
+
     # 3. Build meta
     meta = ReportMeta(
         customer_id=customer_id,

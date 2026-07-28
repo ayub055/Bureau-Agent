@@ -35,4 +35,20 @@ BUREAU_DPD_DELIMITER = "\t"
 TL_FEATURES_FILE = os.path.join(_PROJECT_ROOT, "data", "tl_features.csv")
 TL_FEATURES_DELIMITER = "\t"
 
+# --- On-the-fly bureau data generation (raw scrub/enq -> processed CSVs) ---
+# The vendored DuckDB script is run as a subprocess to (re)derive the processed
+# files above from raw extracts, so refreshing data = replace the raw extract and
+# restart. See tools/bureau_data_generator.py (the bridge) and Integartion_context.md.
+AUTO_GENERATE = True  # master on/off switch for regeneration
+BUREAU_GEN_SCRIPT = os.path.join(_PROJECT_ROOT, "bureau_data_report_creation.py")
+# Raw inputs — basenames MUST stay scrub.csv / enq.csv (the script hard-codes them);
+# their directory (data/) becomes the subprocess cwd.
+SCRUB_FILE = os.path.join(_PROJECT_ROOT, "data", "scrub.csv")
+ENQ_FILE = os.path.join(_PROJECT_ROOT, "data", "enq.csv")
+# Comma-separated files the script writes, resolved relative to that cwd.
+RAW_TL_OUTPUT = "BU_TL.csv"        # -> BUREAU_DPD_FILE
+RAW_FEATS_OUTPUT = "BU_Feats.csv"  # -> TL_FEATURES_FILE
+# Canonical downstream columns, used to pad/order the converted output (fail-soft).
+OUTPUT_SCHEMA_FILE = os.path.join(_PROJECT_ROOT, "config", "bureau_output_schema.json")
+
 LOG_DIR = "logs"

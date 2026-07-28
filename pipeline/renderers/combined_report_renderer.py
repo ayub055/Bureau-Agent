@@ -493,7 +493,7 @@ def compute_probable_persona(bureau_report: Optional[BureauReport]) -> dict:
         if T.PERSONA_BL_SME_MIN_SANCTION <= total_biz <= T.PERSONA_BL_LARGE_AVG_SANCTION * 2:
             matches.append({"label": "SME / Growing Business", "track": "Business", "priority": 21,
                              "detail": f"{bl_count} BL + OD {_fmt_inr_short(od_sanction)}, total {_fmt_inr_short(total_biz)}"})
-    if 1 <= bl_count <= 2 and bl_sanction <= T.PERSONA_BL_LARGE_AVG_SANCTION:
+    if 1 <= bl_count <= 2 and T.PERSONA_BL_MIN_SANCTION <= bl_sanction <= T.PERSONA_BL_LARGE_AVG_SANCTION:
         sub = "micro/shopkeeper" if bl_count > 0 and (bl_sanction / bl_count) < T.PERSONA_BL_MICRO_MAX else None
         detail = f"{bl_count} BL, {_fmt_inr_short(bl_sanction)}"
         if sub:
@@ -655,7 +655,14 @@ def compute_probable_persona(bureau_report: Optional[BureauReport]) -> dict:
     top = unique_matches[:3]
 
     if not top:
-        top = [{"label": "Unclassified", "track": "Unknown", "priority": 99, "detail": f"{total_tl} tradeline(s), no clear profile match"}]
+        # Not enough signal in the tradelines to classify — show a plain message
+        # instead of an "Unknown/Unclassified" profile.
+        return {
+            "profiles": [{"label": "Given tradelines not enough to produce a probable persona",
+                          "track": None, "detail": None}],
+            "stress_flags": stress_flags,
+            "summary": "",
+        }
 
     profiles = [{"label": m["label"], "track": m["track"], "detail": m.get("detail")} for m in top]
     labels = ", ".join(p["label"] for p in profiles)
@@ -1430,44 +1437,41 @@ def _compute_v2_context(
     tl = tl_features_data or {}
 
     # ── KPI strip ──────────────────────────────────────────────────────
-    # CIBIL score + bureau income merged into one KPI card: bureau income as the
-    # headline value, CIBIL score band as the accent colour, and CIBIL score +
-    # stamp loan in the sub-line.
+    # Bureau Income and CIBIL are two separate KPI cards.
     tu_score = getattr(ei, "tu_score", None)
     if tu_score is None:
-        c_rag, c_note, cibil_txt = "neutral", "Not available", "CIBIL —"
+        c_rag, c_note = "neutral", "Not available"
+    elif tu_score >= 750:
+        c_rag, c_note = "green", "Excellent"
+    elif tu_score >= 700:
+        c_rag, c_note = "amber", "Good"
+    elif tu_score >= 650:
+        c_rag, c_note = "amber", "Fair"
     else:
-        if tu_score >= 750:
-            c_rag, c_note = "green", "Excellent"
-        elif tu_score >= 700:
-            c_rag, c_note = "amber", "Good"
-        elif tu_score >= 650:
-            c_rag, c_note = "amber", "Fair"
-        else:
-            c_rag, c_note = "red", "Poor"
-        cibil_txt = f"CIBIL {tu_score}"
+        c_rag, c_note = "red", "Poor"
 
+    # CIBIL score card (its own tile)
+    cibil = {
+        "label": "CIBIL Score",
+        "value": str(tu_score) if tu_score is not None else "—",
+        "sub": f"{c_note} · TransUnion",
+        "rag": c_rag,
+    }
+
+    # Bureau Income card (deterministic affluence); hidden when no income
     bi = getattr(bureau_report, "bureau_income", None) or {}
     bi_val = bi.get("bureau_income")
     bi_stamp = bi.get("stamp_loan")
     stamp_txt = bi_stamp if bi_stamp and bi_stamp != "NA" else None
     if bi_val and bi_val > 0:
-        cibil = {
-            "label": "Bureau Income & CIBIL",
+        bureau_income_kpi = {
+            "label": "Bureau Income",
             "value": f"₹{format_inr_units(bi_val)}",
-            "sub_lines": [
-                f"Stamp Loan: {stamp_txt or '—'}",
-                f"CIBIL: {tu_score if tu_score is not None else '—'}",
-            ],
-            "rag": c_rag,
+            "sub": f"Stamp Loan: {stamp_txt or '—'}",
+            "rag": "neutral",
         }
     else:
-        cibil = {
-            "label": "CIBIL Score",
-            "value": str(tu_score) if tu_score is not None else "—",
-            "sub": f"{c_note} · TransUnion",
-            "rag": c_rag,
-        }
+        bureau_income_kpi = None
 
     if ei.max_dpd is None:
         max_dpd = {"value": "N/A", "sub": "No DPD data", "rag": "neutral"}
@@ -1533,6 +1537,7 @@ def _compute_v2_context(
     }
 
     v2["kpis"] = {
+        "bureau_income": bureau_income_kpi,
         "cibil": cibil, "max_dpd": max_dpd, "foir": foir,
         "exposure": exposure, "verdict": verdict,
     }

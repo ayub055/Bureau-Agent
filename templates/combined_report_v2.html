@@ -632,6 +632,13 @@
   {% if v2 and v2.kpis %}
   {% set k = v2.kpis %}
   <div class="kpis" id="kpis">
+    {% if k.bureau_income %}
+    <div class="kpi {{ k.bureau_income.rag }}">
+      <div class="label">{{ k.bureau_income.label }}</div>
+      <div class="value">{{ k.bureau_income.value }}</div>
+      <div class="sub">{{ k.bureau_income.sub }}</div>
+    </div>
+    {% endif %}
     <div class="kpi {{ k.cibil.rag }}">
       <div class="label">{{ k.cibil.label or 'CIBIL Score' }}</div>
       <div class="value">{{ k.cibil.value }}</div>
@@ -716,7 +723,7 @@
           <li>
             <div class="rank">{{ loop.index }}</div>
             <div>
-              <div class="name">{{ p.label }} <span class="tag cat">{{ p.track }}</span></div>
+              <div class="name">{{ p.label }}{% if p.track %} <span class="tag cat">{{ p.track }}</span>{% endif %}</div>
               {% if p.detail %}<div class="meta">{{ p.detail }}</div>{% endif %}
             </div>
           </li>
@@ -831,6 +838,128 @@
   {% endif %}
 
   {% if bureau_report %}
+
+  {# =================================================================== #}
+  {# KEY FINDINGS & INFERENCES                                           #}
+  {# =================================================================== #}
+  {% if key_findings %}
+  {# Severity → display parts, shared by every view below #}
+  {% set SEVMAP = {
+    'high_risk':     {'key': 'red',    'word': 'HIGH RISK', 'ico': '!'},
+    'moderate_risk': {'key': 'amber',  'word': 'MODERATE',  'ico': '!'},
+    'concern':       {'key': 'yellow', 'word': 'CONCERN',   'ico': '▲'},
+    'positive':      {'key': 'green',  'word': 'POSITIVE',  'ico': '✓'},
+    'neutral':       {'key': 'grey',   'word': 'INFO',      'ico': 'i'}
+  } %}
+  <div class="panel" id="findings">
+    <h2>Key Findings &amp; Inferences <span class="count">{{ key_findings|length }} findings</span></h2>
+
+    {# View switcher #}
+    <div class="fview-toggle" id="findingsViewToggle">
+      <button type="button" data-view="carousel" class="active" title="Carousel — one at a time">◧ Carousel</button>
+      <button type="button" data-view="reader" title="List + reader pane">▤ Reader</button>
+      <button type="button" data-view="timeline" title="Vertical timeline">≣ Timeline</button>
+      <button type="button" data-view="tiles" title="Expandable tiles">▦ Tiles</button>
+    </div>
+
+    {# ── VIEW: CAROUSEL ── #}
+    <div class="fview active" data-view="carousel">
+      <div class="carousel" id="findingsCarousel" tabindex="0">
+        <div class="ffilter" id="findingsFilter"><!-- severity filter chips injected --></div>
+        <div class="carousel-viewport">
+          <div class="carousel-track">
+            {% for finding in key_findings %}
+            {% set sv = SEVMAP.get(finding.severity, SEVMAP['neutral']) %}
+            <div class="carousel-slide" data-severity="{{ finding.severity }}">
+              <div class="fcard f-{{ sv.key }}">
+                <div class="fmeta">
+                  <span class="sev-ico s-{{ sv.key }}">{{ sv.ico }}</span>
+                  <span class="sev-label s-{{ sv.key }}">{{ sv.word }}</span>
+                  <span class="fcat">{{ finding.category }}</span>
+                </div>
+                <div class="ftext">{{ finding.finding }}</div>
+                <div class="finf">{{ finding.inference }}</div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="carousel-nav">
+          <button class="carousel-arrow" type="button" data-dir="-1" aria-label="Previous finding">‹</button>
+          <div class="carousel-dots" id="findingsDots"></div>
+          <button class="carousel-arrow" type="button" data-dir="1" aria-label="Next finding">›</button>
+        </div>
+      </div>
+    </div>
+
+    {# ── VIEW: LIST + READER PANE ── #}
+    <div class="fview" data-view="reader">
+      <div class="reader" id="findingsReader">
+        <div class="reader-list">
+          {% for finding in key_findings %}
+          {% set sv = SEVMAP.get(finding.severity, SEVMAP['neutral']) %}
+          <button type="button" class="reader-item{% if loop.first %} active{% endif %}" data-idx="{{ loop.index0 }}">
+            <span class="ri-dot s-{{ sv.key }}"></span>
+            <span class="ri-text">{{ finding.finding }}</span>
+          </button>
+          {% endfor %}
+        </div>
+        <div class="reader-detail">
+          {% for finding in key_findings %}
+          {% set sv = SEVMAP.get(finding.severity, SEVMAP['neutral']) %}
+          <div class="reader-pane f-{{ sv.key }}{% if loop.first %} active{% endif %}" data-idx="{{ loop.index0 }}">
+            <div class="fmeta">
+              <span class="sev-ico s-{{ sv.key }}">{{ sv.ico }}</span>
+              <span class="sev-label s-{{ sv.key }}">{{ sv.word }}</span>
+              <span class="fcat">{{ finding.category }}</span>
+            </div>
+            <div class="ftext">{{ finding.finding }}</div>
+            <div class="finf">{{ finding.inference }}</div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    {# ── VIEW: TIMELINE ── #}
+    <div class="fview" data-view="timeline">
+      <div class="ftimeline">
+        {% for finding in key_findings %}
+        {% set sv = SEVMAP.get(finding.severity, SEVMAP['neutral']) %}
+        <div class="ftl-item">
+          <div class="ftl-node s-{{ sv.key }}">{{ sv.ico }}</div>
+          <div class="ftl-card f-{{ sv.key }}">
+            <div class="fmeta">
+              <span class="sev-label s-{{ sv.key }}">{{ sv.word }}</span>
+              <span class="fcat">{{ finding.category }}</span>
+            </div>
+            <div class="ftext">{{ finding.finding }}</div>
+            <div class="finf">{{ finding.inference }}</div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    {# ── VIEW: TILES (expandable) ── #}
+    <div class="fview" data-view="tiles">
+      <div class="ftiles" id="findingsTiles">
+        {% for finding in key_findings %}
+        {% set sv = SEVMAP.get(finding.severity, SEVMAP['neutral']) %}
+        <button type="button" class="ftile f-{{ sv.key }}">
+          <div class="fmeta">
+            <span class="sev-ico s-{{ sv.key }}">{{ sv.ico }}</span>
+            <span class="sev-label s-{{ sv.key }}">{{ sv.word }}</span>
+            <span class="fcat">{{ finding.category }}</span>
+          </div>
+          <div class="ftext">{{ finding.finding }}</div>
+          <div class="finf">{{ finding.inference }}</div>
+        </button>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
 
   {# =================================================================== #}
   {# BUREAU EXECUTIVE SUMMARY (LLM narrative)                            #}
@@ -1169,128 +1298,6 @@
       </div>
     </div>
   </div>
-
-  {# =================================================================== #}
-  {# KEY FINDINGS & INFERENCES                                           #}
-  {# =================================================================== #}
-  {% if key_findings %}
-  {# Severity → display parts, shared by every view below #}
-  {% set SEVMAP = {
-    'high_risk':     {'key': 'red',    'word': 'HIGH RISK', 'ico': '!'},
-    'moderate_risk': {'key': 'amber',  'word': 'MODERATE',  'ico': '!'},
-    'concern':       {'key': 'yellow', 'word': 'CONCERN',   'ico': '▲'},
-    'positive':      {'key': 'green',  'word': 'POSITIVE',  'ico': '✓'},
-    'neutral':       {'key': 'grey',   'word': 'INFO',      'ico': 'i'}
-  } %}
-  <div class="panel" id="findings">
-    <h2>Key Findings &amp; Inferences <span class="count">{{ key_findings|length }} findings</span></h2>
-
-    {# View switcher #}
-    <div class="fview-toggle" id="findingsViewToggle">
-      <button type="button" data-view="carousel" class="active" title="Carousel — one at a time">◧ Carousel</button>
-      <button type="button" data-view="reader" title="List + reader pane">▤ Reader</button>
-      <button type="button" data-view="timeline" title="Vertical timeline">≣ Timeline</button>
-      <button type="button" data-view="tiles" title="Expandable tiles">▦ Tiles</button>
-    </div>
-
-    {# ── VIEW: CAROUSEL ── #}
-    <div class="fview active" data-view="carousel">
-      <div class="carousel" id="findingsCarousel" tabindex="0">
-        <div class="ffilter" id="findingsFilter"><!-- severity filter chips injected --></div>
-        <div class="carousel-viewport">
-          <div class="carousel-track">
-            {% for finding in key_findings %}
-            {% set sv = SEVMAP.get(finding.severity, SEVMAP['neutral']) %}
-            <div class="carousel-slide" data-severity="{{ finding.severity }}">
-              <div class="fcard f-{{ sv.key }}">
-                <div class="fmeta">
-                  <span class="sev-ico s-{{ sv.key }}">{{ sv.ico }}</span>
-                  <span class="sev-label s-{{ sv.key }}">{{ sv.word }}</span>
-                  <span class="fcat">{{ finding.category }}</span>
-                </div>
-                <div class="ftext">{{ finding.finding }}</div>
-                <div class="finf">{{ finding.inference }}</div>
-              </div>
-            </div>
-            {% endfor %}
-          </div>
-        </div>
-        <div class="carousel-nav">
-          <button class="carousel-arrow" type="button" data-dir="-1" aria-label="Previous finding">‹</button>
-          <div class="carousel-dots" id="findingsDots"></div>
-          <button class="carousel-arrow" type="button" data-dir="1" aria-label="Next finding">›</button>
-        </div>
-      </div>
-    </div>
-
-    {# ── VIEW: LIST + READER PANE ── #}
-    <div class="fview" data-view="reader">
-      <div class="reader" id="findingsReader">
-        <div class="reader-list">
-          {% for finding in key_findings %}
-          {% set sv = SEVMAP.get(finding.severity, SEVMAP['neutral']) %}
-          <button type="button" class="reader-item{% if loop.first %} active{% endif %}" data-idx="{{ loop.index0 }}">
-            <span class="ri-dot s-{{ sv.key }}"></span>
-            <span class="ri-text">{{ finding.finding }}</span>
-          </button>
-          {% endfor %}
-        </div>
-        <div class="reader-detail">
-          {% for finding in key_findings %}
-          {% set sv = SEVMAP.get(finding.severity, SEVMAP['neutral']) %}
-          <div class="reader-pane f-{{ sv.key }}{% if loop.first %} active{% endif %}" data-idx="{{ loop.index0 }}">
-            <div class="fmeta">
-              <span class="sev-ico s-{{ sv.key }}">{{ sv.ico }}</span>
-              <span class="sev-label s-{{ sv.key }}">{{ sv.word }}</span>
-              <span class="fcat">{{ finding.category }}</span>
-            </div>
-            <div class="ftext">{{ finding.finding }}</div>
-            <div class="finf">{{ finding.inference }}</div>
-          </div>
-          {% endfor %}
-        </div>
-      </div>
-    </div>
-
-    {# ── VIEW: TIMELINE ── #}
-    <div class="fview" data-view="timeline">
-      <div class="ftimeline">
-        {% for finding in key_findings %}
-        {% set sv = SEVMAP.get(finding.severity, SEVMAP['neutral']) %}
-        <div class="ftl-item">
-          <div class="ftl-node s-{{ sv.key }}">{{ sv.ico }}</div>
-          <div class="ftl-card f-{{ sv.key }}">
-            <div class="fmeta">
-              <span class="sev-label s-{{ sv.key }}">{{ sv.word }}</span>
-              <span class="fcat">{{ finding.category }}</span>
-            </div>
-            <div class="ftext">{{ finding.finding }}</div>
-            <div class="finf">{{ finding.inference }}</div>
-          </div>
-        </div>
-        {% endfor %}
-      </div>
-    </div>
-
-    {# ── VIEW: TILES (expandable) ── #}
-    <div class="fview" data-view="tiles">
-      <div class="ftiles" id="findingsTiles">
-        {% for finding in key_findings %}
-        {% set sv = SEVMAP.get(finding.severity, SEVMAP['neutral']) %}
-        <button type="button" class="ftile f-{{ sv.key }}">
-          <div class="fmeta">
-            <span class="sev-ico s-{{ sv.key }}">{{ sv.ico }}</span>
-            <span class="sev-label s-{{ sv.key }}">{{ sv.word }}</span>
-            <span class="fcat">{{ finding.category }}</span>
-          </div>
-          <div class="ftext">{{ finding.finding }}</div>
-          <div class="finf">{{ finding.inference }}</div>
-        </button>
-        {% endfor %}
-      </div>
-    </div>
-  </div>
-  {% endif %}
 
   {# =================================================================== #}
   {# PRODUCT PORTFOLIO DETAIL                                            #}

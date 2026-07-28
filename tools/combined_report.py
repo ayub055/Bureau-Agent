@@ -39,6 +39,14 @@ def generate_combined_report_pdf(
     Returns:
         Tuple of (BureauReport | None, html_report_path).
     """
+    # 0. Ensure processed data is fresh (regenerate from raw extracts if needed).
+    #    No-op when raw inputs are absent or outputs are current; never raises.
+    try:
+        from tools.bureau_data_generator import ensure_data
+        ensure_data()
+    except Exception:  # noqa: BLE001 - defensive; ensure_data is already fail-soft
+        logger.warning("ensure_data() call failed; continuing with existing data.")
+
     # 1. Bureau report (deterministic build + LLM narrative, fail-soft)
     bureau_report = None
     try:
