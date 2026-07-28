@@ -29,6 +29,10 @@ dpd_data.csv
 tl_features.csv        
 data/ayub_txns.csv
 *.bak
+data/cust1.xml
+data/cust2.xml
+data/enquiry.csv
+data/tradeline.csv
 
 # ── Environments / editor cruft ─────────────────────────────
 .venv/
