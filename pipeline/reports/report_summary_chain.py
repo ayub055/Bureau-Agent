@@ -380,7 +380,7 @@ def _build_bureau_data_summary(executive_inputs, tradeline_features=None, monthl
                 lines.append(f"  Unsecured EMI Obligation: INR {format_inr(unsecured_emi)}")
             if foir is not None:
                 tag = " [OVER-LEVERAGED]" if foir > 65 else (" [STRETCHED]" if foir > 40 else " [COMFORTABLE]")
-                lines.append(f"  FOIR (total): {foir:.1f}%{tag}")
+                lines.append(f"  FOIR (total): {T.foir_display(foir)}{tag}")
             if foir_unsec is not None:
                 tag_u = " [OVER-LEVERAGED]" if foir_unsec > 65 else (" [STRETCHED]" if foir_unsec > 40 else " [COMFORTABLE]")
                 lines.append(f"  FOIR (unsecured only): {foir_unsec:.1f}%{tag_u}")

@@ -251,7 +251,7 @@ def _bureau_signals(bureau_report) -> list:
         )
         signals.append({
             "label": "FOIR",
-            "value": f"{foir_val:.1f}%",
+            "value": T.foir_display(foir_val),  # guarded; raw value shown in tooltip above
             "rag": rag,
             "note": note,
             "tooltip": tooltip,

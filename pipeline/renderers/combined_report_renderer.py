@@ -196,7 +196,7 @@ def compute_checklist(
         "label": "High FOIR (> 50%)",
         "checked": has_high_foir,
         "severity": "high" if (foir_val and foir_val > 65) else ("medium" if has_high_foir else "neutral"),
-        "detail": f"Bureau FOIR: {foir_val:.1f}%" if foir_val is not None else None,
+        "detail": f"Bureau FOIR: {T.foir_display(foir_val)}" if foir_val is not None else None,
     })
 
     # B4. CC utilization elevated (>=30%)
@@ -1497,7 +1497,7 @@ def _compute_v2_context(
         if tl.get("aff_emi") is not None:
             sub_parts.append(f"EMI ₹{tl['aff_emi']:,.0f}")
         foir = {
-            "value": f"{foir_val:.1f}%",
+            "value": T.foir_display(foir_val),  # guarded for implausible business/guarantor FOIR
             "sub": " · ".join(sub_parts) if sub_parts else "Bureau obligation ÷ income",
             "rag": "red" if foir_val > 65 else ("amber" if foir_val > 40 else "green"),
         }

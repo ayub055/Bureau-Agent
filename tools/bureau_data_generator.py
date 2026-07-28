@@ -69,6 +69,10 @@ def _adapt(raw_path: str, dst_path: str, canonical_cols, delimiter: str,
     kept after the canonical ones. With no canonical list, columns pass through.
     """
     df = pd.read_csv(raw_path, dtype=str, keep_default_na=False)
+    # DuckDB's numeric round-trip in the vendored script emits integer amounts as
+    # floats (442000 -> "442000.0"). Strip a trailing ".0"/".00" so processed CSVs
+    # match the canonical int-string style; genuine decimals (e.g. "68.5") are left.
+    df = df.replace(r"^(-?\d+)\.0+$", r"\1", regex=True)
     if not canonical_cols:
         df.to_csv(dst_path, sep=delimiter, index=False)
         return

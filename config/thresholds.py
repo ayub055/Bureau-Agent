@@ -157,3 +157,24 @@ SUSTAINED_EMI_TENOR_MONTHS: int = 60
 # all rows. (Note: for the current data this value does not change any output — the
 # tenor-sensitive branches are gated out — but None keeps the port faithful.)
 OBLIGATION_TENOR_MONTHS: int | None = None
+
+# ---------------------------------------------------------------------------
+# FOIR display guard
+# ---------------------------------------------------------------------------
+# FOIR = Bureau Obligation ÷ Bureau Income × 100. For heavy business / guarantor
+# books (obligation is affluence-imputed on large secured loans, income is a retail
+# affluence proxy) the ratio can be economically meaningless (e.g. 2659%). Above this
+# threshold the human-facing FOIR string is guarded so it doesn't read like a bug.
+# The RAW value stays on tradeline_features.foir — only the DISPLAY string changes.
+FOIR_IMPLAUSIBLE_PCT: float = 300.0
+
+
+def foir_display(foir_val) -> str:
+    """Human-facing FOIR string; guards implausibly high values (business/guarantor
+    profiles). Returns 'N/A' for None, a guarded label above FOIR_IMPLAUSIBLE_PCT,
+    else the plain 'xx.x%'."""
+    if foir_val is None:
+        return "N/A"
+    if foir_val > FOIR_IMPLAUSIBLE_PCT:
+        return f">{FOIR_IMPLAUSIBLE_PCT:.0f}% — business/guarantor profile"
+    return f"{foir_val:.1f}%"

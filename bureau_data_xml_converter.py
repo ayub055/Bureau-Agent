@@ -130,8 +130,25 @@ def _pull_constants(root):
     """crn / report_month / reference_date / tu_score — one value per XML pull."""
     header = root.find(".//header")
     crn = header.findtext("enquiryControlNumber", "") if header is not None else ""
+    # Normalise to the canonical integer form the whole pipeline uses to key on crn
+    # (run_bureau casts to int, extractor uses _safe_int, string-match sites compare
+    # str(crn)). enquiryControlNumber carries a leading zero (010472013940) — keeping
+    # it would break every crn match. Strip it here so all sites agree.
+    crn = str(int(crn)) if crn.strip().isdigit() else crn.strip()
     proc_iso = to_iso(header.findtext("dateProceed", "")) if header is not None else ""
-    report_month = proc_iso.replace("-", "")[:6] if proc_iso else ""  # YYYYMM
+    # report_month = latest reported month + 1, so scrub_date (= last day of the month
+    # before report_month) lands on the END of the latest reported month — matching the
+    # pipeline convention (committed sample: pay_hist_start 2026-01-01 → report_month
+    # 202602). Anchor on the newest paymentHistoryStartDate; fall back to the processing
+    # date only when no payment-history dates are present.
+    ph = [d for d in (to_iso(a.findtext("paymentHistoryStartDate", ""))
+                      for a in root.findall(".//accountList")) if d]
+    anchor = max(ph) if ph else proc_iso
+    if anchor:
+        y, m = int(anchor[:4]), int(anchor[5:7])
+        report_month = f"{y + m // 12}{m % 12 + 1:02d}"  # YYYYMM, one month after anchor
+    else:
+        report_month = ""
     tu_score = root.findtext(".//scoreList/cibilScore", "") or ""
     return {
         "crn": crn,
@@ -171,7 +188,11 @@ def build_scrub_rows(root, const):
             "dpd_string": (a.findtext("paymentHistory1", "") or "")
                           + (a.findtext("paymentHistory2", "") or ""),
             "base": "",
-            "CV_RN": "",
+            # CV_RN is a distinguishing key inside the feature-creator's GROUP BY —
+            # populate it with the tradeline's accountNumber so genuinely distinct loans
+            # that share date/amount/type (e.g. CE424107/CE424136/CE424159) are NOT
+            # collapsed. Blank accountNumbers still dedup (true duplicate reporting).
+            "CV_RN": a.findtext("accountNumber", ""),
         })
     return rows
 

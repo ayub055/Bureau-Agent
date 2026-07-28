@@ -133,9 +133,10 @@ def build_excel_row(
     # Uses pre-computed bureau FOIR: aff_emi / affluence_amt × 100
     if bureau_report and bureau_report.tradeline_features:
         _tf = bureau_report.tradeline_features
+        import config.thresholds as T
         _foir_parts = []
         if _tf.foir is not None:
-            _foir_parts.append(f"{_tf.foir:.1f}%")
+            _foir_parts.append(T.foir_display(_tf.foir))  # guarded for implausible FOIR
         if _tf.foir_unsec is not None:
             _foir_parts.append(f"Unsec: {_tf.foir_unsec:.1f}%")
         row["Foir"] = " / ".join(_foir_parts) if _foir_parts else None
