@@ -45,6 +45,64 @@ def _validate_report(report: BureauReport) -> list[str]:
     return warnings
 
 
+def _compute_bl_sector_distribution(rows: list) -> dict:
+    """Decide the FOIR-tile override and, when triggered, the sector breakdown.
+
+    Trigger: more than ``T.BL_SECTOR_DIST_MIN_SHARE`` of ALL the customer's
+    tradelines fall in the CMVL/CEL/AL/BL group (``T.BL_SECTOR_DIST_LOAN_TYPES`` —
+    "BL" is used as an umbrella label for these commercial/business types). When
+    triggered, compute the percentage distribution of the ``ownership_type`` column
+    (Individual / Joint / Guarantor) pooled across that same group. Deterministic,
+    no LLM.
+
+    Returns a dict (see BureauReport.bl_sector_distribution). ``trigger`` is
+    False when there are no tradelines or the group share is at/below the
+    threshold. ``bl_count`` is the strict canonical business_loan count, kept
+    for reference/audit; the trigger uses ``group_count``/``group_share``.
+    """
+    import config.thresholds as T
+    from schemas.loan_type import normalize_loan_type
+
+    total = len(rows)
+    result = {"trigger": False, "group_share": 0.0, "group_count": 0,
+              "bl_count": 0, "total": total,
+              "title": "Sector distribution of BL (CMVL, CEL, AL, BL)",
+              "distribution": []}
+    if total == 0:
+        return result
+
+    canon = [normalize_loan_type(r.get("loan_type_new")).value for r in rows]
+    result["bl_count"] = sum(1 for c in canon if c == "business_loan")
+
+    # Count group membership and pool `ownership_type` values in one pass — the
+    # trigger numerator and the distribution denominator are the same CMVL/CEL/AL/BL set.
+    group_types = set(T.BL_SECTOR_DIST_LOAN_TYPES)
+    counts: dict[str, int] = {}
+    group_count = 0
+    for row, c in zip(rows, canon):
+        if c not in group_types:
+            continue
+        group_count += 1
+        category = (row.get("ownership_type") or "").strip() or "Unknown"
+        if category == "NULL":
+            category = "Unknown"
+        counts[category] = counts.get(category, 0) + 1
+
+    result["group_count"] = group_count
+    group_share = group_count / total
+    result["group_share"] = round(group_share, 4)
+    if group_count == 0 or group_share <= T.BL_SECTOR_DIST_MIN_SHARE:
+        return result
+
+    dist = [
+        {"category": s, "count": n, "pct": round(100 * n / group_count, 1)}
+        for s, n in sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))
+    ]
+    result["trigger"] = True
+    result["distribution"] = dist
+    return result
+
+
 def build_bureau_report(customer_id: int) -> BureauReport:
     """Build a bureau report by extracting and aggregating tradeline features.
 
@@ -142,6 +200,29 @@ def build_bureau_report(customer_id: int) -> BureauReport:
     except Exception as e:
         logger.warning(f"Bureau obligation computation failed for {customer_id}: {e}")
 
+    # 4h. Business throughput (Wheel-LOS turnover) — reuses bureau_turnover, fail-soft
+    business_throughput = None
+    try:
+        from bureau_turnover import compute_turnover
+        from pipeline.extractors.bureau_feature_extractor import _load_bureau_data, _safe_int
+        cid = int(customer_id)
+        rows = [r for r in _load_bureau_data() if _safe_int(r.get("crn", "")) == cid]
+        business_throughput = compute_turnover(rows)
+    except Exception as e:
+        logger.warning(f"Business throughput computation failed for {customer_id}: {e}")
+
+    # 4i. FOIR-tile BL sector-distribution override (deterministic, fail-soft).
+    # When the book is BL-heavy the FOIR KPI tile is replaced by a `sector`
+    # breakdown across CMVL/CEL/AL/BL tradelines (see _compute_bl_sector_distribution).
+    bl_sector_distribution = None
+    try:
+        from pipeline.extractors.bureau_feature_extractor import _load_bureau_data, _safe_int
+        cid = int(customer_id)
+        _rows = [r for r in _load_bureau_data() if _safe_int(r.get("crn", "")) == cid]
+        bl_sector_distribution = _compute_bl_sector_distribution(_rows)
+    except Exception as e:
+        logger.warning(f"BL sector distribution computation failed for {customer_id}: {e}")
+
     # 4g. Bureau FOIR from the deterministic modules: Bureau Obligation ÷ Bureau Income.
     # Overrides the pre-computed tl_features FOIR so the report's Income, Obligation and
     # FOIR are mutually consistent (the tile shows module Income/Obligation, so FOIR must
@@ -172,6 +253,8 @@ def build_bureau_report(customer_id: int) -> BureauReport:
         bureau_income=bureau_income,
         sustained_emi=sustained_emi,
         obligation=obligation,
+        business_throughput=business_throughput,
+        bl_sector_distribution=bl_sector_distribution,
     )
 
     # 6. Validate (fail-soft: log warnings, return partial report)

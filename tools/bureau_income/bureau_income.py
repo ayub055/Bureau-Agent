@@ -81,7 +81,8 @@ def _calculate_bureau_income(crn, *, occupation=None, report_month=None, rows=No
 
         if res.empty:  # no qualifying tradeline survived the filters
             return {"crn": crn, "bureau_income": 0.0, "stamp_loan": "NA",
-                    "semp_flag": 0, "report_month": report_month, "components": {}}
+                    "stamp_sanction": None, "semp_flag": 0,
+                    "report_month": report_month, "components": {}}
 
         res.columns = [c.lower() for c in res.columns]
         row = res.iloc[0]
@@ -90,6 +91,8 @@ def _calculate_bureau_income(crn, *, occupation=None, report_month=None, rows=No
             "crn": crn,
             "bureau_income": _f("max_affl_infl_roll"),
             "stamp_loan": row["stamp_loan"],
+            "stamp_sanction": (float(row["stamp_sanction"])
+                               if pd.notna(row.get("stamp_sanction")) else None),
             "semp_flag": int(row["semp_flag1"] or 0),
             "report_month": report_month,
             "components": {out: _f(src) for src, out in _COMPONENTS.items()},

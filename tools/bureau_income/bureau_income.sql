@@ -521,7 +521,20 @@ max(case when loan_type_new in ('Housing Loan') and tl_max_dpd < 30 then Sanctio
 max(case when bl_flag = 1 and tl_max_dpd < 30 then Sanction_Amount_new else 0 end) as max_bl_SA,
 max(case when loan_type_new = 'Loan to Professional' and tl_max_dpd < 30 then Sanction_Amount_new else 0 end) as max_LTP_SA,
 max(case when loan_type_new = 'Credit Card' and tl_max_dpd < 30 then COALESCE(creditlimit,High_Credit_Amount,Sanction_Amount_new) else 0 end) as max_CC,
-max(case when loan_type_new in ('Personal Loan','Short Term Personal Loan','P2P Personal Loan','Microfinance - Personal Loan') and tl_max_dpd < 30 then Sanction_Amount_new else 0 end) as max_PL_SA
+max(case when loan_type_new in ('Personal Loan','Short Term Personal Loan','P2P Personal Loan','Microfinance - Personal Loan') and tl_max_dpd < 30 then Sanction_Amount_new else 0 end) as max_PL_SA,
+-- Carry the CELL-13 per-type max sanction (CreditLimit/HCA for CC) forward so the
+-- stamped loan's sanction can be surfaced. These use the SAME filters that drive the
+-- affluence stamp, so they refer to the loan actually considered for income. They are
+-- per-CRN constants from the join, so MAX() just passes them through. Aliased
+-- distinctly (DuckDB identifiers are case-insensitive → would clash with Max_HL etc.).
+MAX(max_HL)     AS stamp_sa_HL,
+MAX(max_LAP)    AS stamp_sa_LAP,
+MAX(max_CVCE)   AS stamp_sa_CVCE,
+MAX(max_BL)     AS stamp_sa_BL,
+MAX(max_PL)     AS stamp_sa_PL,
+MAX(max_AL)     AS stamp_sa_AL,
+MAX(max_CC_CL)  AS stamp_sa_CC_CL,
+MAX(max_CC_HCA) AS stamp_sa_CC_HCA
 FROM sc_CIBIL_Aff_oct_NC_5
 GROUP BY crn;
 
@@ -589,5 +602,19 @@ SELECT *,
     WHEN MAX_AFFL7 = Max_CC_HCA THEN 'Credit Card -HCA'
     WHEN MAX_AFFL7 = Max_CVCE THEN 'CV CE'
     ELSE 'NA'
-  END AS STAMP_LOAN
+  END AS STAMP_LOAN,
+  -- Sanction (or CC limit/HCA) of the loan the income was stamped on. Mirrors the
+  -- STAMP_LOAN waterfall exactly so the two always refer to the same loan type.
+  CASE
+    WHEN MAX_AFFL7 = 0 THEN NULL
+    WHEN MAX_AFFL7 = Max_HL THEN stamp_sa_HL
+    WHEN MAX_AFFL7 = Max_AL1 THEN stamp_sa_AL
+    WHEN MAX_AFFL7 = Max_PL THEN stamp_sa_PL
+    WHEN MAX_AFFL7 = Max_BL1 THEN stamp_sa_BL
+    WHEN MAX_AFFL7 = Max_LAP1 THEN stamp_sa_LAP
+    WHEN MAX_AFFL7 = Max_CC_cl THEN stamp_sa_CC_CL
+    WHEN MAX_AFFL7 = Max_CC_HCA THEN stamp_sa_CC_HCA
+    WHEN MAX_AFFL7 = Max_CVCE THEN stamp_sa_CVCE
+    ELSE NULL
+  END AS STAMP_SANCTION
 FROM sc_bu_Affluence1;

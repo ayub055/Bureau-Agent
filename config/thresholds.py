@@ -159,6 +159,21 @@ SUSTAINED_EMI_TENOR_MONTHS: int = 60
 OBLIGATION_TENOR_MONTHS: int | None = None
 
 # ---------------------------------------------------------------------------
+# FOIR tile — BL sector-distribution override
+# ---------------------------------------------------------------------------
+# The KPI-strip "FOIR (Bureau)" tile is conditional: when a customer's book is
+# commercial/business heavy (more than this share of ALL tradelines fall in the
+# CMVL/CEL/AL/BL group in BL_SECTOR_DIST_LOAN_TYPES), the tile instead shows the
+# percentage distribution of the raw `sector` column across that same group.
+# Otherwise the normal FOIR value is shown. Strict greater-than (share > threshold).
+BL_SECTOR_DIST_MIN_SHARE: float = 0.20
+# Canonical loan types that both gate the trigger AND have their `sector` values
+# pooled for the distribution (labelled "BL" as an umbrella in the tile title).
+BL_SECTOR_DIST_LOAN_TYPES: tuple[str, ...] = ("commercial_vehichle_loan",
+                                              "commercial_equipment_loan",
+                                              "auto_loan", "business_loan")
+
+# ---------------------------------------------------------------------------
 # FOIR display guard
 # ---------------------------------------------------------------------------
 # FOIR = Bureau Obligation ÷ Bureau Income × 100. For heavy business / guarantor

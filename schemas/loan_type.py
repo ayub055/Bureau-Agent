@@ -21,6 +21,8 @@ class LoanType(str, Enum):
     TWL = "two_wheeler_loan"
     CD = "consumer_durable"
     CMVL = "commercial_vehichle_loan"
+    CEL = "commercial_equipment_loan"
+    LTP = "loan_to_professional"
     OTHER = "other"
 
 
@@ -33,7 +35,7 @@ LOAN_TYPE_NORMALIZATION_MAP: Dict[str, LoanType] = {
     "P2P Personal Loan": LoanType.PL,
 
     ### AS IT IS
-    "Loan to Professional": LoanType.PL, # -- CHANGE TO AS IT IS
+    "Loan to Professional": LoanType.LTP, # -- CHANGE TO AS IT IS
     "Loan on Credit Card": LoanType.CC,
     "Microfinance - Housing Loan": LoanType.HL,
 
@@ -56,11 +58,16 @@ LOAN_TYPE_NORMALIZATION_MAP: Dict[str, LoanType] = {
 
     ## COMMERCIAL VEHICLE LOAN CATEGORY
     "Commercial Vehicle Loan": LoanType.CMVL,
-    "Construction Equipment Loan": LoanType.CMVL,
     "Tractor Loan": LoanType.CMVL,
     "P2P Auto Loan": LoanType.CMVL,
+    
+    ## COMMERCIAL EQUIPMENT LOAN CATEGORY
+    "Construction Equipment Loan": LoanType.CEL,
 
-    # Business loans
+    # Auto / vehicle loans
+    ## COMMERCIAL VEHICLE LOAN CATEGORY
+    ## COMMERCIAL EQUIPMENT LOAN CATEGORY
+    # Business loans, 
     "Business Loan - General": LoanType.BL,
     "Business Loan - Secured": LoanType.BL,
     "Business Loan - Unsecured": LoanType.BL,
@@ -98,7 +105,7 @@ LOAN_TYPE_NORMALIZATION_MAP: Dict[str, LoanType] = {
     "Seller Financing": LoanType.OTHER,
     "Temporary Overdraft": LoanType.OTHER,
     "Overdraft": LoanType.OTHER,
-    "Prime Minister Jaan Dhan Yojana - Overdraft": LoanType.OTHER,
+    "Prime Minister Jaan Dhan Yojana - Overdraft": LoanType.OTHER, # TODO : CHECK IF CORRECT OR NOT
     "Leasing": LoanType.OTHER,
     "Microfinance - Other": LoanType.OTHER,
     "Non-Funded Credit Facility": LoanType.OTHER,

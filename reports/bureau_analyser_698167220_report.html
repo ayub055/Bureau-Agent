@@ -149,6 +149,9 @@
   .persona-list li:last-child{border-bottom:none}
   .persona-list .name{font-weight:600}
   .persona-list .meta{font-size:11px;color:var(--muted)}
+  /* instant (no-delay) hover tooltip for profile rows */
+  .row[data-tip]{position:relative;cursor:help}
+  .row[data-tip]:hover::after{content:attr(data-tip);position:absolute;left:0;top:100%;z-index:30;background:#1e293b;color:#fff;padding:8px 10px;border-radius:6px;font-size:11px;line-height:1.4;width:300px;white-space:normal;box-shadow:var(--shadow);pointer-events:none}
 
   /* SCORECARD SIGNALS */
   .sc-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
@@ -619,8 +622,8 @@
     
     <div class="cust">
       <div><b>Customer:</b> ###7220</div>
-      <div><b>Tradelines:</b> 34</div>
-      <div><b>Generated:</b> 2026-07-27</div>
+      <div><b>Tradelines:</b> 0</div>
+      <div><b>Generated:</b> 2026-07-29</div>
     </div>
     
     <div class="spacer"></div>
@@ -651,15 +654,15 @@
     <a href="#kpis">Overview</a>
     <a href="#profile">Profile &amp; Persona</a>
     
-    <a href="#signals">Risk Assessment <span class="badge">2</span></a>
+    <a href="#signals">Risk Assessment</a>
     <a href="#summary">Summary</a>
     
     <a href="#portfolio">Portfolio</a>
     <a href="#dpd" id="navDpd">DPD History</a>
     
     <a href="#findings">Findings</a>
-    <a href="#products">Products</a>
-    <a href="#behavioral">Behavioral</a>
+    
+    
   </div>
   <div class="disclaimer">ⓘ Bins, thresholds &amp; verification values are calibrated on Jan '26 FPD PL FT portfolio behaviour.</div>
 
@@ -671,33 +674,27 @@
   <div class="kpis" id="kpis">
     
     <div class="kpi neutral">
-      <div class="label">Bureau Income</div>
-      <div class="value">₹1.11 L</div>
-      <div class="sub">Stamp Loan: Credit Card</div>
-    </div>
-    
-    <div class="kpi green">
       <div class="label">CIBIL Score</div>
-      <div class="value">785</div>
+      <div class="value">—</div>
       
-      <div class="sub">Excellent · TransUnion</div>
+      <div class="sub">Not available · TransUnion</div>
       
     </div>
-    <div class="kpi red">
+    <div class="kpi neutral">
       <div class="label">Max DPD</div>
-      <div class="value">120 days</div>
-      <div class="sub">3M ago · Business Loan</div>
+      <div class="value">N/A</div>
+      <div class="sub">No DPD data</div>
     </div>
-    <div class="kpi red">
+    <div class="kpi neutral">
       <div class="label">FOIR (Bureau)</div>
-      <div class="value">189.7%</div>
-      <div class="sub">Unsec 75.9% · EMI ₹210,737</div>
+      <div class="value">N/A</div>
+      <div class="sub">Not available</div>
     </div>
     <div class="kpi neutral">
       <div class="label">Total Outstanding</div>
-      <div class="value">₹96.35 L</div>
-      <div class="sub">Sanctioned ₹1.84 Cr · Unsec 22%</div>
-      <div class="spark"><canvas id="sparkExposure"></canvas></div>
+      <div class="value">₹0</div>
+      <div class="sub">Sanctioned ₹0</div>
+      
     </div>
     
   </div>
@@ -714,13 +711,14 @@
     <div style="display:grid;grid-template-columns:1fr 1.4fr;gap:16px;align-items:start">
       
       <div class="loan-card">
-        <div class="head"><b>Customer Profile</b><span class="tag cat">RL</span></div>
-        <div class="row"><span>Bureau Income</span><b>₹ 111,111</b></div>
-        <div class="row"><span>Stamp Loan</span><b>Credit Card</b></div>
-        <div class="row" title="Maximum EMI the customer has paid consecutively for at least 6 months in the last 3 years (from scrub date)"><span>Sustained EMI</span><b>₹ 0</b></div>
-        <div class="row" title="Total monthly EMI obligation across all bureau tradelines (loan-type EMI rate bands + credit-risk filters)"><span>Bureau Obligation</span><b>₹ 210,737</b></div>
-        <div class="row" title="Unsecured share of the monthly EMI obligation"><span>Unsecured Obligation</span><b>₹ 84,337</b></div>
-        <div class="row"><span>Bureau Thickness</span><b>BU thick</b></div>
+        <div class="head"><b>Customer Profile</b></div>
+        
+        
+        
+        
+        
+        
+        
       </div>
       
       
@@ -731,29 +729,14 @@
           <li>
             <div class="rank">1</div>
             <div>
-              <div class="name">Small Business Owner <span class="tag cat">Business</span></div>
-              <div class="meta">1 BL, 15L</div>
-            </div>
-          </li>
-          
-          <li>
-            <div class="rank">2</div>
-            <div>
-              <div class="name">Established Salaried <span class="tag cat">Salaried</span></div>
-              <div class="meta">HL 35L</div>
+              <div class="name">New to Credit <span class="tag cat">NTC</span></div>
+              <div class="meta">Zero bureau tradelines</div>
             </div>
           </li>
           
         </ul>
         
-        <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-          <span style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px">Stress indicators:</span>
-          
-          <span class="tag amber" title="Gold Loan 2L alongside other products">Asset Stress — Gold Loan 2L alongside other products</span>
-          
-        </div>
-        
-        <div class="muted" style="margin-top:10px">Probable profile of customer is Small Business Owner, Established Salaried.</div>
+        <div class="muted" style="margin-top:10px">Probable profile of customer is New to Credit.</div>
       </div>
       
     </div>
@@ -772,93 +755,28 @@
     
     <div class="checks risk-checks">
       
-      <div class="check red" data-severity="red">
-        <div class="ico">!</div>
-        <div class="lbl">Max DPD · <b>120 days</b><span class="det">Business Loan, 3M ago</span></div>
-        <div class="sc-tooltip">Max DPD: 120 days (Business Loan, 3M ago).
-Thresholds: 0 = clean · 1–30 = amber · &gt;30 = high risk</div>
+      <div class="check amber" data-severity="amber" data-checked="no">
+        <div class="ico">✗</div>
+        <div class="lbl">Bureau thick<span class="det">Data unavailable</span></div>
+        <div class="sc-tooltip">Data unavailable</div>
       </div>
       
-      <div class="check red" data-severity="red">
-        <div class="ico">!</div>
-        <div class="lbl">FOIR · <b>189.7%</b><span class="det">Over-leveraged</span></div>
-        <div class="sc-tooltip">Bureau obligation-to-income ratio.
-Bureau Obligation (aff_emi): INR 210,737
-Bureau Income: INR 111,111
-FOIR = Bureau Obligation ÷ Bureau Income × 100 = 189.7%
-FOIR (unsecured only): 75.9%
-Thresholds: ≤40% = comfortable · ≤65% = stretched · &gt;65% = over-leveraged</div>
+      <div class="check neutral" data-severity="neutral" data-checked="no">
+        <div class="ico">✗</div>
+        <div class="lbl">Customer has Kotak loan</div>
+        
       </div>
       
-      <div class="check green" data-severity="green">
-        <div class="ico">✓</div>
-        <div class="lbl">CIBIL Score · <b>785</b><span class="det">Excellent</span></div>
-        <div class="sc-tooltip">TransUnion credit score from bureau data</div>
-      </div>
-      
-      <div class="check green" data-severity="green">
-        <div class="ico">✓</div>
-        <div class="lbl">CC Util · <b>9%</b><span class="det">Healthy</span></div>
-        <div class="sc-tooltip">CC balance utilization: 9.0%.
-Thresholds: ≤30% = healthy · ≤75% = elevated · &gt;75% = over-utilized</div>
-      </div>
-      
-      <div class="check green" data-severity="green">
-        <div class="ico">✓</div>
-        <div class="lbl">Enquiries · <b>0 in 12M</b><span class="det">Minimal</span></div>
-        <div class="sc-tooltip">Unsecured credit enquiries in last 12M: 0.
-Thresholds: ≤3 = minimal · ≤10 = moderate · &gt;10 = high pressure</div>
-      </div>
-      
-      <div class="check green" data-severity="green">
-        <div class="ico">✓</div>
-        <div class="lbl">Payments · <b>0% missed</b><span class="det">18M window</span></div>
-        <div class="sc-tooltip">Missed payment rate over 18M: 0.0%.
-Thresholds: 0% = clean · ≤10% = some · &gt;10% = frequent</div>
-      </div>
-      
-      <div class="check green" data-severity="green" data-checked="no">
+      <div class="check neutral" data-severity="neutral" data-checked="no">
         <div class="ico">✗</div>
         <div class="lbl">Kotak loan default (live)</div>
         
       </div>
       
-      <div class="check green" data-severity="green" data-checked="yes">
-        <div class="ico">✓</div>
-        <div class="lbl">Bureau thick</div>
+      <div class="check neutral" data-severity="neutral" data-checked="no">
+        <div class="ico">✗</div>
+        <div class="lbl">Live Home Loan detected</div>
         
-      </div>
-      
-      <div class="check green" data-severity="green" data-checked="yes">
-        <div class="ico">✓</div>
-        <div class="lbl">Banking thick</div>
-        
-      </div>
-      
-      <div class="check neutral" data-severity="neutral">
-        <div class="ico">i</div>
-        <div class="lbl">Adverse Events · <b>NUL</b><span class="det">Forced events detected</span></div>
-        <div class="sc-tooltip">Forced event flags: NUL.
-High risk: WRF / SET / SMA · Moderate: SUB / DBT / LSS / WOF</div>
-      </div>
-      
-      <div class="check neutral" data-severity="neutral">
-        <div class="ico">i</div>
-        <div class="lbl">Exposure 12M · <b>Stable</b><span class="det">vs 12M ago</span></div>
-        <div class="sc-tooltip">Sanctioned exposure: Jul 2026 = ₹174.5L · 12M ago = ₹177.0L.
-Change: -1.4%. Thresholds: ≤−5% = declining · ≤+30% = growing · &gt;+30% = rapid</div>
-      </div>
-      
-      <div class="check neutral" data-severity="neutral" data-checked="yes">
-        <div class="ico">✓</div>
-        <div class="lbl">Customer has Kotak loan<span class="det">2 Kotak loan(s): credit_card(1), home_loan(1)</span></div>
-        <div class="sc-tooltip">2 Kotak loan(s): credit_card(1), home_loan(1)</div>
-      </div>
-      
-      <div class="check neutral" data-severity="neutral" data-checked="yes">
-        <div class="ico">✓</div>
-        <div class="lbl">Live Home Loan detected<span class="det">Sanctioned: ₹3,500,000 | On-Us: 1, Off-Us: 0</span></div>
-        <div class="sc-tooltip">Sanctioned: ₹3,500,000 | On-Us: 1, Off-Us: 0</div>
       </div>
       
     </div>
@@ -878,7 +796,7 @@ Change: -1.4%. Thresholds: ≤−5% = declining · ≤+30% = growing · &gt;+30%
   
   
   <div class="panel" id="findings">
-    <h2>Key Findings &amp; Inferences <span class="count">6 insights</span></h2>
+    <h2>Key Findings &amp; Inferences <span class="count">1 insights</span></h2>
 
     
     <div class="fview-toggle" id="findingsViewToggle">
@@ -896,80 +814,15 @@ Change: -1.4%. Thresholds: ≤−5% = declining · ≤+30% = growing · &gt;+30%
           <div class="carousel-track">
             
             
-            <div class="carousel-slide" data-severity="concern">
-              <div class="fcard f-yellow">
-                <div class="fmeta">
-                  <span class="sev-ico s-yellow">▲</span>
-                  <span class="sev-label s-yellow">CONCERN</span>
-                  <span class="fcat">Composite Signal</span>
-                </div>
-                <div class="ftext">No formal missed payments but DPD detected (Portfolio Max DPD: 120 days)</div>
-                <div class="finf">Payments were made but with delays past due date; payment discipline is inconsistent despite no formal defaults</div>
-              </div>
-            </div>
-            
-            
-            <div class="carousel-slide" data-severity="neutral">
-              <div class="fcard f-grey">
-                <div class="fmeta">
-                  <span class="sev-ico s-grey">i</span>
-                  <span class="sev-label s-grey">INFO</span>
-                  <span class="fcat">Portfolio</span>
-                </div>
-                <div class="ftext">Portfolio spans 9 loan products (Credit Card, Personal Loan, Home Loan, Auto Loan, Business Loan, Gold Loan, LAP, Two Wheeler Loan, Consumer Durable)</div>
-                <div class="finf">Diversified credit portfolio indicates established borrowing history across products</div>
-              </div>
-            </div>
-            
-            
             <div class="carousel-slide" data-severity="positive">
               <div class="fcard f-green">
                 <div class="fmeta">
                   <span class="sev-ico s-green">✓</span>
                   <span class="sev-label s-green">POSITIVE</span>
-                  <span class="fcat">Utilization</span>
+                  <span class="fcat">Delinquency</span>
                 </div>
-                <div class="ftext">Credit card utilization at 9% [Opened: Aug 2018 – Nov 2025 | Last Closed: Nov 2025]</div>
-                <div class="finf">Healthy utilization indicates disciplined credit card usage</div>
-              </div>
-            </div>
-            
-            
-            <div class="carousel-slide" data-severity="positive">
-              <div class="fcard f-green">
-                <div class="fmeta">
-                  <span class="sev-ico s-green">✓</span>
-                  <span class="sev-label s-green">POSITIVE</span>
-                  <span class="fcat">DPD &amp; Delinquency</span>
-                </div>
-                <div class="ftext">Zero DPD across all products in recent 6-9 month windows</div>
-                <div class="finf">Clean recent payment record demonstrates consistent repayment discipline</div>
-              </div>
-            </div>
-            
-            
-            <div class="carousel-slide" data-severity="positive">
-              <div class="fcard f-green">
-                <div class="fmeta">
-                  <span class="sev-ico s-green">✓</span>
-                  <span class="sev-label s-green">POSITIVE</span>
-                  <span class="fcat">Payment Behavior</span>
-                </div>
-                <div class="ftext">No missed payments in last 18 months</div>
-                <div class="finf">Perfect payment track record over 18 months is a strong positive</div>
-              </div>
-            </div>
-            
-            
-            <div class="carousel-slide" data-severity="positive">
-              <div class="fcard f-green">
-                <div class="fmeta">
-                  <span class="sev-ico s-green">✓</span>
-                  <span class="sev-label s-green">POSITIVE</span>
-                  <span class="fcat">Enquiry Behavior</span>
-                </div>
-                <div class="ftext">0 unsecured enquiries in last 12 months</div>
-                <div class="finf">Minimal enquiry activity indicates stable credit position</div>
+                <div class="ftext">No delinquency detected across the portfolio</div>
+                <div class="finf">Clean delinquency record is a positive indicator for repayment discipline</div>
               </div>
             </div>
             
@@ -990,107 +843,22 @@ Change: -1.4%. Thresholds: ≤−5% = declining · ≤+30% = growing · &gt;+30%
           
           
           <button type="button" class="reader-item active" data-idx="0">
-            <span class="ri-dot s-yellow"></span>
-            <span class="ri-text">No formal missed payments but DPD detected (Portfolio Max DPD: 120 days)</span>
-          </button>
-          
-          
-          <button type="button" class="reader-item" data-idx="1">
-            <span class="ri-dot s-grey"></span>
-            <span class="ri-text">Portfolio spans 9 loan products (Credit Card, Personal Loan, Home Loan, Auto Loan, Business Loan, Gold Loan, LAP, Two Wheeler Loan, Consumer Durable)</span>
-          </button>
-          
-          
-          <button type="button" class="reader-item" data-idx="2">
             <span class="ri-dot s-green"></span>
-            <span class="ri-text">Credit card utilization at 9% [Opened: Aug 2018 – Nov 2025 | Last Closed: Nov 2025]</span>
-          </button>
-          
-          
-          <button type="button" class="reader-item" data-idx="3">
-            <span class="ri-dot s-green"></span>
-            <span class="ri-text">Zero DPD across all products in recent 6-9 month windows</span>
-          </button>
-          
-          
-          <button type="button" class="reader-item" data-idx="4">
-            <span class="ri-dot s-green"></span>
-            <span class="ri-text">No missed payments in last 18 months</span>
-          </button>
-          
-          
-          <button type="button" class="reader-item" data-idx="5">
-            <span class="ri-dot s-green"></span>
-            <span class="ri-text">0 unsecured enquiries in last 12 months</span>
+            <span class="ri-text">No delinquency detected across the portfolio</span>
           </button>
           
         </div>
         <div class="reader-detail">
           
           
-          <div class="reader-pane f-yellow active" data-idx="0">
-            <div class="fmeta">
-              <span class="sev-ico s-yellow">▲</span>
-              <span class="sev-label s-yellow">CONCERN</span>
-              <span class="fcat">Composite Signal</span>
-            </div>
-            <div class="ftext">No formal missed payments but DPD detected (Portfolio Max DPD: 120 days)</div>
-            <div class="finf">Payments were made but with delays past due date; payment discipline is inconsistent despite no formal defaults</div>
-          </div>
-          
-          
-          <div class="reader-pane f-grey" data-idx="1">
-            <div class="fmeta">
-              <span class="sev-ico s-grey">i</span>
-              <span class="sev-label s-grey">INFO</span>
-              <span class="fcat">Portfolio</span>
-            </div>
-            <div class="ftext">Portfolio spans 9 loan products (Credit Card, Personal Loan, Home Loan, Auto Loan, Business Loan, Gold Loan, LAP, Two Wheeler Loan, Consumer Durable)</div>
-            <div class="finf">Diversified credit portfolio indicates established borrowing history across products</div>
-          </div>
-          
-          
-          <div class="reader-pane f-green" data-idx="2">
+          <div class="reader-pane f-green active" data-idx="0">
             <div class="fmeta">
               <span class="sev-ico s-green">✓</span>
               <span class="sev-label s-green">POSITIVE</span>
-              <span class="fcat">Utilization</span>
+              <span class="fcat">Delinquency</span>
             </div>
-            <div class="ftext">Credit card utilization at 9% [Opened: Aug 2018 – Nov 2025 | Last Closed: Nov 2025]</div>
-            <div class="finf">Healthy utilization indicates disciplined credit card usage</div>
-          </div>
-          
-          
-          <div class="reader-pane f-green" data-idx="3">
-            <div class="fmeta">
-              <span class="sev-ico s-green">✓</span>
-              <span class="sev-label s-green">POSITIVE</span>
-              <span class="fcat">DPD &amp; Delinquency</span>
-            </div>
-            <div class="ftext">Zero DPD across all products in recent 6-9 month windows</div>
-            <div class="finf">Clean recent payment record demonstrates consistent repayment discipline</div>
-          </div>
-          
-          
-          <div class="reader-pane f-green" data-idx="4">
-            <div class="fmeta">
-              <span class="sev-ico s-green">✓</span>
-              <span class="sev-label s-green">POSITIVE</span>
-              <span class="fcat">Payment Behavior</span>
-            </div>
-            <div class="ftext">No missed payments in last 18 months</div>
-            <div class="finf">Perfect payment track record over 18 months is a strong positive</div>
-          </div>
-          
-          
-          <div class="reader-pane f-green" data-idx="5">
-            <div class="fmeta">
-              <span class="sev-ico s-green">✓</span>
-              <span class="sev-label s-green">POSITIVE</span>
-              <span class="fcat">Enquiry Behavior</span>
-            </div>
-            <div class="ftext">0 unsecured enquiries in last 12 months</div>
-            <div class="finf">Minimal enquiry activity indicates stable credit position</div>
+            <div class="ftext">No delinquency detected across the portfolio</div>
+            <div class="finf">Clean delinquency record is a positive indicator for repayment discipline</div>
           </div>
           
         </div>
@@ -1103,79 +871,14 @@ Change: -1.4%. Thresholds: ≤−5% = declining · ≤+30% = growing · &gt;+30%
         
         
         <div class="ftl-item">
-          <div class="ftl-node s-yellow">▲</div>
-          <div class="ftl-card f-yellow">
-            <div class="fmeta">
-              <span class="sev-label s-yellow">CONCERN</span>
-              <span class="fcat">Composite Signal</span>
-            </div>
-            <div class="ftext">No formal missed payments but DPD detected (Portfolio Max DPD: 120 days)</div>
-            <div class="finf">Payments were made but with delays past due date; payment discipline is inconsistent despite no formal defaults</div>
-          </div>
-        </div>
-        
-        
-        <div class="ftl-item">
-          <div class="ftl-node s-grey">i</div>
-          <div class="ftl-card f-grey">
-            <div class="fmeta">
-              <span class="sev-label s-grey">INFO</span>
-              <span class="fcat">Portfolio</span>
-            </div>
-            <div class="ftext">Portfolio spans 9 loan products (Credit Card, Personal Loan, Home Loan, Auto Loan, Business Loan, Gold Loan, LAP, Two Wheeler Loan, Consumer Durable)</div>
-            <div class="finf">Diversified credit portfolio indicates established borrowing history across products</div>
-          </div>
-        </div>
-        
-        
-        <div class="ftl-item">
           <div class="ftl-node s-green">✓</div>
           <div class="ftl-card f-green">
             <div class="fmeta">
               <span class="sev-label s-green">POSITIVE</span>
-              <span class="fcat">Utilization</span>
+              <span class="fcat">Delinquency</span>
             </div>
-            <div class="ftext">Credit card utilization at 9% [Opened: Aug 2018 – Nov 2025 | Last Closed: Nov 2025]</div>
-            <div class="finf">Healthy utilization indicates disciplined credit card usage</div>
-          </div>
-        </div>
-        
-        
-        <div class="ftl-item">
-          <div class="ftl-node s-green">✓</div>
-          <div class="ftl-card f-green">
-            <div class="fmeta">
-              <span class="sev-label s-green">POSITIVE</span>
-              <span class="fcat">DPD &amp; Delinquency</span>
-            </div>
-            <div class="ftext">Zero DPD across all products in recent 6-9 month windows</div>
-            <div class="finf">Clean recent payment record demonstrates consistent repayment discipline</div>
-          </div>
-        </div>
-        
-        
-        <div class="ftl-item">
-          <div class="ftl-node s-green">✓</div>
-          <div class="ftl-card f-green">
-            <div class="fmeta">
-              <span class="sev-label s-green">POSITIVE</span>
-              <span class="fcat">Payment Behavior</span>
-            </div>
-            <div class="ftext">No missed payments in last 18 months</div>
-            <div class="finf">Perfect payment track record over 18 months is a strong positive</div>
-          </div>
-        </div>
-        
-        
-        <div class="ftl-item">
-          <div class="ftl-node s-green">✓</div>
-          <div class="ftl-card f-green">
-            <div class="fmeta">
-              <span class="sev-label s-green">POSITIVE</span>
-              <span class="fcat">Enquiry Behavior</span>
-            </div>
-            <div class="ftext">0 unsecured enquiries in last 12 months</div>
-            <div class="finf">Minimal enquiry activity indicates stable credit position</div>
+            <div class="ftext">No delinquency detected across the portfolio</div>
+            <div class="finf">Clean delinquency record is a positive indicator for repayment discipline</div>
           </div>
         </div>
         
@@ -1187,69 +890,14 @@ Change: -1.4%. Thresholds: ≤−5% = declining · ≤+30% = growing · &gt;+30%
       <div class="ftiles" id="findingsTiles">
         
         
-        <button type="button" class="ftile f-yellow">
-          <div class="fmeta">
-            <span class="sev-ico s-yellow">▲</span>
-            <span class="sev-label s-yellow">CONCERN</span>
-            <span class="fcat">Composite Signal</span>
-          </div>
-          <div class="ftext">No formal missed payments but DPD detected (Portfolio Max DPD: 120 days)</div>
-          <div class="finf">Payments were made but with delays past due date; payment discipline is inconsistent despite no formal defaults</div>
-        </button>
-        
-        
-        <button type="button" class="ftile f-grey">
-          <div class="fmeta">
-            <span class="sev-ico s-grey">i</span>
-            <span class="sev-label s-grey">INFO</span>
-            <span class="fcat">Portfolio</span>
-          </div>
-          <div class="ftext">Portfolio spans 9 loan products (Credit Card, Personal Loan, Home Loan, Auto Loan, Business Loan, Gold Loan, LAP, Two Wheeler Loan, Consumer Durable)</div>
-          <div class="finf">Diversified credit portfolio indicates established borrowing history across products</div>
-        </button>
-        
-        
         <button type="button" class="ftile f-green">
           <div class="fmeta">
             <span class="sev-ico s-green">✓</span>
             <span class="sev-label s-green">POSITIVE</span>
-            <span class="fcat">Utilization</span>
+            <span class="fcat">Delinquency</span>
           </div>
-          <div class="ftext">Credit card utilization at 9% [Opened: Aug 2018 – Nov 2025 | Last Closed: Nov 2025]</div>
-          <div class="finf">Healthy utilization indicates disciplined credit card usage</div>
-        </button>
-        
-        
-        <button type="button" class="ftile f-green">
-          <div class="fmeta">
-            <span class="sev-ico s-green">✓</span>
-            <span class="sev-label s-green">POSITIVE</span>
-            <span class="fcat">DPD &amp; Delinquency</span>
-          </div>
-          <div class="ftext">Zero DPD across all products in recent 6-9 month windows</div>
-          <div class="finf">Clean recent payment record demonstrates consistent repayment discipline</div>
-        </button>
-        
-        
-        <button type="button" class="ftile f-green">
-          <div class="fmeta">
-            <span class="sev-ico s-green">✓</span>
-            <span class="sev-label s-green">POSITIVE</span>
-            <span class="fcat">Payment Behavior</span>
-          </div>
-          <div class="ftext">No missed payments in last 18 months</div>
-          <div class="finf">Perfect payment track record over 18 months is a strong positive</div>
-        </button>
-        
-        
-        <button type="button" class="ftile f-green">
-          <div class="fmeta">
-            <span class="sev-ico s-green">✓</span>
-            <span class="sev-label s-green">POSITIVE</span>
-            <span class="fcat">Enquiry Behavior</span>
-          </div>
-          <div class="ftext">0 unsecured enquiries in last 12 months</div>
-          <div class="finf">Minimal enquiry activity indicates stable credit position</div>
+          <div class="ftext">No delinquency detected across the portfolio</div>
+          <div class="finf">Clean delinquency record is a positive indicator for repayment discipline</div>
         </button>
         
       </div>
@@ -1265,11 +913,11 @@ Change: -1.4%. Thresholds: ≤−5% = declining · ≤+30% = growing · &gt;+30%
     <h2>Bureau Executive Summary <span class="count">LLM-generated narrative</span></h2>
     
     
-    <div class="summary clamped" id="sum">Here is a two-paragraph summary of the bureau portfolio:
+    <div class="summary clamped" id="sum">Here is the executive summary:
 
-The customer&#39;s tradeline portfolio consists of 34 total tradelines (28 live and 6 closed). The product-wise breakdown reveals a diverse mix of loan products, including credit cards, personal loans, home loans, auto loans, business loans, gold loans, LAPs, and consumer durable loans. Key highlights include a high credit card utilization percentage of 9.0%, with sanctioned exposure totaling INR 1,83,88,130 and outstandin<span class="teaser-dots">… <span class="more-toggle" onclick="toggleSummary()">read more</span></span><span class="more">g amount of INR 96,35,179. The customer&#39;s obligation and FOIR indicate an over-leveraged position, with total bureau EMI obligation standing at INR 2,10,737 and unsecured EMI obligation at INR 84,337.
+The customer&#39;s tradeline portfolio consists of 0 live tradelines, 0 closed tradelines, and a total of 0 sanctioned exposure. The loan products present in the portfolio are primarily credit cards, with no joint loans or defaulted/delinquent loan types. Notable data points include a credit card utilization percentage of 0%, indicating no outstanding balance on any credit card account. There are no DPD values above zero, and the customer has made <span class="teaser-dots">… <span class="more-toggle" onclick="toggleSummary()">read more</span></span><span class="more">0 missed payments. The enquiry count is 0, and the loan acquisition velocity is 0 new loans in the last 6 months. Kotak (On-Us) Exposure data is not available.
 
-The behavioral insights reveal a mixed picture. Enquiry pressure is evident with 40 trade-to-enquiry ratio in the last 24 months, indicating frequent loan applications. However, repayment discipline is highlighted by zero missed payments and clean DPD values across all products and windows. Utilization is elevated at 53.46% for personal loans, while credit card utilization is healthy at 8.97%. The customer&#39;s loan acquisition velocity is moderate, with an average interpurchase time of 3.45 months. Overall, the portfolio presents a complex risk profile, with both positive and negative signals that require careful consideration. <span class="more-toggle" onclick="toggleSummary()">show less</span></span></div>
+The customer&#39;s credit behavior presents a low-risk profile. There are no [HIGH RISK] features identified. However, the credit card utilization percentage of 0% indicates a lack of utilization, which could be considered a [POSITIVE] feature. The absence of any DPD values above zero and 0 missed payments suggests good repayment discipline. The enquiry count of 0 and loan acquisition velocity of 0 new loans in the last 6 months indicate low enquiry pressure and no loan stacking. <span class="more-toggle" onclick="toggleSummary()">show less</span></span></div>
     
   </div>
   
@@ -1279,11 +927,11 @@ The behavioral insights reveal a mixed picture. Enquiry pressure is evident with
   
   
   <div class="panel" id="portfolio">
-    <h2>Portfolio <span class="count">34 tradelines · 28 live</span></h2>
-    <p class="viz-caption">Spread across 9 loan products; largely unsecured.</p>
+    <h2>Portfolio <span class="count">0 tradelines · 0 live</span></h2>
+    <p class="viz-caption">No tradelines reported.</p>
     <div class="tabs">
       <button class="active" onclick="tab(event,'pf-overview')">Overview</button>
-      <button onclick="tab(event,'pf-onus')">Kotak (On-Us)</button>
+      
       <button onclick="tab(event,'viz-explore')">Explore</button>
       <button onclick="tab(event,'viz-quick')">Quick Views</button>
       <button onclick="tab(event,'viz-time')">Exposure</button>
@@ -1293,61 +941,39 @@ The behavioral insights reveal a mixed picture. Enquiry pressure is evident with
       <div class="tile-grid">
         <div class="tile">
           <label>Total / Live / Closed</label>
-          <div class="value">34 / 28 / 6</div>
+          <div class="value">0 / 0 / 0</div>
         </div>
         <div class="tile">
           <label>Total Sanction Amount</label>
-          <div class="value">INR 1.84 Cr</div>
+          <div class="value">INR 0</div>
         </div>
         <div class="tile">
           <label>Total Outstanding</label>
-          <div class="value">INR 96.35 L
-            <small>(52% of sanctioned)</small>
+          <div class="value">INR 0
+            
           </div>
         </div>
         <div class="tile">
           <label>Unsecured Sanction Amount</label>
-          <div class="value">INR 87.93 L
-            <small>(48% of total)</small>
+          <div class="value">INR 0
+            
           </div>
         </div>
         <div class="tile">
           <label>Unsecured Outstanding</label>
-          <div class="value">INR 20.75 L
+          <div class="value">INR 0
             <small>
-              (22% of outstanding
-               | 11% of sanctioned)
+              
+              
             </small>
           </div>
         </div>
         
         
-        <div class="tile">
-          <label>Largest Single Loan</label>
-          <div class="value">INR 50.00 L
-            <small>(LAP)</small>
-          </div>
-        </div>
-        
         
       </div>
     </div>
 
-    
-    <div class="tab-body" id="pf-onus">
-      <div class="onus-block">
-        <div class="blk-title">Kotak Relationship (On-Us)</div>
-        <div class="tile-grid">
-          <div class="tile"><label>On-Us Tradelines</label><div class="value">2 <small>(2 live)</small></div></div>
-          <div class="tile"><label>Products</label><div class="value">Credit Card, Home Loan</div></div>
-          <div class="tile"><label>Sanctioned</label><div class="value">INR 36.40 L</div></div>
-          <div class="tile"><label>Outstanding</label><div class="value">INR 28.32 L</div></div>
-          
-          <div class="tile"><label>On-Us Max DPD</label><div class="value risk">90</div></div>
-          
-        </div>
-      </div>
-    </div>
     
 
     
@@ -1380,59 +1006,40 @@ The behavioral insights reveal a mixed picture. Enquiry pressure is evident with
         <div class="split-row">
           <div class="split-name">Product mix (by count)</div>
           <div class="split-barwrap">
-            <div class="split-bar"><div class="split-seg" style="width:76.5%;background:#F28E2B" title="Credit Card: 26 (76.5%)"></div><div class="split-seg" style="width:2.9%;background:#4E79A7" title="Personal Loan: 1 (2.9%)"></div><div class="split-seg" style="width:2.9%;background:#59A14F" title="Home Loan: 1 (2.9%)"></div><div class="split-seg" style="width:2.9%;background:#E15759" title="Auto Loan: 1 (2.9%)"></div><div class="split-seg" style="width:2.9%;background:#B07AA1" title="Business Loan: 1 (2.9%)"></div><div class="split-seg" style="width:2.9%;background:#EDC948" title="Gold Loan: 1 (2.9%)"></div><div class="split-seg" style="width:2.9%;background:#9C755F" title="LAP: 1 (2.9%)"></div><div class="split-seg" style="width:2.9%;background:#76B7B2" title="Two Wheeler Loan: 1 (2.9%)"></div><div class="split-seg" style="width:2.9%;background:#FF9DA7" title="Consumer Durable: 1 (2.9%)"></div></div>
+            <div class="split-bar"></div>
           </div>
           <div class="split-legend">
-            
-              <span class="sv"><span class="dot" style="background:#F28E2B"></span>Credit Card <b>26</b></span><span class="sv"><span class="dot" style="background:#4E79A7"></span>Personal Loan <b>1</b></span>
-              
-              <div class="sv-more">
-                <button type="button" class="sv-more-btn">+7 more</button>
-                <div class="sv-pop" hidden>
-                  <span class="svp"><span class="dot" style="background:#F28E2B"></span>Credit Card <b>26</b> · 76.5%</span><span class="svp"><span class="dot" style="background:#4E79A7"></span>Personal Loan <b>1</b> · 2.9%</span><span class="svp"><span class="dot" style="background:#59A14F"></span>Home Loan <b>1</b> · 2.9%</span><span class="svp"><span class="dot" style="background:#E15759"></span>Auto Loan <b>1</b> · 2.9%</span><span class="svp"><span class="dot" style="background:#B07AA1"></span>Business Loan <b>1</b> · 2.9%</span><span class="svp"><span class="dot" style="background:#EDC948"></span>Gold Loan <b>1</b> · 2.9%</span><span class="svp"><span class="dot" style="background:#9C755F"></span>LAP <b>1</b> · 2.9%</span><span class="svp"><span class="dot" style="background:#76B7B2"></span>Two Wheeler Loan <b>1</b> · 2.9%</span><span class="svp"><span class="dot" style="background:#FF9DA7"></span>Consumer Durable <b>1</b> · 2.9%</span>
-                </div>
-              </div>
-              
-            
+            <span class="split-empty">No data</span>
           </div>
         </div>
         
         <div class="split-row">
           <div class="split-name">Live vs Closed</div>
           <div class="split-barwrap">
-            <div class="split-bar"><div class="split-seg" style="width:82.4%;background:#6366f1" title="Live: 28 (82.4%)"></div><div class="split-seg" style="width:17.6%;background:#cbd5e1" title="Closed: 6 (17.6%)"></div></div>
+            <div class="split-bar"></div>
           </div>
           <div class="split-legend">
-            
-              <span class="sv"><span class="dot" style="background:#6366f1"></span>Live <b>28</b></span><span class="sv"><span class="dot" style="background:#cbd5e1"></span>Closed <b>6</b></span>
-              
-            
+            <span class="split-empty">No data</span>
           </div>
         </div>
         
         <div class="split-row">
           <div class="split-name">Secured vs Unsecured</div>
           <div class="split-barwrap">
-            <div class="split-bar"><div class="split-seg" style="width:85.3%;background:#f59e0b" title="Unsecured: 29 (85.3%)"></div><div class="split-seg" style="width:14.7%;background:#10b981" title="Secured: 5 (14.7%)"></div></div>
+            <div class="split-bar"></div>
           </div>
           <div class="split-legend">
-            
-              <span class="sv"><span class="dot" style="background:#f59e0b"></span>Unsecured <b>29</b></span><span class="sv"><span class="dot" style="background:#10b981"></span>Secured <b>5</b></span>
-              
-            
+            <span class="split-empty">No data</span>
           </div>
         </div>
         
         <div class="split-row">
           <div class="split-name">On-Us (Kotak) vs Off-Us</div>
           <div class="split-barwrap">
-            <div class="split-bar"><div class="split-seg" style="width:94.1%;background:#94a3b8" title="Off-Us: 32 (94.1%)"></div><div class="split-seg" style="width:5.9%;background:#6366f1" title="On-Us (Kotak): 2 (5.9%)"></div></div>
+            <div class="split-bar"></div>
           </div>
           <div class="split-legend">
-            
-              <span class="sv"><span class="dot" style="background:#94a3b8"></span>Off-Us <b>32</b></span><span class="sv"><span class="dot" style="background:#6366f1"></span>On-Us (Kotak) <b>2</b></span>
-              
-            
+            <span class="split-empty">No data</span>
           </div>
         </div>
         
@@ -1443,22 +1050,7 @@ The behavioral insights reveal a mixed picture. Enquiry pressure is evident with
     
     <div class="tab-body" id="viz-time">
       
-      
-      <div class="expo-wrap" id="expoWrap">
-        <div class="expo-left">
-          <div class="expo-right-title">Total exposure</div>
-          <div class="expo-spark"><svg viewBox="0 0 240 40" width="240" height="40" class="spark" role="img" aria-label="exposure trend"><polygon points="4,36 4.0,36.0 14.1,36.0 24.2,36.0 34.3,36.0 44.3,18.3 54.4,18.3 64.5,5.9 74.6,4.0 84.7,4.0 94.8,4.0 104.9,4.0 115.0,4.0 125.0,4.0 135.1,4.0 145.2,12.3 155.3,12.2 165.4,14.3 175.5,14.3 185.6,14.3 195.7,14.3 205.7,14.3 215.8,14.3 225.9,14.3 236.0,14.3 236,36" fill="#6366f120" stroke="none"/><polyline points="4.0,36.0 14.1,36.0 24.2,36.0 34.3,36.0 44.3,18.3 54.4,18.3 64.5,5.9 74.6,4.0 84.7,4.0 94.8,4.0 104.9,4.0 115.0,4.0 125.0,4.0 135.1,4.0 145.2,12.3 155.3,12.2 165.4,14.3 175.5,14.3 185.6,14.3 195.7,14.3 205.7,14.3 215.8,14.3 225.9,14.3 236.0,14.3" fill="none" stroke="#6366f1" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="236.0" cy="14.3" r="3" fill="#6366f1"/></svg></div>
-          <div class="expo-stats">
-            <div class="es"><span class="k">Peak</span><span class="v">₹1.8Cr</span><span class="sub">Mar 2025</span></div>
-            <div class="es"><span class="k">Now</span><span class="v">₹1.7Cr</span><span class="sub">1% below peak</span></div>
-            <div class="es"><span class="k">Trend</span><span class="v">Stable</span><span class="sub">sanctioned exposure</span></div>
-          </div>
-        </div>
-        <div class="expo-right" id="expoRight">
-          <div class="expo-right-title">By product</div>
-          <div class="chart-wrap expo-chart"><canvas id="cmbChartTimeseries"></canvas></div>
-        </div>
-      </div>
+      <div class="absence-note">Exposure history is not available for this customer.</div>
       
     </div>
     
@@ -1472,322 +1064,14 @@ The behavioral insights reveal a mixed picture. Enquiry pressure is evident with
   <div class="panel" id="dpd">
     <h2>DPD History <span class="count">Per-account payment-history timeline</span></h2>
     <div class="tabs">
-      <button class="active" id="dpdAcctTabBtn" onclick="tab(event,'dpd-acct')">Per-Account</button>
-      <button id="dpdHeatTabBtn" onclick="tab(event,'dpd-heat')">By Type</button>
+      
+      <button class="active" id="dpdHeatTabBtn" onclick="tab(event,'dpd-heat')">By Type</button>
       <button id="dpdTimelineTabBtn" onclick="tab(event,'dpd-timeline')">Event Timeline</button>
     </div>
 
     
-    
-    
-    
-    <div class="tab-body active" id="dpd-acct">
-      <div class="dpd-acct" id="dpdAcct">
-        <div class="dpd-acct-bar">
-          <span class="tag red">6 of 33 accounts with delinquency</span>
-          <span class="dpd-win">
-            <button type="button" class="dpd-win-btn active" data-win="24">24M</button>
-            <button type="button" class="dpd-win-btn" data-win="36">36M</button>
-          </span>
-        </div>
 
-        
-        <div class="dpd-lane dpd-ov">
-          <div class="dol"><span class="dpd-nm">Portfolio</span><span class="dpd-sb">worst DPD / month</span></div>
-          <div class="dob"><span class="dpd-c s-ok lvl0 dpd-old" title="Jan 23 · 0 delinquent"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Feb 23 · 0 delinquent"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Mar 23 · 0 delinquent"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Apr 23 · 0 delinquent"></span><span class="dpd-c s-ok lvl0 dpd-old" title="May 23 · 0 delinquent"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jun 23 · 0 delinquent"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jul 23 · 0 delinquent"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Aug 23 · 0 delinquent"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Sep 23 · 0 delinquent"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Oct 23 · 0 delinquent"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Nov 23 · 0 delinquent"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Dec 23 · 0 delinquent"></span><span class="dpd-c s-ok lvl0" title="Jan 24 · 0 delinquent"></span><span class="dpd-c s-ok lvl0" title="Feb 24 · 0 delinquent"></span><span class="dpd-c s-ok lvl0" title="Mar 24 · 0 delinquent"></span><span class="dpd-c s-ok lvl0" title="Apr 24 · 0 delinquent"></span><span class="dpd-c s-ok lvl0" title="May 24 · 0 delinquent"></span><span class="dpd-c s-ok lvl0" title="Jun 24 · 0 delinquent"></span><span class="dpd-c s-ok lvl0" title="Jul 24 · 0 delinquent"></span><span class="dpd-c s-ok lvl0" title="Aug 24 · 0 delinquent"></span><span class="dpd-c s-ok lvl0" title="Sep 24 · 0 delinquent"></span><span class="dpd-c s-ok lvl0" title="Oct 24 · 0 delinquent"></span><span class="dpd-c s-ok lvl0" title="Nov 24 · 0 delinquent"></span><span class="dpd-c s-ok lvl0" title="Dec 24 · 0 delinquent"></span><span class="dpd-c s-ok lvl0" title="Jan 25 · 0 delinquent"></span><span class="dpd-c s-ok lvl0" title="Feb 25 · 0 delinquent"></span><span class="dpd-c s-dpd lvl2" title="Mar 25 · 1 delinquent"></span><span class="dpd-c s-dpd lvl2" title="Apr 25 · 1 delinquent"></span><span class="dpd-c s-dpd lvl1" title="May 25 · 1 delinquent"></span><span class="dpd-c s-ok lvl0" title="Jun 25 · 0 delinquent"></span><span class="dpd-c s-dpd lvl4" title="Jul 25 · 1 delinquent"></span><span class="dpd-c s-dpd lvl2" title="Aug 25 · 1 delinquent"></span><span class="dpd-c s-dpd lvl3" title="Sep 25 · 2 delinquent"></span><span class="dpd-c s-dpd lvl4" title="Oct 25 · 2 delinquent"></span><span class="dpd-c s-dpd lvl4" title="Nov 25 · 1 delinquent"></span><span class="dpd-c s-ok lvl0" title="Dec 25 · 0 delinquent"></span></div>
-        </div>
-
-        
-        
-        <div class="dpd-lane">
-          <div class="dol" title="Credit Card · ₹3.0L · Live">
-            <span class="dpd-nm">Credit Card</span>
-            <span class="dpd-sb">2024 · ₹3.0L</span>
-          </div>
-          <div class="dob"><span class="dpd-c s-none lvl0 dpd-old" title="Jan 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Feb 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Mar 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Apr 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="May 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jun 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jul 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Aug 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Sep 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Oct 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Nov 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Dec 23"></span><span class="dpd-c s-ok lvl0" title="Jan 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 24 · 0"></span><span class="dpd-c s-ok lvl0" title="May 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 25 · 0"></span><span class="dpd-c s-ok lvl0" title="May 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 25 · 0"></span><span class="dpd-c s-dpd lvl4" title="Jul 25 · 90"></span><span class="dpd-c s-ok lvl0" title="Aug 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 25 · 0"></span></div>
-        </div>
-  
-        <div class="dpd-lane">
-          <div class="dol" title="Business Loan · ₹15.0L · Live">
-            <span class="dpd-nm">Business Loan</span>
-            <span class="dpd-sb">2021 · ₹15.0L</span>
-          </div>
-          <div class="dob"><span class="dpd-c s-ok lvl0 dpd-old" title="Jan 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Feb 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Mar 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Apr 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="May 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jun 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jul 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Aug 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Sep 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Oct 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Nov 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Dec 23 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 24 · 0"></span><span class="dpd-c s-ok lvl0" title="May 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 25 · 0"></span><span class="dpd-c s-ok lvl0" title="May 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 25 · 0"></span><span class="dpd-c s-dpd lvl3" title="Sep 25 · 60"></span><span class="dpd-c s-dpd lvl4" title="Oct 25 · 120"></span><span class="dpd-c s-dpd lvl4" title="Nov 25 · 90"></span><span class="dpd-c s-ok lvl0" title="Dec 25 · 0"></span></div>
-        </div>
-  
-        <div class="dpd-lane">
-          <div class="dol" title="Personal Loan · ₹3.1L · Live">
-            <span class="dpd-nm">Personal Loan</span>
-            <span class="dpd-sb">2024 · ₹3.1L</span>
-          </div>
-          <div class="dob"><span class="dpd-c s-none lvl0 dpd-old" title="Jan 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Feb 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Mar 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Apr 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="May 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jun 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jul 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Aug 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Sep 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Oct 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Nov 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Dec 23"></span><span class="dpd-c s-none lvl0" title="Jan 24"></span><span class="dpd-c s-none lvl0" title="Feb 24"></span><span class="dpd-c s-none lvl0" title="Mar 24"></span><span class="dpd-c s-ok lvl0" title="Apr 24 · 0"></span><span class="dpd-c s-ok lvl0" title="May 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 25 · 0"></span><span class="dpd-c s-ok lvl0" title="May 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 25 · 0"></span><span class="dpd-c s-dpd lvl3" title="Sep 25 · 60"></span><span class="dpd-c s-dpd lvl2" title="Oct 25 · 30"></span><span class="dpd-c s-ok lvl0" title="Nov 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 25 · 0"></span></div>
-        </div>
-  
-        <div class="dpd-lane">
-          <div class="dol" title="Gold Loan · ₹2.0L · Live">
-            <span class="dpd-nm">Gold Loan</span>
-            <span class="dpd-sb">2024 · ₹2.0L</span>
-          </div>
-          <div class="dob"><span class="dpd-c s-ok lvl0 dpd-old" title="Jan 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Feb 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Mar 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Apr 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="May 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jun 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jul 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Aug 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Sep 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Oct 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Nov 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Dec 23 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 24 · 0"></span><span class="dpd-c s-ok lvl0" title="May 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 25 · 0"></span><span class="dpd-c s-dpd lvl2" title="Mar 25 · 30"></span><span class="dpd-c s-ok lvl0" title="Apr 25 · 0"></span><span class="dpd-c s-ok lvl0" title="May 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 25 · 0"></span></div>
-        </div>
-  
-        <div class="dpd-lane">
-          <div class="dol" title="Auto Loan · ₹8.0L · Live">
-            <span class="dpd-nm">Auto Loan</span>
-            <span class="dpd-sb">2022 · ₹8.0L</span>
-          </div>
-          <div class="dob"><span class="dpd-c s-ok lvl0 dpd-old" title="Jan 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Feb 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Mar 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Apr 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="May 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jun 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jul 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Aug 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Sep 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Oct 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Nov 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Dec 23 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 24 · 0"></span><span class="dpd-c s-ok lvl0" title="May 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 25 · 0"></span><span class="dpd-c s-ok lvl0" title="May 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 25 · 0"></span><span class="dpd-c s-dpd lvl2" title="Aug 25 · 30"></span><span class="dpd-c s-ok lvl0" title="Sep 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 25 · 0"></span></div>
-        </div>
-  
-        <div class="dpd-lane">
-          <div class="dol" title="Credit Card · ₹5.0L · Live">
-            <span class="dpd-nm">Credit Card</span>
-            <span class="dpd-sb">2021 · ₹5.0L</span>
-          </div>
-          <div class="dob"><span class="dpd-c s-ok lvl0 dpd-old" title="Jan 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Feb 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Mar 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Apr 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="May 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jun 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jul 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Aug 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Sep 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Oct 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Nov 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Dec 23 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 24 · 0"></span><span class="dpd-c s-ok lvl0" title="May 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 25 · 0"></span><span class="dpd-c s-dpd lvl2" title="Apr 25 · 30"></span><span class="dpd-c s-dpd lvl1" title="May 25 · 15"></span><span class="dpd-c s-ok lvl0" title="Jun 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 25 · 0"></span></div>
-        </div>
-  
-
-        
-        
-        <div class="dpd-clean">
-          <button type="button" class="dpd-clean-toggle" id="dpdCleanToggle" aria-expanded="false">▸ 27 clean accounts — show all-green history</button>
-          <div class="dpd-clean-list" id="dpdCleanList" hidden>
-            
-        <div class="dpd-lane">
-          <div class="dol" title="Credit Card · ₹1K · Live">
-            <span class="dpd-nm">Credit Card</span>
-            <span class="dpd-sb">2025 · ₹1K</span>
-          </div>
-          <div class="dob"><span class="dpd-c s-none lvl0 dpd-old" title="Jan 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Feb 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Mar 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Apr 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="May 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jun 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jul 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Aug 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Sep 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Oct 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Nov 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Dec 23"></span><span class="dpd-c s-none lvl0" title="Jan 24"></span><span class="dpd-c s-none lvl0" title="Feb 24"></span><span class="dpd-c s-none lvl0" title="Mar 24"></span><span class="dpd-c s-none lvl0" title="Apr 24"></span><span class="dpd-c s-none lvl0" title="May 24"></span><span class="dpd-c s-none lvl0" title="Jun 24"></span><span class="dpd-c s-none lvl0" title="Jul 24"></span><span class="dpd-c s-none lvl0" title="Aug 24"></span><span class="dpd-c s-none lvl0" title="Sep 24"></span><span class="dpd-c s-none lvl0" title="Oct 24"></span><span class="dpd-c s-none lvl0" title="Nov 24"></span><span class="dpd-c s-none lvl0" title="Dec 24"></span><span class="dpd-c s-none lvl0" title="Jan 25"></span><span class="dpd-c s-none lvl0" title="Feb 25"></span><span class="dpd-c s-none lvl0" title="Mar 25"></span><span class="dpd-c s-none lvl0" title="Apr 25"></span><span class="dpd-c s-none lvl0" title="May 25"></span><span class="dpd-c s-none lvl0" title="Jun 25"></span><span class="dpd-c s-none lvl0" title="Jul 25"></span><span class="dpd-c s-none lvl0" title="Aug 25"></span><span class="dpd-c s-none lvl0" title="Sep 25"></span><span class="dpd-c s-ok lvl0" title="Oct 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 25 · 0"></span></div>
-        </div>
-  
-        <div class="dpd-lane">
-          <div class="dol" title="Credit Card · ₹3.0L · Live">
-            <span class="dpd-nm">Credit Card</span>
-            <span class="dpd-sb">2025 · ₹3.0L</span>
-          </div>
-          <div class="dob"><span class="dpd-c s-none lvl0 dpd-old" title="Jan 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Feb 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Mar 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Apr 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="May 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jun 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jul 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Aug 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Sep 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Oct 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Nov 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Dec 23"></span><span class="dpd-c s-none lvl0" title="Jan 24"></span><span class="dpd-c s-none lvl0" title="Feb 24"></span><span class="dpd-c s-none lvl0" title="Mar 24"></span><span class="dpd-c s-none lvl0" title="Apr 24"></span><span class="dpd-c s-none lvl0" title="May 24"></span><span class="dpd-c s-none lvl0" title="Jun 24"></span><span class="dpd-c s-none lvl0" title="Jul 24"></span><span class="dpd-c s-none lvl0" title="Aug 24"></span><span class="dpd-c s-none lvl0" title="Sep 24"></span><span class="dpd-c s-none lvl0" title="Oct 24"></span><span class="dpd-c s-none lvl0" title="Nov 24"></span><span class="dpd-c s-none lvl0" title="Dec 24"></span><span class="dpd-c s-ok lvl0" title="Jan 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 25 · 0"></span><span class="dpd-c s-ok lvl0" title="May 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 25 · 0"></span></div>
-        </div>
-  
-        <div class="dpd-lane">
-          <div class="dol" title="Consumer Durable · ₹45K · Live">
-            <span class="dpd-nm">Consumer Durable</span>
-            <span class="dpd-sb">2025 · ₹45K</span>
-          </div>
-          <div class="dob"><span class="dpd-c s-ok lvl0 dpd-old" title="Jan 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Feb 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Mar 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Apr 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="May 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jun 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jul 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Aug 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Sep 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Oct 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Nov 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Dec 23 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 24 · 0"></span><span class="dpd-c s-ok lvl0" title="May 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 25 · 0"></span><span class="dpd-c s-ok lvl0" title="May 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 25 · 0"></span></div>
-        </div>
-  
-        <div class="dpd-lane">
-          <div class="dol" title="Credit Card · ₹30K · Live">
-            <span class="dpd-nm">Credit Card</span>
-            <span class="dpd-sb">2024 · ₹30K</span>
-          </div>
-          <div class="dob"><span class="dpd-c s-none lvl0 dpd-old" title="Jan 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Feb 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Mar 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Apr 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="May 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jun 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jul 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Aug 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Sep 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Oct 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Nov 23"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Dec 23 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 24 · 0"></span><span class="dpd-c s-ok lvl0" title="May 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 25 · 0"></span><span class="dpd-c s-ok lvl0" title="May 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 25 · 0"></span></div>
-        </div>
-  
-        <div class="dpd-lane">
-          <div class="dol" title="Credit Card · ₹4.3L · Live">
-            <span class="dpd-nm">Credit Card</span>
-            <span class="dpd-sb">2024 · ₹4.3L</span>
-          </div>
-          <div class="dob"><span class="dpd-c s-none lvl0 dpd-old" title="Jan 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Feb 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Mar 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Apr 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="May 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jun 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jul 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Aug 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Sep 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Oct 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Nov 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Dec 23"></span><span class="dpd-c s-none lvl0" title="Jan 24"></span><span class="dpd-c s-none lvl0" title="Feb 24"></span><span class="dpd-c s-none lvl0" title="Mar 24"></span><span class="dpd-c s-none lvl0" title="Apr 24"></span><span class="dpd-c s-none lvl0" title="May 24"></span><span class="dpd-c s-ok lvl0" title="Jun 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 25 · 0"></span><span class="dpd-c s-ok lvl0" title="May 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 25 · 0"></span></div>
-        </div>
-  
-        <div class="dpd-lane">
-          <div class="dol" title="Credit Card · ₹4.3L · Live">
-            <span class="dpd-nm">Credit Card</span>
-            <span class="dpd-sb">2024 · ₹4.3L</span>
-          </div>
-          <div class="dob"><span class="dpd-c s-none lvl0 dpd-old" title="Jan 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Feb 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Mar 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Apr 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="May 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jun 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jul 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Aug 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Sep 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Oct 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Nov 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Dec 23"></span><span class="dpd-c s-none lvl0" title="Jan 24"></span><span class="dpd-c s-none lvl0" title="Feb 24"></span><span class="dpd-c s-none lvl0" title="Mar 24"></span><span class="dpd-c s-none lvl0" title="Apr 24"></span><span class="dpd-c s-none lvl0" title="May 24"></span><span class="dpd-c s-none lvl0" title="Jun 24"></span><span class="dpd-c s-none lvl0" title="Jul 24"></span><span class="dpd-c s-none lvl0" title="Aug 24"></span><span class="dpd-c s-none lvl0" title="Sep 24"></span><span class="dpd-c s-none lvl0" title="Oct 24"></span><span class="dpd-c s-ok lvl0" title="Nov 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 25 · 0"></span><span class="dpd-c s-ok lvl0" title="May 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 25 · 0"></span></div>
-        </div>
-  
-        <div class="dpd-lane">
-          <div class="dol" title="Credit Card · ₹2.0L · Closed">
-            <span class="dpd-nm">Credit Card</span>
-            <span class="dpd-sb">2023 · ₹2.0L</span>
-          </div>
-          <div class="dob"><span class="dpd-c s-none lvl0 dpd-old" title="Jan 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Feb 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Mar 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Apr 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="May 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jun 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jul 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Aug 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Sep 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Oct 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Nov 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Dec 23"></span><span class="dpd-c s-none lvl0" title="Jan 24"></span><span class="dpd-c s-ok lvl0" title="Feb 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 24 · 0"></span><span class="dpd-c s-ok lvl0" title="May 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 25 · 0"></span><span class="dpd-c s-ok lvl0" title="May 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 25 · 0"></span><span class="dpd-c s-none lvl0" title="Oct 25"></span><span class="dpd-c s-none lvl0" title="Nov 25"></span><span class="dpd-c s-none lvl0" title="Dec 25"></span></div>
-        </div>
-  
-        <div class="dpd-lane">
-          <div class="dol" title="Credit Card · ₹1.4L · Kotak · Live">
-            <span class="dpd-nm">Credit Card</span>
-            <span class="dpd-sb">2023 · ₹1.4L · KTK</span>
-          </div>
-          <div class="dob"><span class="dpd-c s-none lvl0 dpd-old" title="Jan 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Feb 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Mar 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Apr 23"></span><span class="dpd-c s-ok lvl0 dpd-old" title="May 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jun 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jul 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Aug 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Sep 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Oct 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Nov 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Dec 23 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 24 · 0"></span><span class="dpd-c s-ok lvl0" title="May 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 25 · 0"></span><span class="dpd-c s-ok lvl0" title="May 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 25 · 0"></span></div>
-        </div>
-  
-        <div class="dpd-lane">
-          <div class="dol" title="Credit Card · ₹4.3L · Live">
-            <span class="dpd-nm">Credit Card</span>
-            <span class="dpd-sb">2023 · ₹4.3L</span>
-          </div>
-          <div class="dob"><span class="dpd-c s-none lvl0 dpd-old" title="Jan 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Feb 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Mar 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Apr 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="May 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jun 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jul 23"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Aug 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Sep 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Oct 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Nov 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Dec 23 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 24 · 0"></span><span class="dpd-c s-ok lvl0" title="May 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 25 · 0"></span><span class="dpd-c s-ok lvl0" title="May 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 25 · 0"></span></div>
-        </div>
-  
-        <div class="dpd-lane">
-          <div class="dol" title="Credit Card · ₹2.4L · Live">
-            <span class="dpd-nm">Credit Card</span>
-            <span class="dpd-sb">2023 · ₹2.4L</span>
-          </div>
-          <div class="dob"><span class="dpd-c s-ok lvl0 dpd-old" title="Jan 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Feb 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Mar 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Apr 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="May 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jun 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jul 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Aug 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Sep 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Oct 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Nov 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Dec 23 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 24 · 0"></span><span class="dpd-c s-ok lvl0" title="May 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 25 · 0"></span><span class="dpd-c s-ok lvl0" title="May 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 25 · 0"></span></div>
-        </div>
-  
-        <div class="dpd-lane">
-          <div class="dol" title="Credit Card · ₹3.1L · Live">
-            <span class="dpd-nm">Credit Card</span>
-            <span class="dpd-sb">2023 · ₹3.1L</span>
-          </div>
-          <div class="dob"><span class="dpd-c s-none lvl0 dpd-old" title="Jan 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Feb 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Mar 23"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Apr 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="May 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jun 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jul 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Aug 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Sep 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Oct 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Nov 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Dec 23 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 24 · 0"></span><span class="dpd-c s-ok lvl0" title="May 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 25 · 0"></span><span class="dpd-c s-ok lvl0" title="May 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 25 · 0"></span></div>
-        </div>
-  
-        <div class="dpd-lane">
-          <div class="dol" title="Credit Card · ₹4.3L · Live">
-            <span class="dpd-nm">Credit Card</span>
-            <span class="dpd-sb">2022 · ₹4.3L</span>
-          </div>
-          <div class="dob"><span class="dpd-c s-ok lvl0 dpd-old" title="Jan 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Feb 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Mar 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Apr 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="May 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jun 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jul 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Aug 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Sep 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Oct 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Nov 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Dec 23 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 24 · 0"></span><span class="dpd-c s-ok lvl0" title="May 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 25 · 0"></span><span class="dpd-c s-ok lvl0" title="May 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 25 · 0"></span></div>
-        </div>
-  
-        <div class="dpd-lane">
-          <div class="dol" title="Credit Card · ₹1.8L · Live">
-            <span class="dpd-nm">Credit Card</span>
-            <span class="dpd-sb">2022 · ₹1.8L</span>
-          </div>
-          <div class="dob"><span class="dpd-c s-ok lvl0 dpd-old" title="Jan 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Feb 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Mar 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Apr 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="May 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jun 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jul 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Aug 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Sep 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Oct 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Nov 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Dec 23 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 24 · 0"></span><span class="dpd-c s-ok lvl0" title="May 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 25 · 0"></span><span class="dpd-c s-ok lvl0" title="May 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 25 · 0"></span></div>
-        </div>
-  
-        <div class="dpd-lane">
-          <div class="dol" title="Credit Card · ₹4.3L · Live">
-            <span class="dpd-nm">Credit Card</span>
-            <span class="dpd-sb">2022 · ₹4.3L</span>
-          </div>
-          <div class="dob"><span class="dpd-c s-ok lvl0 dpd-old" title="Jan 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Feb 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Mar 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Apr 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="May 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jun 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jul 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Aug 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Sep 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Oct 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Nov 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Dec 23 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 24 · 0"></span><span class="dpd-c s-ok lvl0" title="May 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 25 · 0"></span><span class="dpd-c s-ok lvl0" title="May 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 25 · 0"></span></div>
-        </div>
-  
-        <div class="dpd-lane">
-          <div class="dol" title="Credit Card · ₹3.2L · Live">
-            <span class="dpd-nm">Credit Card</span>
-            <span class="dpd-sb">2022 · ₹3.2L</span>
-          </div>
-          <div class="dob"><span class="dpd-c s-ok lvl0 dpd-old" title="Jan 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Feb 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Mar 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Apr 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="May 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jun 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jul 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Aug 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Sep 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Oct 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Nov 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Dec 23 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 24 · 0"></span><span class="dpd-c s-ok lvl0" title="May 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 25 · 0"></span><span class="dpd-c s-ok lvl0" title="May 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 25 · 0"></span></div>
-        </div>
-  
-        <div class="dpd-lane">
-          <div class="dol" title="Credit Card · ₹4.3L · Live">
-            <span class="dpd-nm">Credit Card</span>
-            <span class="dpd-sb">2021 · ₹4.3L</span>
-          </div>
-          <div class="dob"><span class="dpd-c s-ok lvl0 dpd-old" title="Jan 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Feb 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Mar 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Apr 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="May 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jun 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jul 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Aug 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Sep 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Oct 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Nov 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Dec 23 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 24 · 0"></span><span class="dpd-c s-ok lvl0" title="May 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 25 · 0"></span><span class="dpd-c s-ok lvl0" title="May 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 25 · 0"></span></div>
-        </div>
-  
-        <div class="dpd-lane">
-          <div class="dol" title="Credit Card · ₹15K · Live">
-            <span class="dpd-nm">Credit Card</span>
-            <span class="dpd-sb">2021 · ₹15K</span>
-          </div>
-          <div class="dob"><span class="dpd-c s-ok lvl0 dpd-old" title="Jan 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Feb 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Mar 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Apr 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="May 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jun 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jul 23 · 0"></span><span class="dpd-c s-none lvl0 dpd-old" title="Aug 23"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Sep 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Oct 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Nov 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Dec 23 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 24 · 0"></span><span class="dpd-c s-ok lvl0" title="May 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 25 · 0"></span><span class="dpd-c s-ok lvl0" title="May 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 25 · 0"></span></div>
-        </div>
-  
-        <div class="dpd-lane">
-          <div class="dol" title="Two Wheeler Loan · ₹95K · Closed">
-            <span class="dpd-nm">Two Wheeler Loan</span>
-            <span class="dpd-sb">2021 · ₹95K</span>
-          </div>
-          <div class="dob"><span class="dpd-c s-ok lvl0 dpd-old" title="Jan 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Feb 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Mar 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Apr 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="May 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jun 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jul 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Aug 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Sep 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Oct 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Nov 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Dec 23 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 24 · 0"></span><span class="dpd-c s-ok lvl0" title="May 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 25 · 0"></span><span class="dpd-c s-ok lvl0" title="May 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 25 · 0"></span></div>
-        </div>
-  
-        <div class="dpd-lane">
-          <div class="dol" title="Credit Card · ₹50K · Closed">
-            <span class="dpd-nm">Credit Card</span>
-            <span class="dpd-sb">2020 · ₹50K</span>
-          </div>
-          <div class="dob"><span class="dpd-c s-ok lvl0 dpd-old" title="Jan 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Feb 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Mar 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Apr 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="May 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jun 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jul 23 · 0"></span><span class="dpd-c s-none lvl0 dpd-old" title="Aug 23"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Sep 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Oct 23 · 0"></span><span class="dpd-c s-none lvl0 dpd-old" title="Nov 23"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Dec 23 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 24 · 0"></span><span class="dpd-c s-ok lvl0" title="May 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 25 · 0"></span><span class="dpd-c s-ok lvl0" title="May 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 25 · 0"></span><span class="dpd-c s-none lvl0" title="Dec 25"></span></div>
-        </div>
-  
-        <div class="dpd-lane">
-          <div class="dol" title="Credit Card · ₹50K · Live">
-            <span class="dpd-nm">Credit Card</span>
-            <span class="dpd-sb">2020 · ₹50K</span>
-          </div>
-          <div class="dob"><span class="dpd-c s-none lvl0 dpd-old" title="Jan 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Feb 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Mar 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Apr 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="May 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jun 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jul 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Aug 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Sep 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Oct 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Nov 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Dec 23"></span><span class="dpd-c s-none lvl0" title="Jan 24"></span><span class="dpd-c s-none lvl0" title="Feb 24"></span><span class="dpd-c s-none lvl0" title="Mar 24"></span><span class="dpd-c s-none lvl0" title="Apr 24"></span><span class="dpd-c s-none lvl0" title="May 24"></span><span class="dpd-c s-none lvl0" title="Jun 24"></span><span class="dpd-c s-none lvl0" title="Jul 24"></span><span class="dpd-c s-none lvl0" title="Aug 24"></span><span class="dpd-c s-none lvl0" title="Sep 24"></span><span class="dpd-c s-none lvl0" title="Oct 24"></span><span class="dpd-c s-none lvl0" title="Nov 24"></span><span class="dpd-c s-none lvl0" title="Dec 24"></span><span class="dpd-c s-none lvl0" title="Jan 25"></span><span class="dpd-c s-none lvl0" title="Feb 25"></span><span class="dpd-c s-none lvl0" title="Mar 25"></span><span class="dpd-c s-none lvl0" title="Apr 25"></span><span class="dpd-c s-none lvl0" title="May 25"></span><span class="dpd-c s-none lvl0" title="Jun 25"></span><span class="dpd-c s-none lvl0" title="Jul 25"></span><span class="dpd-c s-none lvl0" title="Aug 25"></span><span class="dpd-c s-none lvl0" title="Sep 25"></span><span class="dpd-c s-none lvl0" title="Oct 25"></span><span class="dpd-c s-ok lvl0" title="Nov 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 25 · 0"></span></div>
-        </div>
-  
-        <div class="dpd-lane">
-          <div class="dol" title="Credit Card · ₹5.0L · Live">
-            <span class="dpd-nm">Credit Card</span>
-            <span class="dpd-sb">2020 · ₹5.0L</span>
-          </div>
-          <div class="dob"><span class="dpd-c s-none lvl0 dpd-old" title="Jan 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Feb 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Mar 23"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Apr 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="May 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jun 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jul 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Aug 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Sep 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Oct 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Nov 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Dec 23 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 24 · 0"></span><span class="dpd-c s-ok lvl0" title="May 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 25 · 0"></span><span class="dpd-c s-ok lvl0" title="May 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 25 · 0"></span></div>
-        </div>
-  
-        <div class="dpd-lane">
-          <div class="dol" title="Credit Card · ₹2.9L · Closed">
-            <span class="dpd-nm">Credit Card</span>
-            <span class="dpd-sb">2020 · ₹2.9L</span>
-          </div>
-          <div class="dob"><span class="dpd-c s-ok lvl0 dpd-old" title="Jan 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Feb 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Mar 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Apr 23 · 0"></span><span class="dpd-c s-none lvl0 dpd-old" title="May 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jun 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jul 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Aug 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Sep 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Oct 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Nov 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Dec 23"></span><span class="dpd-c s-none lvl0" title="Jan 24"></span><span class="dpd-c s-none lvl0" title="Feb 24"></span><span class="dpd-c s-none lvl0" title="Mar 24"></span><span class="dpd-c s-none lvl0" title="Apr 24"></span><span class="dpd-c s-none lvl0" title="May 24"></span><span class="dpd-c s-none lvl0" title="Jun 24"></span><span class="dpd-c s-none lvl0" title="Jul 24"></span><span class="dpd-c s-none lvl0" title="Aug 24"></span><span class="dpd-c s-none lvl0" title="Sep 24"></span><span class="dpd-c s-none lvl0" title="Oct 24"></span><span class="dpd-c s-none lvl0" title="Nov 24"></span><span class="dpd-c s-none lvl0" title="Dec 24"></span><span class="dpd-c s-none lvl0" title="Jan 25"></span><span class="dpd-c s-none lvl0" title="Feb 25"></span><span class="dpd-c s-none lvl0" title="Mar 25"></span><span class="dpd-c s-none lvl0" title="Apr 25"></span><span class="dpd-c s-none lvl0" title="May 25"></span><span class="dpd-c s-none lvl0" title="Jun 25"></span><span class="dpd-c s-none lvl0" title="Jul 25"></span><span class="dpd-c s-none lvl0" title="Aug 25"></span><span class="dpd-c s-none lvl0" title="Sep 25"></span><span class="dpd-c s-none lvl0" title="Oct 25"></span><span class="dpd-c s-none lvl0" title="Nov 25"></span><span class="dpd-c s-none lvl0" title="Dec 25"></span></div>
-        </div>
-  
-        <div class="dpd-lane">
-          <div class="dol" title="LAP · ₹50.0L · Live">
-            <span class="dpd-nm">LAP</span>
-            <span class="dpd-sb">2020 · ₹50.0L</span>
-          </div>
-          <div class="dob"><span class="dpd-c s-ok lvl0 dpd-old" title="Jan 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Feb 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Mar 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Apr 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="May 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jun 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jul 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Aug 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Sep 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Oct 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Nov 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Dec 23 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 24 · 0"></span><span class="dpd-c s-ok lvl0" title="May 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 25 · 0"></span><span class="dpd-c s-ok lvl0" title="May 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 25 · 0"></span></div>
-        </div>
-  
-        <div class="dpd-lane">
-          <div class="dol" title="Credit Card · ₹4.3L · Live">
-            <span class="dpd-nm">Credit Card</span>
-            <span class="dpd-sb">2019 · ₹4.3L</span>
-          </div>
-          <div class="dob"><span class="dpd-c s-ok lvl0 dpd-old" title="Jan 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Feb 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Mar 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Apr 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="May 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jun 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jul 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Aug 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Sep 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Oct 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Nov 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Dec 23 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 24 · 0"></span><span class="dpd-c s-ok lvl0" title="May 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 25 · 0"></span><span class="dpd-c s-ok lvl0" title="May 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 25 · 0"></span></div>
-        </div>
-  
-        <div class="dpd-lane">
-          <div class="dol" title="Home Loan · ₹35.0L · Kotak · Live">
-            <span class="dpd-nm">Home Loan</span>
-            <span class="dpd-sb">2019 · ₹35.0L · KTK</span>
-          </div>
-          <div class="dob"><span class="dpd-c s-ok lvl0 dpd-old" title="Jan 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Feb 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Mar 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Apr 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="May 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jun 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jul 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Aug 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Sep 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Oct 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Nov 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Dec 23 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 24 · 0"></span><span class="dpd-c s-ok lvl0" title="May 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 25 · 0"></span><span class="dpd-c s-ok lvl0" title="May 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 25 · 0"></span></div>
-        </div>
-  
-        <div class="dpd-lane">
-          <div class="dol" title="Credit Card · ₹1.9L · Closed">
-            <span class="dpd-nm">Credit Card</span>
-            <span class="dpd-sb">2018 · ₹1.9L</span>
-          </div>
-          <div class="dob"><span class="dpd-c s-ok lvl0 dpd-old" title="Jan 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Feb 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Mar 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Apr 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="May 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jun 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jul 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Aug 23 · 0"></span><span class="dpd-c s-none lvl0 dpd-old" title="Sep 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Oct 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Nov 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Dec 23"></span><span class="dpd-c s-none lvl0" title="Jan 24"></span><span class="dpd-c s-none lvl0" title="Feb 24"></span><span class="dpd-c s-none lvl0" title="Mar 24"></span><span class="dpd-c s-none lvl0" title="Apr 24"></span><span class="dpd-c s-none lvl0" title="May 24"></span><span class="dpd-c s-none lvl0" title="Jun 24"></span><span class="dpd-c s-none lvl0" title="Jul 24"></span><span class="dpd-c s-ok lvl0" title="Aug 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 24 · 0"></span><span class="dpd-c s-none lvl0" title="Oct 24"></span><span class="dpd-c s-none lvl0" title="Nov 24"></span><span class="dpd-c s-none lvl0" title="Dec 24"></span><span class="dpd-c s-none lvl0" title="Jan 25"></span><span class="dpd-c s-none lvl0" title="Feb 25"></span><span class="dpd-c s-none lvl0" title="Mar 25"></span><span class="dpd-c s-none lvl0" title="Apr 25"></span><span class="dpd-c s-none lvl0" title="May 25"></span><span class="dpd-c s-none lvl0" title="Jun 25"></span><span class="dpd-c s-none lvl0" title="Jul 25"></span><span class="dpd-c s-none lvl0" title="Aug 25"></span><span class="dpd-c s-none lvl0" title="Sep 25"></span><span class="dpd-c s-none lvl0" title="Oct 25"></span><span class="dpd-c s-none lvl0" title="Nov 25"></span><span class="dpd-c s-none lvl0" title="Dec 25"></span></div>
-        </div>
-  
-        <div class="dpd-lane">
-          <div class="dol" title="Credit Card · ₹1.9L · Live">
-            <span class="dpd-nm">Credit Card</span>
-            <span class="dpd-sb">2018 · ₹1.9L</span>
-          </div>
-          <div class="dob"><span class="dpd-c s-none lvl0 dpd-old" title="Jan 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Feb 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Mar 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Apr 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="May 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jun 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jul 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Aug 23"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Sep 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Oct 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Nov 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Dec 23 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 24 · 0"></span><span class="dpd-c s-ok lvl0" title="May 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 25 · 0"></span><span class="dpd-c s-ok lvl0" title="May 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 25 · 0"></span></div>
-        </div>
-  
-          </div>
-        </div>
-        
-
-        <div class="dpd-legend2">
-          <span class="dl"><i class="dpd-c s-ok lvl0"></i> On-time</span>
-          <span class="dl"><i class="dpd-c s-dpd lvl1"></i> 1–29</span>
-          <span class="dl"><i class="dpd-c s-dpd lvl2"></i> 30–59</span>
-          <span class="dl"><i class="dpd-c s-dpd lvl3"></i> 60–89</span>
-          <span class="dl"><i class="dpd-c s-dpd lvl4"></i> 90+/adverse</span>
-          <span class="dl"><i class="dpd-c s-none"></i> Not reported</span>
-          <span class="dpd-cap">Each cell = 1 month · hover for detail</span>
-        </div>
-      </div>
-    </div>
-    
-
-    <div class="tab-body" id="dpd-heat">
+    <div class="tab-body active" id="dpd-heat">
       <div class="heat-wrap" id="dpdHeatmap"></div>
       <div class="heat-axis" id="dpdHeatmapAxis"></div>
       <div class="heat-legend">
@@ -1816,954 +1100,15 @@ The behavioral insights reveal a mixed picture. Enquiry pressure is evident with
   
   
   
-  <div class="panel" id="products">
-    <h2>Product Portfolio Detail <span class="count">9 products</span></h2>
-    <div class="tabs">
-      <button class="active" onclick="tab(event,'pr-breakdown')">Breakdown</button>
-      <button onclick="tab(event,'pr-vintage')">Vintage &amp; Activity</button>
-      <button onclick="tab(event,'pr-timeline')">Vintage Timeline</button>
-    </div>
-
-    <div class="tab-body active" id="pr-breakdown">
-      
-      <div class="prod-filter" id="prodFilter">
-        <span class="grp-label">Show</span>
-        <button type="button" class="seg active" data-mode="all" onclick="filterProducts(event,'all')">All (9)</button>
-        <button type="button" class="seg" data-mode="delinquent" onclick="filterProducts(event,'delinquent')">Delinquent only</button>
-      </div>
-      <table class="data" id="prodTable">
-        <thead>
-          <tr>
-            <th>Loan Type</th><th>Secured</th><th>Count</th><th>Live</th><th>Closed</th>
-            <th class="num">Sanctioned</th><th class="num">Outstanding</th>
-            <th>Max DPD</th><th>Util %</th><th>On-Us</th><th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          
-          
-          <tr data-delinquent="yes" class="row-delinquent">
-            <td><b>Credit Card</b></td>
-            <td class="ctr"><span class="tag amber">No</span></td>
-            <td class="ctr">26</td>
-            <td class="ctr">21</td>
-            <td class="ctr">5</td>
-            <td class="num">69,36,205</td>
-            <td class="num">6,55,918</td>
-            <td class="ctr"><span class="tag red">90</span></td>
-            <td class="ctr">9</td>
-            <td class="ctr">1</td>
-            <td class="stat-cell">
-              <span class="tag red" title="Peak days past due">Delinquent 90</span>
-              
-              <span class="tag amber" title="Active overdue balance">Overdue 42,000</span>
-              
-            </td>
-          </tr>
-          
-          
-          <tr data-delinquent="yes" class="row-delinquent">
-            <td><b>Personal Loan</b></td>
-            <td class="ctr"><span class="tag amber">No</span></td>
-            <td class="ctr">1</td>
-            <td class="ctr">1</td>
-            <td class="ctr">0</td>
-            <td class="num">3,11,925</td>
-            <td class="num">1,66,761</td>
-            <td class="ctr"><span class="tag red">60</span></td>
-            <td class="ctr">–</td>
-            <td class="ctr">0</td>
-            <td class="stat-cell">
-              <span class="tag red" title="Peak days past due">Delinquent 60</span>
-              
-              <span class="tag amber" title="Active overdue balance">Overdue 18,500</span>
-              
-            </td>
-          </tr>
-          
-          
-          <tr data-delinquent="no">
-            <td><b>Home Loan</b></td>
-            <td class="ctr"><span class="tag green">Yes</span></td>
-            <td class="ctr">1</td>
-            <td class="ctr">1</td>
-            <td class="ctr">0</td>
-            <td class="num">35,00,000</td>
-            <td class="num">28,10,000</td>
-            <td class="ctr">–</td>
-            <td class="ctr">–</td>
-            <td class="ctr">1</td>
-            <td class="stat-cell">
-              
-              
-              
-              <span class="tag green">Clean</span>
-            </td>
-          </tr>
-          
-          
-          <tr data-delinquent="yes" class="row-delinquent">
-            <td><b>Auto Loan</b></td>
-            <td class="ctr"><span class="tag green">Yes</span></td>
-            <td class="ctr">1</td>
-            <td class="ctr">1</td>
-            <td class="ctr">0</td>
-            <td class="num">8,00,000</td>
-            <td class="num">4,52,000</td>
-            <td class="ctr"><span class="tag red">30</span></td>
-            <td class="ctr">–</td>
-            <td class="ctr">0</td>
-            <td class="stat-cell">
-              <span class="tag red" title="Peak days past due">Delinquent 30</span>
-              
-              <span class="tag amber" title="Active overdue balance">Overdue 15,200</span>
-              
-            </td>
-          </tr>
-          
-          
-          <tr data-delinquent="yes" class="row-delinquent">
-            <td><b>Business Loan</b></td>
-            <td class="ctr"><span class="tag amber">No</span></td>
-            <td class="ctr">1</td>
-            <td class="ctr">1</td>
-            <td class="ctr">0</td>
-            <td class="num">15,00,000</td>
-            <td class="num">12,40,000</td>
-            <td class="ctr"><span class="tag red">120</span></td>
-            <td class="ctr">–</td>
-            <td class="ctr">0</td>
-            <td class="stat-cell">
-              <span class="tag red" title="Peak days past due">Delinquent 120</span>
-              
-              <span class="tag amber" title="Active overdue balance">Overdue 1,14,000</span>
-              
-            </td>
-          </tr>
-          
-          
-          <tr data-delinquent="yes" class="row-delinquent">
-            <td><b>Gold Loan</b></td>
-            <td class="ctr"><span class="tag green">Yes</span></td>
-            <td class="ctr">1</td>
-            <td class="ctr">1</td>
-            <td class="ctr">0</td>
-            <td class="num">2,00,000</td>
-            <td class="num">1,18,000</td>
-            <td class="ctr"><span class="tag red">30</span></td>
-            <td class="ctr">–</td>
-            <td class="ctr">0</td>
-            <td class="stat-cell">
-              <span class="tag red" title="Peak days past due">Delinquent 30</span>
-              
-              
-              
-            </td>
-          </tr>
-          
-          
-          <tr data-delinquent="no">
-            <td><b>LAP</b></td>
-            <td class="ctr"><span class="tag green">Yes</span></td>
-            <td class="ctr">1</td>
-            <td class="ctr">1</td>
-            <td class="ctr">0</td>
-            <td class="num">50,00,000</td>
-            <td class="num">41,80,000</td>
-            <td class="ctr">–</td>
-            <td class="ctr">–</td>
-            <td class="ctr">0</td>
-            <td class="stat-cell">
-              
-              
-              
-              <span class="tag green">Clean</span>
-            </td>
-          </tr>
-          
-          
-          <tr data-delinquent="no">
-            <td><b>Two Wheeler Loan</b></td>
-            <td class="ctr"><span class="tag green">Yes</span></td>
-            <td class="ctr">1</td>
-            <td class="ctr">0</td>
-            <td class="ctr">1</td>
-            <td class="num">95,000</td>
-            <td class="num">0</td>
-            <td class="ctr">–</td>
-            <td class="ctr">–</td>
-            <td class="ctr">0</td>
-            <td class="stat-cell">
-              
-              
-              
-              <span class="tag green">Clean</span>
-            </td>
-          </tr>
-          
-          
-          <tr data-delinquent="no">
-            <td><b>Consumer Durable</b></td>
-            <td class="ctr"><span class="tag amber">No</span></td>
-            <td class="ctr">1</td>
-            <td class="ctr">1</td>
-            <td class="ctr">0</td>
-            <td class="num">45,000</td>
-            <td class="num">12,500</td>
-            <td class="ctr">–</td>
-            <td class="ctr">–</td>
-            <td class="ctr">0</td>
-            <td class="stat-cell">
-              
-              
-              
-              <span class="tag green">Clean</span>
-            </td>
-          </tr>
-          
-          <tr class="total" data-delinquent="total">
-            <td>TOTAL</td><td></td>
-            <td class="ctr">34</td>
-            <td class="ctr">28</td>
-            <td class="ctr">6</td>
-            <td class="num">1,83,88,130</td>
-            <td class="num">96,35,179</td>
-            <td class="ctr">120</td>
-            <td></td><td></td><td></td>
-          </tr>
-          <tr class="prod-empty" id="prodEmpty" style="display:none"><td colspan="11" class="muted" style="text-align:center;padding:14px">No delinquent tradelines — portfolio is clean.</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="tab-body" id="pr-vintage">
-      <table class="data">
-        <thead>
-          <tr>
-            <th>Loan Type</th><th>Avg Vintage (mo)</th><th>First Opened</th><th>Last Opened</th>
-            <th>Last Closed</th><th>Mo. Since Last Payment</th><th>Joint</th><th>On-Us Live</th><th>Adverse Flags</th>
-          </tr>
-        </thead>
-        <tbody>
-          
-          <tr>
-            <td><b>Credit Card</b></td>
-            <td class="ctr">0</td>
-            <td class="ctr">Aug 2018</td>
-            <td class="ctr">Nov 2025</td>
-            <td class="ctr">Nov 2025</td>
-            <td class="ctr">6</td>
-            <td class="ctr">–</td>
-            <td class="ctr">1</td>
-            <td><span class="tag green">Clean</span></td>
-          </tr>
-          
-          <tr>
-            <td><b>Personal Loan</b></td>
-            <td class="ctr">0</td>
-            <td class="ctr">May 2024</td>
-            <td class="ctr">May 2024</td>
-            <td class="ctr">Live</td>
-            <td class="ctr">6</td>
-            <td class="ctr">–</td>
-            <td class="ctr">–</td>
-            <td><span class="tag green">Clean</span></td>
-          </tr>
-          
-          <tr>
-            <td><b>Home Loan</b></td>
-            <td class="ctr">0</td>
-            <td class="ctr">Jun 2019</td>
-            <td class="ctr">Jun 2019</td>
-            <td class="ctr">Live</td>
-            <td class="ctr">6</td>
-            <td class="ctr">–</td>
-            <td class="ctr">1</td>
-            <td><span class="tag green">Clean</span></td>
-          </tr>
-          
-          <tr>
-            <td><b>Auto Loan</b></td>
-            <td class="ctr">0</td>
-            <td class="ctr">Mar 2022</td>
-            <td class="ctr">Mar 2022</td>
-            <td class="ctr">Live</td>
-            <td class="ctr">7</td>
-            <td class="ctr">–</td>
-            <td class="ctr">–</td>
-            <td><span class="tag green">Clean</span></td>
-          </tr>
-          
-          <tr>
-            <td><b>Business Loan</b></td>
-            <td class="ctr">0</td>
-            <td class="ctr">Nov 2021</td>
-            <td class="ctr">Nov 2021</td>
-            <td class="ctr">Live</td>
-            <td class="ctr">9</td>
-            <td class="ctr">–</td>
-            <td class="ctr">–</td>
-            <td><span class="tag green">Clean</span></td>
-          </tr>
-          
-          <tr>
-            <td><b>Gold Loan</b></td>
-            <td class="ctr">0</td>
-            <td class="ctr">Aug 2024</td>
-            <td class="ctr">Aug 2024</td>
-            <td class="ctr">Live</td>
-            <td class="ctr">7</td>
-            <td class="ctr">–</td>
-            <td class="ctr">–</td>
-            <td><span class="tag green">Clean</span></td>
-          </tr>
-          
-          <tr>
-            <td><b>LAP</b></td>
-            <td class="ctr">0</td>
-            <td class="ctr">Feb 2020</td>
-            <td class="ctr">Feb 2020</td>
-            <td class="ctr">Live</td>
-            <td class="ctr">6</td>
-            <td class="ctr">–</td>
-            <td class="ctr">–</td>
-            <td><span class="tag green">Clean</span></td>
-          </tr>
-          
-          <tr>
-            <td><b>Two Wheeler Loan</b></td>
-            <td class="ctr">0</td>
-            <td class="ctr">May 2021</td>
-            <td class="ctr">May 2021</td>
-            <td class="ctr">May 2024</td>
-            <td class="ctr">26</td>
-            <td class="ctr">–</td>
-            <td class="ctr">–</td>
-            <td><span class="tag green">Clean</span></td>
-          </tr>
-          
-          <tr>
-            <td><b>Consumer Durable</b></td>
-            <td class="ctr">0</td>
-            <td class="ctr">Mar 2025</td>
-            <td class="ctr">Mar 2025</td>
-            <td class="ctr">Live</td>
-            <td class="ctr">7</td>
-            <td class="ctr">–</td>
-            <td class="ctr">–</td>
-            <td><span class="tag green">Clean</span></td>
-          </tr>
-          
-        </tbody>
-      </table>
-    </div>
-
-    <div class="tab-body" id="pr-timeline">
-      <div id="vintageCard">
-        <p class="muted" style="margin-bottom:10px">Span from first opened tradeline to last closure (or today, if any tradeline is live) per product.</p>
-        <div class="chart-wrap"><canvas id="cmbChartVintage"></canvas></div>
-      </div>
-      <div class="muted" id="vintageEmpty" style="display:none">No open-date information available for the vintage timeline.</div>
-    </div>
-  </div>
-  
 
   
   
   
   
-  
-  
-  
-  <div class="panel" id="behavioral">
-    <h2>Behavioral &amp; Risk Features <span class="count">11 ok · 0 watch · 1 risk · 12 ref/no-data</span></h2>
-
-    <div class="fview-toggle" id="behavioralViewToggle">
-      <button type="button" data-view="bars" class="active" title="Threshold bars by group">▬ Bars</button>
-      <button type="button" data-view="table" title="Sortable table">▤ Table</button>
-    </div>
-
-    
-    <div class="fview active" data-view="bars">
-      <div class="bf-cards" id="bfCards">
-        
-        <div class="bf-card bf-acc-risk">
-          <button type="button" class="bf-card-head" title="1 signal needs attention — e.g. months since last personal loan." aria-expanded="false">
-            <div class="bf-card-title">
-              <span class="bf-chev">▶</span>
-              <span class="bf-card-name">Loan Activity</span>
-              <span class="bf-take">1 signal needs attention — e.g. months since last personal loan.</span>
-            </div>
-            <div class="bf-card-meter">
-              <span class="bf-dots" title="1/2 ok"><span class="dot on"></span><span class="dot on"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></span>
-              <span class="bf-card-count">1/2 ok</span>
-            </div>
-          </button>
-          <div class="bf-card-body">
-            <div class="bf-list">
-              
-        <div class="bf-row" title="expected 3–16 months">
-          <div class="bf-label">Months since last personal loan <span class="bf-hint">(expected 3–16 months)</span></div>
-          <div class="bf-track">
-            
-            <div class="bf-bar">
-              <div class="bf-seg red" style="width:13.21%"></div><div class="bf-seg green" style="width:53.42%"></div><div class="bf-seg red" style="width:33.38%"></div>
-              <div class="bf-marker" style="left:83.88%"></div>
-            </div>
-            
-          </div>
-          <div class="bf-val risk">20.13</div>
-        </div>
-  
-        <div class="bf-row" title="healthy below 32 months">
-          <div class="bf-label">Months since last unsecured loan <span class="bf-hint">(healthy below 32 months)</span></div>
-          <div class="bf-track">
-            
-            <div class="bf-bar">
-              <div class="bf-seg green" style="width:67.04%"></div><div class="bf-seg red" style="width:32.96%"></div>
-              <div class="bf-marker" style="left:41.94%"></div>
-            </div>
-            
-          </div>
-          <div class="bf-val safe">20.13</div>
-        </div>
-  
-        <div class="bf-row" title="not reported">
-          <div class="bf-label">New personal loans (last 6M) <span class="bf-hint">(not reported)</span></div>
-          <div class="bf-track">
-            
-            <div class="bf-strip neutral">NO DATA</div>
-            
-          </div>
-          <div class="bf-val neutral">No data</div>
-        </div>
-  
-            </div>
-          </div>
-        </div>
-        
-        <div class="bf-card bf-acc-healthy">
-          <button type="button" class="bf-card-head" title="No recent delinquency — repayment history is clean." aria-expanded="false">
-            <div class="bf-card-title">
-              <span class="bf-chev">▶</span>
-              <span class="bf-card-name">DPD &amp; Delinquency</span>
-              <span class="bf-take">No recent delinquency — repayment history is clean.</span>
-            </div>
-            <div class="bf-card-meter">
-              <span class="bf-dots" title="3/3 ok"><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span></span>
-              <span class="bf-card-count">3/3 ok</span>
-            </div>
-          </button>
-          <div class="bf-card-body">
-            <div class="bf-list">
-              
-        <div class="bf-row" title="healthy below 4 days">
-          <div class="bf-label">Worst card delinquency (6M) <span class="bf-hint">(healthy below 4 days)</span></div>
-          <div class="bf-track">
-            
-            <div class="bf-bar">
-              <div class="bf-seg green" style="width:29.17%"></div><div class="bf-seg red" style="width:70.83%"></div>
-              <div class="bf-marker" style="left:0.0%"></div>
-            </div>
-            
-          </div>
-          <div class="bf-val safe">0</div>
-        </div>
-  
-        <div class="bf-row" title="reference only">
-          <div class="bf-label">Worst personal-loan delinquency (6M) <span class="bf-hint">(reference only)</span></div>
-          <div class="bf-track">
-            
-            <div class="bf-strip neutral">REFERENCE</div>
-            
-          </div>
-          <div class="bf-val neutral">0</div>
-        </div>
-  
-        <div class="bf-row" title="healthy below 4 days">
-          <div class="bf-label">Worst card delinquency (9M) <span class="bf-hint">(healthy below 4 days)</span></div>
-          <div class="bf-track">
-            
-            <div class="bf-bar">
-              <div class="bf-seg green" style="width:29.17%"></div><div class="bf-seg red" style="width:70.83%"></div>
-              <div class="bf-marker" style="left:0.0%"></div>
-            </div>
-            
-          </div>
-          <div class="bf-val safe">0</div>
-        </div>
-  
-        <div class="bf-row" title="no 0+ DPD event on record">
-          <div class="bf-label">Months since last unsecured 0+ DPD <span class="bf-hint">(no 0+ DPD event on record)</span></div>
-          <div class="bf-track">
-            
-            <div class="bf-strip safe">CLEAN</div>
-            
-          </div>
-          <div class="bf-val safe">Clean</div>
-        </div>
-  
-        <div class="bf-row" title="healthy above 19 months">
-          <div class="bf-label">Months since last PL 0+ DPD <span class="bf-hint">(healthy above 19 months)</span></div>
-          <div class="bf-track">
-            
-            <div class="bf-strip neutral">NO DATA</div>
-            
-          </div>
-          <div class="bf-val neutral">No data</div>
-        </div>
-  
-            </div>
-          </div>
-        </div>
-        
-        <div class="bf-card bf-acc-healthy">
-          <button type="button" class="bf-card-head" title="Clean repayment record with no recent missed payments." aria-expanded="false">
-            <div class="bf-card-title">
-              <span class="bf-chev">▶</span>
-              <span class="bf-card-name">Payment Behavior</span>
-              <span class="bf-take">Clean repayment record with no recent missed payments.</span>
-            </div>
-            <div class="bf-card-meter">
-              <span class="bf-dots" title="3/3 ok"><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span></span>
-              <span class="bf-card-count">3/3 ok</span>
-            </div>
-          </button>
-          <div class="bf-card-body">
-            <div class="bf-list">
-              
-        <div class="bf-row" title="healthy below 1.1%, watch to 2.4%">
-          <div class="bf-label">% time 0+ DPD, 24M (all loans) <span class="bf-hint">(healthy below 1.1%, watch to 2.4%)</span></div>
-          <div class="bf-track">
-            
-            <div class="bf-bar">
-              <div class="bf-seg green" style="width:23.0%"></div><div class="bf-seg amber" style="width:24.0%"></div><div class="bf-seg red" style="width:53.0%"></div>
-              <div class="bf-marker" style="left:0.0%"></div>
-            </div>
-            
-          </div>
-          <div class="bf-val safe">0.00%</div>
-        </div>
-  
-        <div class="bf-row" title="healthy below 1.7%">
-          <div class="bf-label">% time 0+ DPD, 24M (personal loans) <span class="bf-hint">(healthy below 1.7%)</span></div>
-          <div class="bf-track">
-            
-            <div class="bf-bar">
-              <div class="bf-seg green" style="width:34.2%"></div><div class="bf-seg red" style="width:65.8%"></div>
-              <div class="bf-marker" style="left:0.0%"></div>
-            </div>
-            
-          </div>
-          <div class="bf-val safe">0.00%</div>
-        </div>
-  
-        <div class="bf-row" title="reference only">
-          <div class="bf-label">% missed payments (18M) <span class="bf-hint">(reference only)</span></div>
-          <div class="bf-track">
-            
-            <div class="bf-strip neutral">REFERENCE</div>
-            
-          </div>
-          <div class="bf-val neutral">0.00%</div>
-        </div>
-  
-        <div class="bf-row" title="no 0+ DPD event on record">
-          <div class="bf-label">% tradelines hitting 0+ DPD (12M) <span class="bf-hint">(no 0+ DPD event on record)</span></div>
-          <div class="bf-track">
-            
-            <div class="bf-strip safe">CLEAN</div>
-            
-          </div>
-          <div class="bf-val safe">Clean</div>
-        </div>
-  
-        <div class="bf-row" title="reference only">
-          <div class="bf-label">Share of PLs closed in good standing <span class="bf-hint">(reference only)</span></div>
-          <div class="bf-track">
-            
-            <div class="bf-strip neutral">REFERENCE</div>
-            
-          </div>
-          <div class="bf-val neutral">No data</div>
-        </div>
-  
-            </div>
-          </div>
-        </div>
-        
-        <div class="bf-card bf-acc-healthy">
-          <button type="button" class="bf-card-head" title="Balances are comfortably within available limits." aria-expanded="false">
-            <div class="bf-card-title">
-              <span class="bf-chev">▶</span>
-              <span class="bf-card-name">Utilization</span>
-              <span class="bf-take">Balances are comfortably within available limits.</span>
-            </div>
-            <div class="bf-card-meter">
-              <span class="bf-dots" title="2/2 ok"><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span></span>
-              <span class="bf-card-count">2/2 ok</span>
-            </div>
-          </button>
-          <div class="bf-card-body">
-            <div class="bf-list">
-              
-        <div class="bf-row" title="healthy below 83%">
-          <div class="bf-label">Credit-card utilisation <span class="bf-hint">(healthy below 83%)</span></div>
-          <div class="bf-track">
-            
-            <div class="bf-bar">
-              <div class="bf-seg green" style="width:83.2%"></div><div class="bf-seg red" style="width:16.8%"></div>
-              <div class="bf-marker" style="left:8.97%"></div>
-            </div>
-            
-          </div>
-          <div class="bf-val safe">8.97%</div>
-        </div>
-  
-        <div class="bf-row" title="healthy below 87%">
-          <div class="bf-label">Personal-loan balance remaining <span class="bf-hint">(healthy below 87%)</span></div>
-          <div class="bf-track">
-            
-            <div class="bf-bar">
-              <div class="bf-seg green" style="width:87.06%"></div><div class="bf-seg red" style="width:12.94%"></div>
-              <div class="bf-marker" style="left:53.46%"></div>
-            </div>
-            
-          </div>
-          <div class="bf-val safe">53.46%</div>
-        </div>
-  
-            </div>
-          </div>
-        </div>
-        
-        <div class="bf-card bf-acc-healthy">
-          <button type="button" class="bf-card-head" title="Credit-seeking behaviour looks measured." aria-expanded="false">
-            <div class="bf-card-title">
-              <span class="bf-chev">▶</span>
-              <span class="bf-card-name">Enquiry</span>
-              <span class="bf-take">Credit-seeking behaviour looks measured.</span>
-            </div>
-            <div class="bf-card-meter">
-              <span class="bf-dots" title="1/1 ok"><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span></span>
-              <span class="bf-card-count">1/1 ok</span>
-            </div>
-          </button>
-          <div class="bf-card-body">
-            <div class="bf-list">
-              
-        <div class="bf-row" title="reference only">
-          <div class="bf-label">Unsecured enquiries (12M) <span class="bf-hint">(reference only)</span></div>
-          <div class="bf-track">
-            
-            <div class="bf-strip neutral">REFERENCE</div>
-            
-          </div>
-          <div class="bf-val neutral">0</div>
-        </div>
-  
-        <div class="bf-row" title="healthy above 14">
-          <div class="bf-label">Loans opened per enquiry (unsec, 24M) <span class="bf-hint">(healthy above 14)</span></div>
-          <div class="bf-track">
-            
-            <div class="bf-bar">
-              <div class="bf-seg red" style="width:45.8%"></div><div class="bf-seg green" style="width:54.2%"></div>
-              <div class="bf-marker" style="left:100.0%"></div>
-            </div>
-            
-          </div>
-          <div class="bf-val safe">40.00</div>
-        </div>
-  
-            </div>
-          </div>
-        </div>
-        
-        <div class="bf-card bf-acc-healthy">
-          <button type="button" class="bf-card-head" title="No signs of rapid, stacked loan acquisition." aria-expanded="false">
-            <div class="bf-card-title">
-              <span class="bf-chev">▶</span>
-              <span class="bf-card-name">Acquisition Velocity</span>
-              <span class="bf-take">No signs of rapid, stacked loan acquisition.</span>
-            </div>
-            <div class="bf-card-meter">
-              <span class="bf-dots" title="1/1 ok"><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span></span>
-              <span class="bf-card-count">1/1 ok</span>
-            </div>
-          </button>
-          <div class="bf-card-body">
-            <div class="bf-list">
-              
-        <div class="bf-row" title="not reported">
-          <div class="bf-label">Gap between PL/BL loans (12M) <span class="bf-hint">(not reported)</span></div>
-          <div class="bf-track">
-            
-            <div class="bf-strip neutral">NO DATA</div>
-            
-          </div>
-          <div class="bf-val neutral">No data</div>
-        </div>
-  
-        <div class="bf-row" title="healthy above 0.6 months">
-          <div class="bf-label">Gap between PL/BL loans (6M) <span class="bf-hint">(healthy above 0.6 months)</span></div>
-          <div class="bf-track">
-            
-            <div class="bf-strip neutral">NO DATA</div>
-            
-          </div>
-          <div class="bf-val neutral">No data</div>
-        </div>
-  
-        <div class="bf-row" title="healthy above 3 months">
-          <div class="bf-label">Gap between any loans (24M) <span class="bf-hint">(healthy above 3 months)</span></div>
-          <div class="bf-track">
-            
-            <div class="bf-bar">
-              <div class="bf-seg red" style="width:31.75%"></div><div class="bf-seg green" style="width:68.25%"></div>
-              <div class="bf-marker" style="left:43.08%"></div>
-            </div>
-            
-          </div>
-          <div class="bf-val safe">3.45</div>
-        </div>
-  
-        <div class="bf-row" title="not reported">
-          <div class="bf-label">Gap between home/LAP loans (9M) <span class="bf-hint">(not reported)</span></div>
-          <div class="bf-track">
-            
-            <div class="bf-strip neutral">NO DATA</div>
-            
-          </div>
-          <div class="bf-val neutral">No data</div>
-        </div>
-  
-        <div class="bf-row" title="not reported">
-          <div class="bf-label">Gap between home/LAP loans (24M) <span class="bf-hint">(not reported)</span></div>
-          <div class="bf-track">
-            
-            <div class="bf-strip neutral">NO DATA</div>
-            
-          </div>
-          <div class="bf-val neutral">No data</div>
-        </div>
-  
-        <div class="bf-row" title="reference only">
-          <div class="bf-label">Gap between two-wheeler loans (24M) <span class="bf-hint">(reference only)</span></div>
-          <div class="bf-track">
-            
-            <div class="bf-strip neutral">REFERENCE</div>
-            
-          </div>
-          <div class="bf-val neutral">No data</div>
-        </div>
-  
-        <div class="bf-row" title="healthy above 0.8 months">
-          <div class="bf-label">Gap between consumer-durable loans (12M) <span class="bf-hint">(healthy above 0.8 months)</span></div>
-          <div class="bf-track">
-            
-            <div class="bf-strip neutral">NO DATA</div>
-            
-          </div>
-          <div class="bf-val neutral">No data</div>
-        </div>
-  
-            </div>
-          </div>
-        </div>
-        
-      </div>
-      <p class="muted" style="margin-top:10px">Groups are ordered most-attention-first. Click a group to open its metrics — opening one closes the others.</p>
-    </div>
-
-    
-    <div class="fview" data-view="table">
-      <table class="data" id="bfTable">
-        <thead><tr>
-          <th class="bf-sort" data-sort="status">Status <span class="sort-ind">▲</span></th>
-          <th class="bf-sort" data-sort="label">Metric <span class="sort-ind"></span></th>
-          <th class="bf-sort num" data-sort="value">Value <span class="sort-ind"></span></th>
-          <th>Healthy when</th>
-        </tr></thead>
-        <tbody>
-          
-          <tr data-status="risk" data-value="20.13" data-label="Months since last personal loan">
-            <td><span class="bf-dot risk"></span><span class="bf-stext risk">RISK</span></td>
-            <td>Months since last personal loan</td>
-            <td class="num">20.13</td>
-            <td><span class="hw">expected 3–16 months</span></td>
-          </tr>
-          
-          <tr data-status="safe" data-value="20.13" data-label="Months since last unsecured loan">
-            <td><span class="bf-dot safe"></span><span class="bf-stext safe">SAFE</span></td>
-            <td>Months since last unsecured loan</td>
-            <td class="num">20.13</td>
-            <td><span class="hw">healthy below 32 months</span></td>
-          </tr>
-          
-          <tr data-status="safe" data-value="0.0" data-label="Worst card delinquency (6M)">
-            <td><span class="bf-dot safe"></span><span class="bf-stext safe">SAFE</span></td>
-            <td>Worst card delinquency (6M)</td>
-            <td class="num">0</td>
-            <td><span class="hw">healthy below 4 days</span></td>
-          </tr>
-          
-          <tr data-status="safe" data-value="0.0" data-label="Worst card delinquency (9M)">
-            <td><span class="bf-dot safe"></span><span class="bf-stext safe">SAFE</span></td>
-            <td>Worst card delinquency (9M)</td>
-            <td class="num">0</td>
-            <td><span class="hw">healthy below 4 days</span></td>
-          </tr>
-          
-          <tr data-status="safe" data-value="" data-label="Months since last unsecured 0+ DPD">
-            <td><span class="bf-dot safe"></span><span class="bf-stext safe">CLEAN</span></td>
-            <td>Months since last unsecured 0+ DPD</td>
-            <td class="num">Clean</td>
-            <td><span class="hw">no 0+ DPD event on record</span></td>
-          </tr>
-          
-          <tr data-status="safe" data-value="0.0" data-label="% time 0+ DPD, 24M (all loans)">
-            <td><span class="bf-dot safe"></span><span class="bf-stext safe">SAFE</span></td>
-            <td>% time 0+ DPD, 24M (all loans)</td>
-            <td class="num">0.00%</td>
-            <td><span class="hw">healthy below 1.1%, watch to 2.4%</span></td>
-          </tr>
-          
-          <tr data-status="safe" data-value="0.0" data-label="% time 0+ DPD, 24M (personal loans)">
-            <td><span class="bf-dot safe"></span><span class="bf-stext safe">SAFE</span></td>
-            <td>% time 0+ DPD, 24M (personal loans)</td>
-            <td class="num">0.00%</td>
-            <td><span class="hw">healthy below 1.7%</span></td>
-          </tr>
-          
-          <tr data-status="safe" data-value="" data-label="% tradelines hitting 0+ DPD (12M)">
-            <td><span class="bf-dot safe"></span><span class="bf-stext safe">CLEAN</span></td>
-            <td>% tradelines hitting 0+ DPD (12M)</td>
-            <td class="num">Clean</td>
-            <td><span class="hw">no 0+ DPD event on record</span></td>
-          </tr>
-          
-          <tr data-status="safe" data-value="8.9749" data-label="Credit-card utilisation">
-            <td><span class="bf-dot safe"></span><span class="bf-stext safe">SAFE</span></td>
-            <td>Credit-card utilisation</td>
-            <td class="num">8.97%</td>
-            <td><span class="hw">healthy below 83%</span></td>
-          </tr>
-          
-          <tr data-status="safe" data-value="53.4619" data-label="Personal-loan balance remaining">
-            <td><span class="bf-dot safe"></span><span class="bf-stext safe">SAFE</span></td>
-            <td>Personal-loan balance remaining</td>
-            <td class="num">53.46%</td>
-            <td><span class="hw">healthy below 87%</span></td>
-          </tr>
-          
-          <tr data-status="safe" data-value="40.0" data-label="Loans opened per enquiry (unsec, 24M)">
-            <td><span class="bf-dot safe"></span><span class="bf-stext safe">SAFE</span></td>
-            <td>Loans opened per enquiry (unsec, 24M)</td>
-            <td class="num">40.00</td>
-            <td><span class="hw">healthy above 14</span></td>
-          </tr>
-          
-          <tr data-status="safe" data-value="3.4466666666666668" data-label="Gap between any loans (24M)">
-            <td><span class="bf-dot safe"></span><span class="bf-stext safe">SAFE</span></td>
-            <td>Gap between any loans (24M)</td>
-            <td class="num">3.45</td>
-            <td><span class="hw">healthy above 3 months</span></td>
-          </tr>
-          
-          <tr data-status="neutral" data-value="" data-label="New personal loans (last 6M)">
-            <td><span class="bf-dot neutral"></span><span class="bf-stext neutral">NO DATA</span></td>
-            <td>New personal loans (last 6M)</td>
-            <td class="num">No data</td>
-            <td><span class="hw">not reported</span></td>
-          </tr>
-          
-          <tr data-status="neutral" data-value="0.0" data-label="Worst personal-loan delinquency (6M)">
-            <td><span class="bf-dot neutral"></span><span class="bf-stext neutral">REFERENCE</span></td>
-            <td>Worst personal-loan delinquency (6M)</td>
-            <td class="num">0</td>
-            <td><span class="hw">reference only</span></td>
-          </tr>
-          
-          <tr data-status="neutral" data-value="" data-label="Months since last PL 0+ DPD">
-            <td><span class="bf-dot neutral"></span><span class="bf-stext neutral">NO DATA</span></td>
-            <td>Months since last PL 0+ DPD</td>
-            <td class="num">No data</td>
-            <td><span class="hw">healthy above 19 months</span></td>
-          </tr>
-          
-          <tr data-status="neutral" data-value="0.0" data-label="% missed payments (18M)">
-            <td><span class="bf-dot neutral"></span><span class="bf-stext neutral">REFERENCE</span></td>
-            <td>% missed payments (18M)</td>
-            <td class="num">0.00%</td>
-            <td><span class="hw">reference only</span></td>
-          </tr>
-          
-          <tr data-status="neutral" data-value="" data-label="Share of PLs closed in good standing">
-            <td><span class="bf-dot neutral"></span><span class="bf-stext neutral">REFERENCE</span></td>
-            <td>Share of PLs closed in good standing</td>
-            <td class="num">No data</td>
-            <td><span class="hw">reference only</span></td>
-          </tr>
-          
-          <tr data-status="neutral" data-value="0.0" data-label="Unsecured enquiries (12M)">
-            <td><span class="bf-dot neutral"></span><span class="bf-stext neutral">REFERENCE</span></td>
-            <td>Unsecured enquiries (12M)</td>
-            <td class="num">0</td>
-            <td><span class="hw">reference only</span></td>
-          </tr>
-          
-          <tr data-status="neutral" data-value="" data-label="Gap between PL/BL loans (12M)">
-            <td><span class="bf-dot neutral"></span><span class="bf-stext neutral">NO DATA</span></td>
-            <td>Gap between PL/BL loans (12M)</td>
-            <td class="num">No data</td>
-            <td><span class="hw">not reported</span></td>
-          </tr>
-          
-          <tr data-status="neutral" data-value="" data-label="Gap between PL/BL loans (6M)">
-            <td><span class="bf-dot neutral"></span><span class="bf-stext neutral">NO DATA</span></td>
-            <td>Gap between PL/BL loans (6M)</td>
-            <td class="num">No data</td>
-            <td><span class="hw">healthy above 0.6 months</span></td>
-          </tr>
-          
-          <tr data-status="neutral" data-value="" data-label="Gap between home/LAP loans (9M)">
-            <td><span class="bf-dot neutral"></span><span class="bf-stext neutral">NO DATA</span></td>
-            <td>Gap between home/LAP loans (9M)</td>
-            <td class="num">No data</td>
-            <td><span class="hw">not reported</span></td>
-          </tr>
-          
-          <tr data-status="neutral" data-value="" data-label="Gap between home/LAP loans (24M)">
-            <td><span class="bf-dot neutral"></span><span class="bf-stext neutral">NO DATA</span></td>
-            <td>Gap between home/LAP loans (24M)</td>
-            <td class="num">No data</td>
-            <td><span class="hw">not reported</span></td>
-          </tr>
-          
-          <tr data-status="neutral" data-value="" data-label="Gap between two-wheeler loans (24M)">
-            <td><span class="bf-dot neutral"></span><span class="bf-stext neutral">REFERENCE</span></td>
-            <td>Gap between two-wheeler loans (24M)</td>
-            <td class="num">No data</td>
-            <td><span class="hw">reference only</span></td>
-          </tr>
-          
-          <tr data-status="neutral" data-value="" data-label="Gap between consumer-durable loans (12M)">
-            <td><span class="bf-dot neutral"></span><span class="bf-stext neutral">NO DATA</span></td>
-            <td>Gap between consumer-durable loans (12M)</td>
-            <td class="num">No data</td>
-            <td><span class="hw">healthy above 0.8 months</span></td>
-          </tr>
-          
-        </tbody>
-      </table>
-      <p class="muted" style="margin-top:8px">Sorted risk-first so weak areas rise to the top. Click a column header to re-sort.</p>
-    </div>
-  </div>
-  
 
   
 
-  <div class="foot">Generated 2026-07-27 · BUREAU_ANALYSER v2</div>
+  <div class="foot">Generated 2026-07-29 · BUREAU_ANALYSER v2</div>
 </div>
 
 
@@ -2790,11 +1135,11 @@ The behavioral insights reveal a mixed picture. Enquiry pressure is evident with
 
 
 <script id="risk-trail-data" type="application/json">
-{"checklist": [{"checked": true, "detail": "120 days \u2014 Business Loan \u2014 3M ago", "label": "MAX DPD occurred", "severity": "high"}, {"checked": false, "detail": null, "label": "Adverse events (write-off / settlement)", "severity": "positive"}, {"checked": true, "detail": "Bureau FOIR: 189.7%", "label": "High FOIR (\u003e 50%)", "severity": "high"}, {"checked": false, "detail": "CC utilization: 9.0%", "label": "CC utilization elevated (\u226530%)", "severity": "positive"}, {"checked": true, "detail": "2 Kotak loan(s): credit_card(1), home_loan(1)", "label": "Customer has Kotak loan", "severity": "neutral"}, {"checked": false, "detail": null, "label": "Kotak loan default (live)", "severity": "positive"}, {"checked": true, "detail": "Sanctioned: \u20b93,500,000 | On-Us: 1, Off-Us: 0", "label": "Live Home Loan detected", "severity": "neutral"}, {"checked": true, "detail": null, "label": "Bureau thick", "severity": "positive"}, {"checked": true, "detail": null, "label": "Banking thick", "severity": "positive"}, {"checked": false, "detail": "Exposure 12M: Stable", "label": "Exposure elevated", "severity": "neutral"}], "concerns": ["Active delinquency detected with Max DPD of 120 days [Business Loan: Opened: Nov 2021 | Active]", "Home Loan: Forced events detected \u2014 NUL [Opened: Jun 2019 | Active]", "Auto Loan: Forced events detected \u2014 NUL [Opened: Mar 2022 | Active]"], "customer_id": 698167220, "exposure_summary": "Sanctioned exposure peaked at \u20b91.8Cr in Mar 2025, led by CC (\u20b963.5L) and LAP (\u20b950.0L). Current exposure stands at \u20b91.7Cr (CC, PL, HL, AL, BL, GL, LAP, CD active), down 1% from peak \u2014 trend stable.", "generated_at": "2026-07-27T22:17:09.514553", "key_findings": [{"account_level": true, "category": "Delinquency", "finding": "Active delinquency detected with Max DPD of 120 days [Business Loan: Opened: Nov 2021 | Active]", "inference": "Severe delinquency indicates significant repayment stress; loan may be classified as NPA", "severity": "high_risk"}, {"account_level": true, "category": "Adverse Events", "finding": "Home Loan: Forced events detected \u2014 NUL [Opened: Jun 2019 | Active]", "inference": "Adverse credit events on Home Loan are strong negative signals for creditworthiness", "severity": "high_risk"}, {"account_level": true, "category": "Adverse Events", "finding": "Auto Loan: Forced events detected \u2014 NUL [Opened: Mar 2022 | Active]", "inference": "Adverse credit events on Auto Loan are strong negative signals for creditworthiness", "severity": "high_risk"}, {"account_level": true, "category": "Delinquency", "finding": "Business Loan: Delinquent with Max DPD of 120 days [Opened: Nov 2021 | Active]", "inference": "Severe delinquency on Business Loan account; may indicate deep financial distress", "severity": "high_risk"}, {"account_level": true, "category": "Adverse Events", "finding": "Business Loan: Forced events detected \u2014 NUL [Opened: Nov 2021 | Active]", "inference": "Adverse credit events on Business Loan are strong negative signals for creditworthiness", "severity": "high_risk"}, {"account_level": true, "category": "Adverse Events", "finding": "Gold Loan: Forced events detected \u2014 NUL [Opened: Aug 2024 | Active]", "inference": "Adverse credit events on Gold Loan are strong negative signals for creditworthiness", "severity": "high_risk"}, {"account_level": true, "category": "Adverse Events", "finding": "LAP: Forced events detected \u2014 NUL [Opened: Feb 2020 | Active]", "inference": "Adverse credit events on LAP are strong negative signals for creditworthiness", "severity": "high_risk"}, {"account_level": true, "category": "Adverse Events", "finding": "Two Wheeler Loan: Forced events detected \u2014 NUL [Opened: May 2021 | Last Closed: May 2024]", "inference": "Adverse credit events on Two Wheeler Loan are strong negative signals for creditworthiness", "severity": "high_risk"}, {"account_level": true, "category": "Adverse Events", "finding": "Consumer Durable: Forced events detected \u2014 NUL [Opened: Mar 2025 | Active]", "inference": "Adverse credit events on Consumer Durable are strong negative signals for creditworthiness", "severity": "high_risk"}, {"account_level": true, "category": "Delinquency", "finding": "Credit Card: Delinquent with Max DPD of 90 days [Opened: Aug 2018 \u2013 Nov 2025 | Last Closed: Nov 2025]", "inference": "Significant past-due on Credit Card; repayment discipline is compromised", "severity": "moderate_risk"}, {"account_level": true, "category": "Delinquency", "finding": "Personal Loan: Delinquent with Max DPD of 60 days [Opened: May 2024 | Active]", "inference": "Significant past-due on Personal Loan; repayment discipline is compromised", "severity": "moderate_risk"}, {"account_level": true, "category": "Outstanding", "finding": "Credit Card: Overdue amount of INR 42,000 [Opened: Aug 2018 \u2013 Nov 2025 | Last Closed: Nov 2025]", "inference": "Active overdue balance on Credit Card indicates unresolved payment obligation", "severity": "concern"}, {"account_level": true, "category": "Outstanding", "finding": "Personal Loan: Overdue amount of INR 18,500 [Opened: May 2024 | Active]", "inference": "Active overdue balance on Personal Loan indicates unresolved payment obligation", "severity": "concern"}, {"account_level": true, "category": "Outstanding", "finding": "Auto Loan: Overdue amount of INR 15,200 [Opened: Mar 2022 | Active]", "inference": "Active overdue balance on Auto Loan indicates unresolved payment obligation", "severity": "concern"}, {"account_level": true, "category": "Outstanding", "finding": "Business Loan: Overdue amount of INR 1,14,000 [Opened: Nov 2021 | Active]", "inference": "Active overdue balance on Business Loan indicates unresolved payment obligation", "severity": "concern"}, {"account_level": false, "category": "Composite Signal", "finding": "No formal missed payments but DPD detected (Portfolio Max DPD: 120 days)", "inference": "Payments were made but with delays past due date; payment discipline is inconsistent despite no formal defaults", "severity": "concern"}, {"account_level": false, "category": "Portfolio", "finding": "Portfolio spans 9 loan products (Credit Card, Personal Loan, Home Loan, Auto Loan, Business Loan, Gold Loan, LAP, Two Wheeler Loan, Consumer Durable)", "inference": "Diversified credit portfolio indicates established borrowing history across products", "severity": "neutral"}, {"account_level": false, "category": "Utilization", "finding": "Credit card utilization at 9% [Opened: Aug 2018 \u2013 Nov 2025 | Last Closed: Nov 2025]", "inference": "Healthy utilization indicates disciplined credit card usage", "severity": "positive"}, {"account_level": false, "category": "DPD \u0026 Delinquency", "finding": "Zero DPD across all products in recent 6-9 month windows", "inference": "Clean recent payment record demonstrates consistent repayment discipline", "severity": "positive"}, {"account_level": false, "category": "Payment Behavior", "finding": "No missed payments in last 18 months", "inference": "Perfect payment track record over 18 months is a strong positive", "severity": "positive"}, {"account_level": false, "category": "Enquiry Behavior", "finding": "0 unsecured enquiries in last 12 months", "inference": "Minimal enquiry activity indicates stable credit position", "severity": "positive"}], "kpis": {"bureau_income": {"label": "Bureau Income", "rag": "neutral", "sub": "Stamp Loan: Credit Card", "value": "\u20b91.11 L"}, "cibil": {"label": "CIBIL Score", "rag": "green", "sub": "Excellent \u00b7 TransUnion", "value": "785"}, "exposure": {"labels": ["Aug 2024", "Sep 2024", "Oct 2024", "Nov 2024", "Dec 2024", "Jan 2025", "Feb 2025", "Mar 2025", "Apr 2025", "May 2025", "Jun 2025", "Jul 2025", "Aug 2025", "Sep 2025", "Oct 2025", "Nov 2025", "Dec 2025", "Jan 2026", "Feb 2026", "Mar 2026", "Apr 2026", "May 2026", "Jun 2026", "Jul 2026"], "rag": "neutral", "series": [16930925.0, 16930925.0, 16930925.0, 16930925.0, 17357925.0, 17357925.0, 17657925.0, 17702925.0, 17702925.0, 17702925.0, 17702925.0, 17702925.0, 17702925.0, 17702925.0, 17502925.0, 17504130.0, 17454130.0, 17454130.0, 17454130.0, 17454130.0, 17454130.0, 17454130.0, 17454130.0, 17454130.0], "sub": "Sanctioned \u20b91.84 Cr \u00b7 Unsec 22%", "value": "\u20b996.35 L"}, "foir": {"rag": "red", "sub": "Unsec 75.9% \u00b7 EMI \u20b9210,737", "value": "189.7%"}, "max_dpd": {"rag": "red", "sub": "3M ago \u00b7 Business Loan", "value": "120 days"}, "verdict": {"rag": "amber", "stress_pct": 25, "sub": "2 red \u00b7 0 amber of 8 signals", "value": "CAUTION"}}, "persona": {"profiles": [{"detail": "1 BL, 15L", "label": "Small Business Owner", "track": "Business"}, {"detail": "HL 35L", "label": "Established Salaried", "track": "Salaried"}], "stress_flags": [{"detail": "Gold Loan 2L alongside other products", "label": "Asset Stress", "severity": "moderate"}], "summary": "Probable profile of customer is Small Business Owner, Established Salaried"}, "scorecard_signals": [{"label": "CIBIL Score", "note": "Excellent", "rag": "green", "tooltip": "TransUnion credit score from bureau data", "value": "785"}, {"label": "Max DPD", "note": "Business Loan, 3M ago", "rag": "red", "tooltip": "Max DPD: 120 days (Business Loan, 3M ago).\nThresholds: 0 = clean \u00b7 1\u201330 = amber \u00b7 \u003e30 = high risk", "value": "120 days"}, {"label": "CC Util", "note": "Healthy", "rag": "green", "tooltip": "CC balance utilization: 9.0%.\nThresholds: \u226430% = healthy \u00b7 \u226475% = elevated \u00b7 \u003e75% = over-utilized", "value": "9%"}, {"label": "Enquiries", "note": "Minimal", "rag": "green", "tooltip": "Unsecured credit enquiries in last 12M: 0.\nThresholds: \u22643 = minimal \u00b7 \u226410 = moderate \u00b7 \u003e10 = high pressure", "value": "0 in 12M"}, {"label": "Payments", "note": "18M window", "rag": "green", "tooltip": "Missed payment rate over 18M: 0.0%.\nThresholds: 0% = clean \u00b7 \u226410% = some \u00b7 \u003e10% = frequent", "value": "0% missed"}, {"label": "Adverse Events", "note": "Forced events detected", "rag": "neutral", "tooltip": "Forced event flags: NUL.\nHigh risk: WRF / SET / SMA \u00b7 Moderate: SUB / DBT / LSS / WOF", "value": "NUL"}, {"label": "FOIR", "note": "Over-leveraged", "rag": "red", "tooltip": "Bureau obligation-to-income ratio.\nBureau Obligation (aff_emi): INR 210,737\nBureau Income: INR 111,111\nFOIR = Bureau Obligation \u00f7 Bureau Income \u00d7 100 = 189.7%\nFOIR (unsecured only): 75.9%\nThresholds: \u226440% = comfortable \u00b7 \u226465% = stretched \u00b7 \u003e65% = over-leveraged", "value": "189.7%"}, {"label": "Exposure 12M", "note": "vs 12M ago", "rag": "neutral", "tooltip": "Sanctioned exposure: Jul 2026 = \u20b9174.5L \u00b7 12M ago = \u20b9177.0L.\nChange: -1.4%. Thresholds: \u2264\u22125% = declining \u00b7 \u2264+30% = growing \u00b7 \u003e+30% = rapid", "value": "Stable"}], "strengths": ["Credit card utilization at 9% [Opened: Aug 2018 \u2013 Nov 2025 | Last Closed: Nov 2025]", "Zero DPD across all products in recent 6-9 month windows", "No missed payments in last 18 months"], "verdict": "CAUTION", "verdict_rag": "amber"}
+{"checklist": [{"checked": false, "detail": null, "label": "MAX DPD occurred", "severity": "positive"}, {"checked": false, "detail": null, "label": "Adverse events (write-off / settlement)", "severity": "positive"}, {"checked": false, "detail": null, "label": "High FOIR (\u003e 50%)", "severity": "neutral"}, {"checked": false, "detail": null, "label": "CC utilization elevated (\u226530%)", "severity": "positive"}, {"checked": false, "detail": null, "label": "Customer has Kotak loan", "severity": "neutral"}, {"checked": false, "detail": null, "label": "Kotak loan default (live)", "severity": "neutral"}, {"checked": false, "detail": null, "label": "Live Home Loan detected", "severity": "neutral"}, {"checked": false, "detail": "Data unavailable", "label": "Bureau thick", "severity": "medium"}, {"checked": false, "detail": null, "label": "Exposure elevated", "severity": "neutral"}], "concerns": [], "customer_id": 698167220, "exposure_summary": "", "generated_at": "2026-07-29T14:24:30.910986", "key_findings": [{"account_level": false, "category": "Delinquency", "finding": "No delinquency detected across the portfolio", "inference": "Clean delinquency record is a positive indicator for repayment discipline", "severity": "positive"}], "kpis": {"bureau_income": null, "cibil": {"label": "CIBIL Score", "rag": "neutral", "sub": "Not available \u00b7 TransUnion", "value": "\u2014"}, "exposure": {"labels": [], "rag": "neutral", "series": [], "sub": "Sanctioned \u20b90", "value": "\u20b90"}, "foir": {"rag": "neutral", "sub": "Not available", "value": "N/A"}, "max_dpd": {"rag": "neutral", "sub": "No DPD data", "value": "N/A"}, "verdict": {"rag": "green", "stress_pct": 0, "sub": "0 red \u00b7 0 amber of 0 signals", "value": "LOW RISK"}}, "persona": {"profiles": [{"detail": "Zero bureau tradelines", "label": "New to Credit", "track": "NTC"}], "stress_flags": [], "summary": "Probable profile of customer is New to Credit"}, "scorecard_signals": [], "strengths": ["No delinquency detected across the portfolio"], "verdict": "LOW RISK", "verdict_rag": "green"}
 </script>
 
 
-<script id="v2-chart-data" type="application/json">{"live_closed": {"labels": ["Credit Card", "Personal Loan", "Home Loan", "Auto Loan", "Business Loan", "Gold Loan", "LAP", "Two Wheeler Loan", "Consumer Durable"], "live": [21, 1, 1, 1, 1, 1, 1, 0, 1], "closed": [5, 0, 0, 0, 0, 0, 0, 1, 0]}, "vintage": {"axis": ["Aug 2018", "Sep 2018", "Oct 2018", "Nov 2018", "Dec 2018", "Jan 2019", "Feb 2019", "Mar 2019", "Apr 2019", "May 2019", "Jun 2019", "Jul 2019", "Aug 2019", "Sep 2019", "Oct 2019", "Nov 2019", "Dec 2019", "Jan 2020", "Feb 2020", "Mar 2020", "Apr 2020", "May 2020", "Jun 2020", "Jul 2020", "Aug 2020", "Sep 2020", "Oct 2020", "Nov 2020", "Dec 2020", "Jan 2021", "Feb 2021", "Mar 2021", "Apr 2021", "May 2021", "Jun 2021", "Jul 2021", "Aug 2021", "Sep 2021", "Oct 2021", "Nov 2021", "Dec 2021", "Jan 2022", "Feb 2022", "Mar 2022", "Apr 2022", "May 2022", "Jun 2022", "Jul 2022", "Aug 2022", "Sep 2022", "Oct 2022", "Nov 2022", "Dec 2022", "Jan 2023", "Feb 2023", "Mar 2023", "Apr 2023", "May 2023", "Jun 2023", "Jul 2023", "Aug 2023", "Sep 2023", "Oct 2023", "Nov 2023", "Dec 2023", "Jan 2024", "Feb 2024", "Mar 2024", "Apr 2024", "May 2024", "Jun 2024", "Jul 2024", "Aug 2024", "Sep 2024", "Oct 2024", "Nov 2024", "Dec 2024", "Jan 2025", "Feb 2025", "Mar 2025", "Apr 2025", "May 2025", "Jun 2025", "Jul 2025", "Aug 2025", "Sep 2025", "Oct 2025", "Nov 2025", "Dec 2025", "Jan 2026", "Feb 2026", "Mar 2026", "Apr 2026", "May 2026", "Jun 2026", "Jul 2026"], "items": [{"label": "Credit Card", "start": 0, "end": 95}, {"label": "Personal Loan", "start": 69, "end": 95}, {"label": "Home Loan", "start": 10, "end": 95}, {"label": "Auto Loan", "start": 43, "end": 95}, {"label": "Business Loan", "start": 39, "end": 95}, {"label": "Gold Loan", "start": 72, "end": 95}, {"label": "LAP", "start": 18, "end": 95}, {"label": "Two Wheeler Loan", "start": 33, "end": 69}, {"label": "Consumer Durable", "start": 79, "end": 95}]}, "dpd_grid": {"months": ["Jan 2024", "Feb 2024", "Mar 2024", "Apr 2024", "May 2024", "Jun 2024", "Jul 2024", "Aug 2024", "Sep 2024", "Oct 2024", "Nov 2024", "Dec 2024", "Jan 2025", "Feb 2025", "Mar 2025", "Apr 2025", "May 2025", "Jun 2025", "Jul 2025", "Aug 2025", "Sep 2025", "Oct 2025", "Nov 2025", "Dec 2025"], "rows": [{"product": "Auto Loan", "cells": [{"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 30, "level": 2}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}]}, {"product": "Business Loan", "cells": [{"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 60, "level": 3}, {"v": 120, "level": 4}, {"v": 90, "level": 4}, {"v": 0, "level": 0}]}, {"product": "Consumer Durable", "cells": [{"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}]}, {"product": "Credit Card", "cells": [{"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 30, "level": 2}, {"v": 15, "level": 1}, {"v": 0, "level": 0}, {"v": 90, "level": 4}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}]}, {"product": "Gold Loan", "cells": [{"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 30, "level": 2}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}]}, {"product": "Home Loan", "cells": [{"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}]}, {"product": "LAP", "cells": [{"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}]}, {"product": "Personal Loan", "cells": [{"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 60, "level": 3}, {"v": 30, "level": 2}, {"v": 0, "level": 0}, {"v": 0, "level": 0}]}, {"product": "Two Wheeler Loan", "cells": [{"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}]}], "has_events": true}, "explorer": {"products": ["Credit Card", "Personal Loan", "Home Loan", "Auto Loan", "Business Loan", "Gold Loan", "LAP", "Two Wheeler Loan", "Consumer Durable"], "metrics": {"sanctioned": {"label": "Sanctioned \u20b9", "fmt": "inr", "values": [6936205.0, 311925.0, 3500000.0, 800000.0, 1500000.0, 200000.0, 5000000.0, 95000.0, 45000.0]}, "outstanding": {"label": "Outstanding \u20b9", "fmt": "inr", "values": [655918.0, 166761.0, 2810000.0, 452000.0, 1240000.0, 118000.0, 4180000.0, 0.0, 12500.0]}, "count": {"label": "Tradeline Count", "fmt": "int", "values": [26, 1, 1, 1, 1, 1, 1, 1, 1]}, "live": {"label": "Live", "fmt": "int", "values": [21, 1, 1, 1, 1, 1, 1, 0, 1]}, "closed": {"label": "Closed", "fmt": "int", "values": [5, 0, 0, 0, 0, 0, 0, 1, 0]}, "overdue": {"label": "Overdue \u20b9", "fmt": "inr", "values": [42000.0, 18500.0, 0.0, 15200.0, 114000.0, 0.0, 0.0, 0.0, 0.0]}, "utilization": {"label": "Utilization %", "fmt": "pct", "values": [8.96, null, null, null, null, null, null, null, null]}, "on_us": {"label": "On-Us Count", "fmt": "int", "values": [1, 0, 1, 0, 0, 0, 0, 0, 0]}, "vintage": {"label": "Avg Vintage (mo)", "fmt": "num", "values": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, "max_single": {"label": "Largest Loan \u20b9", "fmt": "inr", "values": [500000.0, 311925.0, 3500000.0, 800000.0, 1500000.0, 200000.0, 5000000.0, 95000.0, 45000.0]}, "joint": {"label": "Joint Tradelines", "fmt": "int", "values": [0, 0, 0, 0, 0, 0, 0, 0, 0]}}}}</script>
+<script id="v2-chart-data" type="application/json">{"live_closed": {"labels": [], "live": [], "closed": []}, "vintage": null, "dpd_grid": null, "explorer": {"products": [], "metrics": {"sanctioned": {"label": "Sanctioned \u20b9", "fmt": "inr", "values": []}, "outstanding": {"label": "Outstanding \u20b9", "fmt": "inr", "values": []}, "count": {"label": "Tradeline Count", "fmt": "int", "values": []}, "live": {"label": "Live", "fmt": "int", "values": []}, "closed": {"label": "Closed", "fmt": "int", "values": []}, "overdue": {"label": "Overdue \u20b9", "fmt": "inr", "values": []}, "utilization": {"label": "Utilization %", "fmt": "pct", "values": []}, "on_us": {"label": "On-Us Count", "fmt": "int", "values": []}, "vintage": {"label": "Avg Vintage (mo)", "fmt": "num", "values": []}, "max_single": {"label": "Largest Loan \u20b9", "fmt": "inr", "values": []}, "joint": {"label": "Joint Tradelines", "fmt": "int", "values": []}}}}</script>
 
 <script>
   // ---- TABS / SUMMARY TOGGLE ------------------------------------------------
@@ -3405,12 +1750,6 @@ The behavioral insights reveal a mixed picture. Enquiry pressure is evident with
 
   // ---- KPI SPARKLINE (total exposure) ---------------------------------------
   
-  new Chart(document.getElementById('sparkExposure'),{
-    type:'line',
-    data:{labels:["Aug 2024", "Sep 2024", "Oct 2024", "Nov 2024", "Dec 2024", "Jan 2025", "Feb 2025", "Mar 2025", "Apr 2025", "May 2025", "Jun 2025", "Jul 2025", "Aug 2025", "Sep 2025", "Oct 2025", "Nov 2025", "Dec 2025", "Jan 2026", "Feb 2026", "Mar 2026", "Apr 2026", "May 2026", "Jun 2026", "Jul 2026"],datasets:[{data:[16930925.0, 16930925.0, 16930925.0, 16930925.0, 17357925.0, 17357925.0, 17657925.0, 17702925.0, 17702925.0, 17702925.0, 17702925.0, 17702925.0, 17702925.0, 17702925.0, 17502925.0, 17504130.0, 17454130.0, 17454130.0, 17454130.0, 17454130.0, 17454130.0, 17454130.0, 17454130.0, 17454130.0],borderColor:'#6366f1',backgroundColor:'rgba(99,102,241,.12)',fill:true,tension:.35,pointRadius:0,borderWidth:2}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}}}
-  });
-  
 </script>
 
 
@@ -3475,7 +1814,7 @@ The behavioral insights reveal a mixed picture. Enquiry pressure is evident with
         });
     }
 
-    const CD = {"product_mix": {"labels": ["Credit Card", "Personal Loan", "Home Loan", "Auto Loan", "Business Loan", "Gold Loan", "LAP", "Two Wheeler Loan", "Consumer Durable"], "values": [26, 1, 1, 1, 1, 1, 1, 1, 1]}, "secured_split": {"labels": ["Secured", "Unsecured"], "values": [5, 29]}, "onus_offus": {"labels": ["On-Us (Kotak)", "Off-Us"], "values": [2, 32]}, "unsec_outstanding": {"labels": ["Credit Card", "Personal Loan", "Business Loan", "Consumer Durable"], "values": [655918.0, 166761.0, 1240000.0, 12500.0]}, "timeseries": {"months": ["Aug 2024", "Sep 2024", "Oct 2024", "Nov 2024", "Dec 2024", "Jan 2025", "Feb 2025", "Mar 2025", "Apr 2025", "May 2025", "Jun 2025", "Jul 2025", "Aug 2025", "Sep 2025", "Oct 2025", "Nov 2025", "Dec 2025", "Jan 2026", "Feb 2026", "Mar 2026", "Apr 2026", "May 2026", "Jun 2026", "Jul 2026"], "series": {"CC": [5619000.0, 5619000.0, 5619000.0, 5619000.0, 6046000.0, 6046000.0, 6346000.0, 6346000.0, 6346000.0, 6346000.0, 6346000.0, 6346000.0, 6346000.0, 6346000.0, 6146000.0, 6147205.0, 6097205.0, 6097205.0, 6097205.0, 6097205.0, 6097205.0, 6097205.0, 6097205.0, 6097205.0], "PL": [311925.0, 311925.0, 311925.0, 311925.0, 311925.0, 311925.0, 311925.0, 311925.0, 311925.0, 311925.0, 311925.0, 311925.0, 311925.0, 311925.0, 311925.0, 311925.0, 311925.0, 311925.0, 311925.0, 311925.0, 311925.0, 311925.0, 311925.0, 311925.0], "HL": [3500000.0, 3500000.0, 3500000.0, 3500000.0, 3500000.0, 3500000.0, 3500000.0, 3500000.0, 3500000.0, 3500000.0, 3500000.0, 3500000.0, 3500000.0, 3500000.0, 3500000.0, 3500000.0, 3500000.0, 3500000.0, 3500000.0, 3500000.0, 3500000.0, 3500000.0, 3500000.0, 3500000.0], "AL": [800000.0, 800000.0, 800000.0, 800000.0, 800000.0, 800000.0, 800000.0, 800000.0, 800000.0, 800000.0, 800000.0, 800000.0, 800000.0, 800000.0, 800000.0, 800000.0, 800000.0, 800000.0, 800000.0, 800000.0, 800000.0, 800000.0, 800000.0, 800000.0], "BL": [1500000.0, 1500000.0, 1500000.0, 1500000.0, 1500000.0, 1500000.0, 1500000.0, 1500000.0, 1500000.0, 1500000.0, 1500000.0, 1500000.0, 1500000.0, 1500000.0, 1500000.0, 1500000.0, 1500000.0, 1500000.0, 1500000.0, 1500000.0, 1500000.0, 1500000.0, 1500000.0, 1500000.0], "GL": [200000.0, 200000.0, 200000.0, 200000.0, 200000.0, 200000.0, 200000.0, 200000.0, 200000.0, 200000.0, 200000.0, 200000.0, 200000.0, 200000.0, 200000.0, 200000.0, 200000.0, 200000.0, 200000.0, 200000.0, 200000.0, 200000.0, 200000.0, 200000.0], "LAP": [5000000.0, 5000000.0, 5000000.0, 5000000.0, 5000000.0, 5000000.0, 5000000.0, 5000000.0, 5000000.0, 5000000.0, 5000000.0, 5000000.0, 5000000.0, 5000000.0, 5000000.0, 5000000.0, 5000000.0, 5000000.0, 5000000.0, 5000000.0, 5000000.0, 5000000.0, 5000000.0, 5000000.0], "CD": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 45000.0, 45000.0, 45000.0, 45000.0, 45000.0, 45000.0, 45000.0, 45000.0, 45000.0, 45000.0, 45000.0, 45000.0, 45000.0, 45000.0, 45000.0, 45000.0, 45000.0]}}, "dpd_timeline": {"months": ["Aug 2024", "Sep 2024", "Oct 2024", "Nov 2024", "Dec 2024", "Jan 2025", "Feb 2025", "Mar 2025", "Apr 2025", "May 2025", "Jun 2025", "Jul 2025", "Aug 2025", "Sep 2025", "Oct 2025", "Nov 2025", "Dec 2025", "Jan 2026", "Feb 2026", "Mar 2026", "Apr 2026", "May 2026", "Jun 2026", "Jul 2026"], "events": [{"loan_type": "Credit Card", "dpd": 90, "month_idx": 17, "month_label": "Jan 2026"}, {"loan_type": "Personal Loan", "dpd": 60, "month_idx": 19, "month_label": "Mar 2026"}, {"loan_type": "Auto Loan", "dpd": 30, "month_idx": 18, "month_label": "Feb 2026"}, {"loan_type": "Business Loan", "dpd": 120, "month_idx": 20, "month_label": "Apr 2026"}, {"loan_type": "Gold Loan", "dpd": 30, "month_idx": 13, "month_label": "Sep 2025"}], "historical": []}};
+    const CD = {"product_mix": {"labels": [], "values": []}, "secured_split": {"labels": ["Secured", "Unsecured"], "values": [0, 0]}, "onus_offus": {"labels": ["On-Us (Kotak)", "Off-Us"], "values": [0, 0]}, "unsec_outstanding": {"labels": [], "values": []}, "timeseries": {"months": ["Aug 2024", "Sep 2024", "Oct 2024", "Nov 2024", "Dec 2024", "Jan 2025", "Feb 2025", "Mar 2025", "Apr 2025", "May 2025", "Jun 2025", "Jul 2025", "Aug 2025", "Sep 2025", "Oct 2025", "Nov 2025", "Dec 2025", "Jan 2026", "Feb 2026", "Mar 2026", "Apr 2026", "May 2026", "Jun 2026", "Jul 2026"], "series": {}}, "dpd_timeline": {"months": ["Aug 2024", "Sep 2024", "Oct 2024", "Nov 2024", "Dec 2024", "Jan 2025", "Feb 2025", "Mar 2025", "Apr 2025", "May 2025", "Jun 2025", "Jul 2025", "Aug 2025", "Sep 2025", "Oct 2025", "Nov 2025", "Dec 2025", "Jan 2026", "Feb 2026", "Mar 2026", "Apr 2026", "May 2026", "Jun 2026", "Jul 2026"], "events": [], "historical": []}};
     let V2C = null;
     try { V2C = JSON.parse(document.getElementById('v2-chart-data').textContent || 'null'); } catch(e){ V2C = null; }
 

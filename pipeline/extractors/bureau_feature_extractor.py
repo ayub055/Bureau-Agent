@@ -337,6 +337,71 @@ def compute_monthly_exposure(customer_id: int, n_months: int = 24) -> dict:
     }
 
 
+def compute_yearly_exposure(customer_id: int, n_years: int = 5) -> dict:
+    """Compute year-wise outstanding exposure (yearly + cumulative).
+
+    Groups the customer's tradelines by the YEAR they were opened
+    (``date_opened``) and sums ``out_standing_balance`` per year. The
+    cumulative series is a true running total from the earliest year, so the
+    most recent year's cumulative equals the customer's total outstanding
+    (matching the "Total exposure" tile). Only the most recent ``n_years``
+    years are returned; the window is a continuous ascending range (absent
+    years carry a zero yearly amount but the cumulative is carried forward).
+
+    Returns:
+        {
+            "years":      [2021, 2022, ..., 2025],   # ascending, len <= n_years
+            "yearly":     [1.2e5, 0.0, ...],         # outstanding opened that year
+            "cumulative": [9.9e5, 9.9e5, ...],       # running total incl. prior years
+            "total":      <grand total outstanding>,
+        }
+    """
+    all_rows = _load_bureau_data()
+    customer_rows = [r for r in all_rows if _safe_int(r.get("crn", "")) == customer_id]
+
+    yearly: Dict[int, float] = defaultdict(float)
+    for row in customer_rows:
+        opened = _parse_date(row.get("date_opened", ""))
+        if opened is None:
+            continue
+        yearly[opened.year] += _safe_float(row.get("out_standing_balance", ""))
+
+    if not yearly:
+        return {"years": [], "yearly": [], "cumulative": [], "total": 0.0}
+
+    # Running cumulative across every year present (oldest -> newest)
+    all_years = sorted(yearly.keys())
+    cumulative: Dict[int, float] = {}
+    running = 0.0
+    for y in all_years:
+        running += yearly[y]
+        cumulative[y] = running
+    total = running
+
+    # Cumulative total of everything opened in years <= y (monotonic;
+    # only steps at data years, so absent years inherit the prior total —
+    # including any data that predates the display window).
+    def _cum_through(y: int) -> float:
+        prior = [yy for yy in all_years if yy <= y]
+        return cumulative[prior[-1]] if prior else 0.0
+
+    # Continuous window of the most recent n_years (fill gaps, carry cumulative)
+    end = all_years[-1]
+    start = end - (n_years - 1)
+    out_years, out_yearly, out_cumulative = [], [], []
+    for y in range(start, end + 1):
+        out_years.append(y)
+        out_yearly.append(round(yearly.get(y, 0.0), 0))
+        out_cumulative.append(round(_cum_through(y), 0))
+
+    return {
+        "years": out_years,
+        "yearly": out_yearly,
+        "cumulative": out_cumulative,
+        "total": round(total, 0),
+    }
+
+
 def compute_ratio_good_closed_pl(customer_id: int) -> Optional[float]:
     """Share of a customer's closed personal loans that closed with no DPD.
 

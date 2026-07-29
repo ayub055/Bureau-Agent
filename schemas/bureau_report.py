@@ -26,6 +26,8 @@ class BureauReport:
     key_findings: List = field(default_factory=list)
     monthly_exposure: Optional[Dict[str, Any]] = None  # {"months": [...], "series": {...}}
     raw_loan_profile: Optional[Dict[str, Any]] = None  # raw loan type counts for persona
-    bureau_income: Optional[Dict[str, Any]] = None  # {"bureau_income": float, "stamp_loan": str, ...}
+    bureau_income: Optional[Dict[str, Any]] = None  # {"bureau_income": float, "stamp_loan": str, "stamp_sanction": float, ...}
     sustained_emi: Optional[Dict[str, Any]] = None  # {"sustained_emi": float, "cc_income": float, ...}
     obligation: Optional[Dict[str, Any]] = None  # {"aff_emi": float, "emi_unsec": float, ...}
+    business_throughput: Optional[Dict[str, Any]] = None  # {"turnover": float, "bracket": str, "eligible": int, ...}
+    bl_sector_distribution: Optional[Dict[str, Any]] = None  # {"trigger": bool, "group_share": float, "group_count": int, "bl_count": int, "total": int, "title": str, "distribution": [{"category": str, "count": int, "pct": float}, ...]}  # category = ownership_type (Individual/Joint/Guarantor)

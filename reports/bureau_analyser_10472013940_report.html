@@ -73,10 +73,19 @@
   .kpi.green::before{background:var(--green)}
   .kpi.amber::before{background:var(--amber)}
   .kpi.red::before{background:var(--red)}
+  /* Distinct side accent for the BL ownership-distribution tile (IF-branch) */
+  .kpi.kpi-dist::before{background:#14b8a6}
   .kpi .label{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);font-weight:600}
   .kpi .value{font-size:20px;font-weight:800;color:var(--indigo-ink);margin-top:4px;line-height:1.15}
   .kpi .sub{font-size:11px;color:var(--muted);margin-top:2px}
   .kpi .spark{height:28px;margin-top:6px}
+  /* FOIR-tile BL ownership-distribution mini bar-chart (IF-branch) */
+  .kpi .sector-dist{margin-top:9px;display:flex;flex-direction:column;gap:7px}
+  .kpi .sector-row{display:flex;align-items:center;gap:8px;font-size:11.5px;line-height:1.1}
+  .kpi .sector-name{flex:none;width:64px;color:var(--muted);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .kpi .sector-bar{flex:1;height:6px;background:var(--chip);border-radius:999px;overflow:hidden}
+  .kpi .sector-fill{height:100%;background:var(--indigo);border-radius:999px}
+  .kpi .sector-pct{flex:none;color:var(--indigo-ink);font-weight:700;font-variant-numeric:tabular-nums}
   .stress-gauge{display:flex;align-items:center;gap:10px;margin-top:4px}
   .stress-gauge .bar{flex:1;height:8px;background:#e2e8f0;border-radius:999px;overflow:hidden}
   .stress-gauge .fill{height:100%;background:linear-gradient(90deg,var(--green),var(--amber),var(--red))}
@@ -149,6 +158,9 @@
   .persona-list li:last-child{border-bottom:none}
   .persona-list .name{font-weight:600}
   .persona-list .meta{font-size:11px;color:var(--muted)}
+  /* instant (no-delay) hover tooltip for profile rows */
+  .row[data-tip]{position:relative;cursor:help}
+  .row[data-tip]:hover::after{content:attr(data-tip);position:absolute;left:0;top:100%;z-index:30;background:#1e293b;color:#fff;padding:8px 10px;border-radius:6px;font-size:11px;line-height:1.4;width:300px;white-space:normal;box-shadow:var(--shadow);pointer-events:none}
 
   /* SCORECARD SIGNALS */
   .sc-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
@@ -416,6 +428,24 @@
   .expo-right-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--indigo-deep);margin-bottom:6px}
   .chart-wrap.expo-chart{height:210px}
 
+  /* PORTFOLIO VIZ — year-wise exposure (yearly + cumulative outstanding) — compact */
+  .yexp-wrap{max-width:460px}
+  .yexp-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--indigo-deep);margin-bottom:2px}
+  .yexp-cap{font-size:9px;color:var(--muted);margin-bottom:8px}
+  .yexp-legend{display:inline-flex;gap:5px;align-items:center;margin-left:8px;font-weight:700}
+  .yexp-legend i{width:8px;height:8px;border-radius:2px;display:inline-block}
+  .yexp-table{width:100%;border-collapse:collapse;font-size:10px}
+  .yexp-year{border-top:1px solid #e5e7eb}
+  .yexp-year:first-child{border-top:none}
+  .yexp-yr{width:40px;font-size:12px;font-weight:800;color:var(--indigo-ink);vertical-align:middle;padding:4px 10px 4px 0}
+  .yexp-lbl{width:58px;font-size:8.5px;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);font-weight:700;padding:2px 6px 2px 0;white-space:nowrap}
+  .yexp-bar{padding:2px 0}
+  .yexp-track{position:relative;height:8px;background:#f1f5f9;border-radius:4px;overflow:hidden}
+  .yexp-fill{position:absolute;left:0;top:0;height:100%;border-radius:4px;min-width:2px}
+  .yexp-fill.yearly{background:#10b981}
+  .yexp-fill.cumulative{background:#6366f1}
+  .yexp-val{width:82px;text-align:right;font-weight:700;color:var(--indigo-ink);padding:2px 0 2px 10px;white-space:nowrap;font-size:10.5px}
+
   /* HEATMAP */
   .heat-wrap{display:flex;flex-direction:column;gap:6px;overflow-x:auto}
   .heat-row{display:flex;align-items:center;gap:8px}
@@ -590,6 +620,7 @@
     #portfolio .sv-pop { display:flex !important; position:static; box-shadow:none; border:none; padding:0; flex-direction:row; flex-wrap:wrap; gap:4px 12px; max-height:none; }
     #portfolio .sv-more-btn { display:none !important; }
     .split-row, .expo-wrap { break-inside:avoid; }
+    .yexp-year { break-inside:avoid; }
     /* Products (v3): always print every tradeline even if the delinquent filter was on */
     #products tbody tr { display:table-row !important; }
     #products #prodEmpty { display:none !important; }
@@ -620,7 +651,7 @@
     <div class="cust">
       <div><b>Customer:</b> ###3940</div>
       <div><b>Tradelines:</b> 50</div>
-      <div><b>Generated:</b> 2026-07-28</div>
+      <div><b>Generated:</b> 2026-07-29</div>
     </div>
     
     <div class="spacer"></div>
@@ -688,10 +719,25 @@
       <div class="value">91 days</div>
       <div class="sub">17M ago · Auto Loan</div>
     </div>
-    <div class="kpi red">
-      <div class="label">FOIR (Bureau)</div>
-      <div class="value">&gt;300% — business/guarantor profile</div>
-      <div class="sub">Unsec 0.0% · EMI ₹1,724,029</div>
+    <div class="kpi neutral kpi-dist">
+      <div class="label">Sector distribution of BL (CMVL, CEL, AL, BL)</div>
+      
+      <div class="sector-dist">
+        
+        <div class="sector-row">
+          <span class="sector-name" title="Joint">Joint</span>
+          <div class="sector-bar"><div class="sector-fill" style="width:59.6%"></div></div>
+          <span class="sector-pct">60%</span>
+        </div>
+        
+        <div class="sector-row">
+          <span class="sector-name" title="Guarantor">Guarantor</span>
+          <div class="sector-bar"><div class="sector-fill" style="width:40.4%"></div></div>
+          <span class="sector-pct">40%</span>
+        </div>
+        
+      </div>
+      
     </div>
     <div class="kpi neutral">
       <div class="label">Total Outstanding</div>
@@ -716,9 +762,9 @@
       <div class="loan-card">
         <div class="head"><b>Customer Profile</b></div>
         <div class="row"><span>Bureau Income</span><b>₹ 64,828</b></div>
-        <div class="row"><span>Stamp Loan</span><b>Housing Loan</b></div>
+        <div class="row"><span>Loan considered for income</span><b>Housing Loan (₹ 60.00 L)</b></div>
         <div class="row" title="Maximum EMI the customer has paid consecutively for at least 6 months in the last 3 years (from scrub date)"><span>Sustained EMI</span><b>₹ 26,400</b></div>
-        <div class="row" title="Total monthly EMI obligation across all bureau tradelines (loan-type EMI rate bands + credit-risk filters)"><span>Bureau Obligation</span><b>₹ 1,724,029</b></div>
+        <div class="row" title="Total monthly EMI obligation across all bureau tradelines (loan-type EMI rate bands + credit-risk filters)"><span>Bureau Obligation</span><b>₹ 17.24 L</b></div>
         <div class="row" title="Unsecured share of the monthly EMI obligation"><span>Unsecured Obligation</span><b>₹ 0</b></div>
         <div class="row"><span>Bureau Thickness</span><b>BU thick</b></div>
       </div>
@@ -744,17 +790,9 @@
             </div>
           </li>
           
-          <li>
-            <div class="rank">3</div>
-            <div>
-              <div class="name">Mature Salaried <span class="tag cat">Salaried</span></div>
-              <div class="meta">HL 64L</div>
-            </div>
-          </li>
-          
         </ul>
         
-        <div class="muted" style="margin-top:10px">Probable profile of customer is Transport Operator, Established Contractor, Mature Salaried.</div>
+        <div class="muted" style="margin-top:10px">Probable profile of customer is Transport Operator, Established Contractor.</div>
       </div>
       
     </div>
@@ -811,12 +849,6 @@ Thresholds: ≤3 = minimal · ≤10 = moderate · &gt;10 = high pressure</div>
 Thresholds: 0% = clean · ≤10% = some · &gt;10% = frequent</div>
       </div>
       
-      <div class="check amber" data-severity="amber" data-checked="no">
-        <div class="ico">✗</div>
-        <div class="lbl">Banking thick<span class="det">Data unavailable</span></div>
-        <div class="sc-tooltip">Data unavailable</div>
-      </div>
-      
       <div class="check green" data-severity="green" data-checked="no">
         <div class="ico">✗</div>
         <div class="lbl">Kotak loan default (live)</div>
@@ -838,8 +870,8 @@ Change: +4.5%. Thresholds: ≤−5% = declining · ≤+30% = growing · &gt;+30%
       
       <div class="check neutral" data-severity="neutral" data-checked="yes">
         <div class="ico">✓</div>
-        <div class="lbl">Customer has Kotak loan<span class="det">28 Kotak loan(s): commercial_vehichle_loan(27), credit_card(1)</span></div>
-        <div class="sc-tooltip">28 Kotak loan(s): commercial_vehichle_loan(27), credit_card(1)</div>
+        <div class="lbl">Customer has Kotak loan<span class="det">28 Kotak loan(s): commercial_equipment_loan(27), credit_card(1)</span></div>
+        <div class="sc-tooltip">28 Kotak loan(s): commercial_equipment_loan(27), credit_card(1)</div>
       </div>
       
       <div class="check neutral" data-severity="neutral" data-checked="yes">
@@ -916,7 +948,7 @@ Change: +4.5%. Thresholds: ≤−5% = declining · ≤+30% = growing · &gt;+30%
                   <span class="sev-label s-grey">INFO</span>
                   <span class="fcat">Portfolio</span>
                 </div>
-                <div class="ftext">Portfolio spans 4 loan products (Commercial Vehicle Loan, Auto Loan, Credit Card, Home Loan)</div>
+                <div class="ftext">Portfolio spans 5 loan products (Commercial Equipment Loan, Commercial Vehicle Loan, Home Loan, Auto Loan, Credit Card)</div>
                 <div class="finf">Diversified credit portfolio indicates established borrowing history across products</div>
               </div>
             </div>
@@ -951,7 +983,7 @@ Change: +4.5%. Thresholds: ≤−5% = declining · ≤+30% = growing · &gt;+30%
           
           <button type="button" class="reader-item" data-idx="2">
             <span class="ri-dot s-grey"></span>
-            <span class="ri-text">Portfolio spans 4 loan products (Commercial Vehicle Loan, Auto Loan, Credit Card, Home Loan)</span>
+            <span class="ri-text">Portfolio spans 5 loan products (Commercial Equipment Loan, Commercial Vehicle Loan, Home Loan, Auto Loan, Credit Card)</span>
           </button>
           
         </div>
@@ -986,7 +1018,7 @@ Change: +4.5%. Thresholds: ≤−5% = declining · ≤+30% = growing · &gt;+30%
               <span class="sev-label s-grey">INFO</span>
               <span class="fcat">Portfolio</span>
             </div>
-            <div class="ftext">Portfolio spans 4 loan products (Commercial Vehicle Loan, Auto Loan, Credit Card, Home Loan)</div>
+            <div class="ftext">Portfolio spans 5 loan products (Commercial Equipment Loan, Commercial Vehicle Loan, Home Loan, Auto Loan, Credit Card)</div>
             <div class="finf">Diversified credit portfolio indicates established borrowing history across products</div>
           </div>
           
@@ -1032,7 +1064,7 @@ Change: +4.5%. Thresholds: ≤−5% = declining · ≤+30% = growing · &gt;+30%
               <span class="sev-label s-grey">INFO</span>
               <span class="fcat">Portfolio</span>
             </div>
-            <div class="ftext">Portfolio spans 4 loan products (Commercial Vehicle Loan, Auto Loan, Credit Card, Home Loan)</div>
+            <div class="ftext">Portfolio spans 5 loan products (Commercial Equipment Loan, Commercial Vehicle Loan, Home Loan, Auto Loan, Credit Card)</div>
             <div class="finf">Diversified credit portfolio indicates established borrowing history across products</div>
           </div>
         </div>
@@ -1073,7 +1105,7 @@ Change: +4.5%. Thresholds: ≤−5% = declining · ≤+30% = growing · &gt;+30%
             <span class="sev-label s-grey">INFO</span>
             <span class="fcat">Portfolio</span>
           </div>
-          <div class="ftext">Portfolio spans 4 loan products (Commercial Vehicle Loan, Auto Loan, Credit Card, Home Loan)</div>
+          <div class="ftext">Portfolio spans 5 loan products (Commercial Equipment Loan, Commercial Vehicle Loan, Home Loan, Auto Loan, Credit Card)</div>
           <div class="finf">Diversified credit portfolio indicates established borrowing history across products</div>
         </button>
         
@@ -1090,11 +1122,9 @@ Change: +4.5%. Thresholds: ≤−5% = declining · ≤+30% = growing · &gt;+30%
     <h2>Bureau Executive Summary <span class="count">LLM-generated narrative</span></h2>
     
     
-    <div class="summary clamped" id="sum">Here is a two-paragraph summary of the bureau portfolio:
+    <div class="summary clamped" id="sum">The customer&#39;s tradeline portfolio consists of N=50 total tradelines (M live=15, P closed=35). The portfolio features a mix of loan products, including Commercial Equipment Loan (43 accounts), Commercial Vehicle Loan (1 account), Home Loan (2 accounts), Auto Loan (3 accounts), and Credit Card (1 account). Key highlights include a high credit card utilization percentage, with 0% outstanding balance on the Credit Card product. Additionally, there are DPD values above zero for a<span class="teaser-dots">… <span class="more-toggle" onclick="toggleSummary()">read more</span></span><span class="more">ll loan products, indicating some level of delinquency. The customer has an obligation of INR 17,24,029 and a FOIR ratio of &gt;300%, indicating an over-leveraged business/guarantor profile.
 
-The customer&#39;s tradeline portfolio consists of N=50 total tradelines (M live = 15, P closed = 35). The portfolio features a mix of loan products, including Commercial Vehicle Loan (44 accounts), Auto Loan (3 accounts), Credit Card (1 account), and Home Loan (2 accounts). Key highlights include a high sanctioned exposure amount of INR 39,89,74,518, with a total outstanding amount of INR 14,84,39,359. The customer has a <span class="teaser-dots">… <span class="more-toggle" onclick="toggleSummary()">read more</span></span><span class="more">significant unsecured obligation of INR 15,000, with an unsecured outstanding amount of 0%. Notably, the credit card utilization percentage is not available, and there are no DPD values above zero. The FOIR ratio is &gt;300%, indicating an over-leveraged business/guarantor profile.
-
-The customer&#39;s behavioral features raise some concerns. The % Missed Payments Last 18M is 6.55%, which flags as [CONCERN — some missed payments]. The % Trades with 0+ DPD in 24M (All) is 16.00, indicating a high risk of loan stacking ([HIGH RISK]). Additionally, the Trade-to-Enquiry Ratio (Unsec 24M) is 0.00%, which flags as [CONCERN — low conversion, possible rejections]. The Avg Interpurchase Time All Loans (24M) is 1.39 months, indicating a frequent acquisition of new loans ([CONCERN — frequent acquisitions]). <span class="more-toggle" onclick="toggleSummary()">show less</span></span></div>
+The behavioral insights suggest that the customer&#39;s credit behavior is characterized by [HIGH RISK] features, including high loan acquisition velocity (Avg Interpurchase Time All Loans: 1.39 months) and high % Trades with 0+ DPD in 12M (21.05%). The customer has also experienced some missed payments (6.55% of total trades), indicating a [CONCERN]. Furthermore, the trade-to-enquiry ratio is low (0.00%), suggesting possible rejections or concerns about creditworthiness ([CONCERN]). On the other hand, there are no notable [POSITIVE] features in this portfolio. <span class="more-toggle" onclick="toggleSummary()">show less</span></span></div>
     
   </div>
   
@@ -1105,7 +1135,7 @@ The customer&#39;s behavioral features raise some concerns. The % Missed Payment
   
   <div class="panel" id="portfolio">
     <h2>Portfolio <span class="count">50 tradelines · 15 live</span></h2>
-    <p class="viz-caption">Concentrated in Commercial Vehicle Loan; largely secured.</p>
+    <p class="viz-caption">Concentrated in Commercial Equipment Loan; largely secured.</p>
     <div class="tabs">
       <button class="active" onclick="tab(event,'pf-overview')">Overview</button>
       <button onclick="tab(event,'pf-onus')">Kotak (On-Us)</button>
@@ -1150,7 +1180,7 @@ The customer&#39;s behavioral features raise some concerns. The % Missed Payment
         <div class="tile">
           <label>Largest Single Loan</label>
           <div class="value">INR 6.10 Cr
-            <small>(Commercial Vehicle Loan)</small>
+            <small>(Commercial Equipment Loan)</small>
           </div>
         </div>
         
@@ -1158,7 +1188,7 @@ The customer&#39;s behavioral features raise some concerns. The % Missed Payment
         <div class="tile">
           <label>Joint Loans</label>
           <div class="value">29 tradeline(s)
-            <small>(Commercial Vehicle Loan, Home Loan)</small>
+            <small>(Commercial Equipment Loan, Commercial Vehicle Loan, Home Loan)</small>
           </div>
         </div>
         
@@ -1171,7 +1201,7 @@ The customer&#39;s behavioral features raise some concerns. The % Missed Payment
         <div class="blk-title">Kotak Relationship (On-Us)</div>
         <div class="tile-grid">
           <div class="tile"><label>On-Us Tradelines</label><div class="value">28 <small>(7 live)</small></div></div>
-          <div class="tile"><label>Products</label><div class="value">Commercial Vehicle Loan, Credit Card</div></div>
+          <div class="tile"><label>Products</label><div class="value">Commercial Equipment Loan, Credit Card</div></div>
           <div class="tile"><label>Sanctioned</label><div class="value">INR 18.39 Cr</div></div>
           <div class="tile"><label>Outstanding</label><div class="value">INR 10.42 Cr</div></div>
           
@@ -1212,16 +1242,16 @@ The customer&#39;s behavioral features raise some concerns. The % Missed Payment
         <div class="split-row">
           <div class="split-name">Product mix (by count)</div>
           <div class="split-barwrap">
-            <div class="split-bar"><div class="split-seg" style="width:88.0%;background:#A0CBE8" title="Commercial Vehicle Loan: 44 (88.0%)"></div><div class="split-seg" style="width:6.0%;background:#E15759" title="Auto Loan: 3 (6.0%)"></div><div class="split-seg" style="width:4.0%;background:#59A14F" title="Home Loan: 2 (4.0%)"></div><div class="split-seg" style="width:2.0%;background:#F28E2B" title="Credit Card: 1 (2.0%)"></div></div>
+            <div class="split-bar"><div class="split-seg" style="width:86.0%;background:#4E79A7" title="Commercial Equipment Loan: 43 (86.0%)"></div><div class="split-seg" style="width:6.0%;background:#E15759" title="Auto Loan: 3 (6.0%)"></div><div class="split-seg" style="width:4.0%;background:#59A14F" title="Home Loan: 2 (4.0%)"></div><div class="split-seg" style="width:2.0%;background:#A0CBE8" title="Commercial Vehicle Loan: 1 (2.0%)"></div><div class="split-seg" style="width:2.0%;background:#F28E2B" title="Credit Card: 1 (2.0%)"></div></div>
           </div>
           <div class="split-legend">
             
-              <span class="sv"><span class="dot" style="background:#A0CBE8"></span>Commercial Vehicle Loan <b>44</b></span><span class="sv"><span class="dot" style="background:#E15759"></span>Auto Loan <b>3</b></span>
+              <span class="sv"><span class="dot" style="background:#4E79A7"></span>Commercial Equipment Loan <b>43</b></span><span class="sv"><span class="dot" style="background:#E15759"></span>Auto Loan <b>3</b></span>
               
               <div class="sv-more">
-                <button type="button" class="sv-more-btn">+2 more</button>
+                <button type="button" class="sv-more-btn">+3 more</button>
                 <div class="sv-pop" hidden>
-                  <span class="svp"><span class="dot" style="background:#A0CBE8"></span>Commercial Vehicle Loan <b>44</b> · 88.0%</span><span class="svp"><span class="dot" style="background:#E15759"></span>Auto Loan <b>3</b> · 6.0%</span><span class="svp"><span class="dot" style="background:#59A14F"></span>Home Loan <b>2</b> · 4.0%</span><span class="svp"><span class="dot" style="background:#F28E2B"></span>Credit Card <b>1</b> · 2.0%</span>
+                  <span class="svp"><span class="dot" style="background:#4E79A7"></span>Commercial Equipment Loan <b>43</b> · 86.0%</span><span class="svp"><span class="dot" style="background:#E15759"></span>Auto Loan <b>3</b> · 6.0%</span><span class="svp"><span class="dot" style="background:#59A14F"></span>Home Loan <b>2</b> · 4.0%</span><span class="svp"><span class="dot" style="background:#A0CBE8"></span>Commercial Vehicle Loan <b>1</b> · 2.0%</span><span class="svp"><span class="dot" style="background:#F28E2B"></span>Credit Card <b>1</b> · 2.0%</span>
                 </div>
               </div>
               
@@ -1276,21 +1306,88 @@ The customer&#39;s behavioral features raise some concerns. The % Missed Payment
     <div class="tab-body" id="viz-time">
       
       
-      <div class="expo-wrap" id="expoWrap">
-        <div class="expo-left">
-          <div class="expo-right-title">Total exposure</div>
-          <div class="expo-spark"><svg viewBox="0 0 240 40" width="240" height="40" class="spark" role="img" aria-label="exposure trend"><polygon points="4,36 4.0,33.6 14.1,33.6 24.2,36.0 34.3,36.0 44.3,5.7 54.4,4.4 64.5,4.4 74.6,4.4 84.7,4.4 94.8,7.7 104.9,9.1 115.0,9.1 125.0,7.2 135.1,4.0 145.2,4.0 155.3,4.0 165.4,4.0 175.5,5.3 185.6,5.3 195.7,5.3 205.7,5.3 215.8,5.3 225.9,5.3 236.0,5.3 236,36" fill="#6366f120" stroke="none"/><polyline points="4.0,33.6 14.1,33.6 24.2,36.0 34.3,36.0 44.3,5.7 54.4,4.4 64.5,4.4 74.6,4.4 84.7,4.4 94.8,7.7 104.9,9.1 115.0,9.1 125.0,7.2 135.1,4.0 145.2,4.0 155.3,4.0 165.4,4.0 175.5,5.3 185.6,5.3 195.7,5.3 205.7,5.3 215.8,5.3 225.9,5.3 236.0,5.3" fill="none" stroke="#6366f1" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="236.0" cy="5.3" r="3" fill="#6366f1"/></svg></div>
-          <div class="expo-stats">
-            <div class="es"><span class="k">Peak</span><span class="v">₹23.8Cr</span><span class="sub">Sep 2025</span></div>
-            <div class="es"><span class="k">Now</span><span class="v">₹23.5Cr</span><span class="sub">1% below peak</span></div>
-            <div class="es"><span class="k">Trend</span><span class="v">Rising</span><span class="sub">sanctioned exposure</span></div>
-          </div>
+      <div class="yexp-wrap">
+        <div class="yexp-title">Exposure by year — yearly &amp; cumulative
+          <span class="yexp-legend"><i style="background:#10b981"></i>Added</span>
+          <span class="yexp-legend"><i style="background:#6366f1"></i>Cumulative</span>
         </div>
-        <div class="expo-right" id="expoRight">
-          <div class="expo-right-title">By product</div>
-          <div class="chart-wrap expo-chart"><canvas id="cmbChartTimeseries"></canvas></div>
-        </div>
+        <div class="yexp-cap">Outstanding grouped by year opened · cumulative reaches ₹14.84 Cr (total outstanding)</div>
+        <table class="yexp-table">
+          
+          <tbody class="yexp-year">
+            <tr>
+              <td class="yexp-yr" rowspan="2">2021</td>
+              <td class="yexp-lbl">Added</td>
+              <td class="yexp-bar"><div class="yexp-track"><span class="yexp-fill yearly" style="width:0%"></span></div></td>
+              <td class="yexp-val">—</td>
+            </tr>
+            <tr>
+              <td class="yexp-lbl">Cumulative</td>
+              <td class="yexp-bar"><div class="yexp-track"><span class="yexp-fill cumulative" style="width:0%"></span></div></td>
+              <td class="yexp-val">₹0</td>
+            </tr>
+          </tbody>
+          
+          <tbody class="yexp-year">
+            <tr>
+              <td class="yexp-yr" rowspan="2">2022</td>
+              <td class="yexp-lbl">Added</td>
+              <td class="yexp-bar"><div class="yexp-track"><span class="yexp-fill yearly" style="width:14%"></span></div></td>
+              <td class="yexp-val">+₹92.21 L</td>
+            </tr>
+            <tr>
+              <td class="yexp-lbl">Cumulative</td>
+              <td class="yexp-bar"><div class="yexp-track"><span class="yexp-fill cumulative" style="width:6%"></span></div></td>
+              <td class="yexp-val">₹92.21 L</td>
+            </tr>
+          </tbody>
+          
+          <tbody class="yexp-year">
+            <tr>
+              <td class="yexp-yr" rowspan="2">2023</td>
+              <td class="yexp-lbl">Added</td>
+              <td class="yexp-bar"><div class="yexp-track"><span class="yexp-fill yearly" style="width:78%"></span></div></td>
+              <td class="yexp-val">+₹5.10 Cr</td>
+            </tr>
+            <tr>
+              <td class="yexp-lbl">Cumulative</td>
+              <td class="yexp-bar"><div class="yexp-track"><span class="yexp-fill cumulative" style="width:41%"></span></div></td>
+              <td class="yexp-val">₹6.03 Cr</td>
+            </tr>
+          </tbody>
+          
+          <tbody class="yexp-year">
+            <tr>
+              <td class="yexp-yr" rowspan="2">2024</td>
+              <td class="yexp-lbl">Added</td>
+              <td class="yexp-bar"><div class="yexp-track"><span class="yexp-fill yearly" style="width:100%"></span></div></td>
+              <td class="yexp-val">+₹6.53 Cr</td>
+            </tr>
+            <tr>
+              <td class="yexp-lbl">Cumulative</td>
+              <td class="yexp-bar"><div class="yexp-track"><span class="yexp-fill cumulative" style="width:85%"></span></div></td>
+              <td class="yexp-val">₹12.56 Cr</td>
+            </tr>
+          </tbody>
+          
+          <tbody class="yexp-year">
+            <tr>
+              <td class="yexp-yr" rowspan="2">2025</td>
+              <td class="yexp-lbl">Added</td>
+              <td class="yexp-bar"><div class="yexp-track"><span class="yexp-fill yearly" style="width:35%"></span></div></td>
+              <td class="yexp-val">+₹2.29 Cr</td>
+            </tr>
+            <tr>
+              <td class="yexp-lbl">Cumulative</td>
+              <td class="yexp-bar"><div class="yexp-track"><span class="yexp-fill cumulative" style="width:100%"></span></div></td>
+              <td class="yexp-val">₹14.84 Cr</td>
+            </tr>
+          </tbody>
+          
+        </table>
       </div>
+      
+
       
     </div>
     
@@ -1356,8 +1453,8 @@ The customer&#39;s behavioral features raise some concerns. The % Missed Payment
         </div>
   
         <div class="dpd-lane">
-          <div class="dol" title="Commercial Vehicle Loan · ₹1.3Cr · Closed">
-            <span class="dpd-nm">Commercial Vehicle Loan</span>
+          <div class="dol" title="Commercial Equipment Loan · ₹1.3Cr · Closed">
+            <span class="dpd-nm">Commercial Equipment Loan</span>
             <span class="dpd-sb">2021 · ₹1.3Cr</span>
           </div>
           <div class="dob"><span class="dpd-c s-ok lvl0 dpd-old" title="Jan 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Feb 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Mar 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Apr 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="May 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jun 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jul 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Aug 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Sep 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Oct 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Nov 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Dec 23 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 24 · 0"></span><span class="dpd-c s-ok lvl0" title="May 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 24 · 0"></span><span class="dpd-c s-dpd lvl1" title="Dec 24 · 11"></span><span class="dpd-c s-dpd lvl2" title="Jan 25 · 39"></span><span class="dpd-c s-ok lvl0" title="Feb 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 25 · 0"></span><span class="dpd-c s-none lvl0" title="Apr 25"></span><span class="dpd-c s-none lvl0" title="May 25"></span><span class="dpd-c s-none lvl0" title="Jun 25"></span><span class="dpd-c s-none lvl0" title="Jul 25"></span><span class="dpd-c s-none lvl0" title="Aug 25"></span><span class="dpd-c s-none lvl0" title="Sep 25"></span><span class="dpd-c s-none lvl0" title="Oct 25"></span><span class="dpd-c s-none lvl0" title="Nov 25"></span><span class="dpd-c s-none lvl0" title="Dec 25"></span></div>
@@ -1371,22 +1468,6 @@ The customer&#39;s behavioral features raise some concerns. The % Missed Payment
           <div class="dpd-clean-list" id="dpdCleanList" hidden>
             
         <div class="dpd-lane">
-          <div class="dol" title="Commercial Vehicle Loan · ₹50.0L · Kotak · Live">
-            <span class="dpd-nm">Commercial Vehicle Loan</span>
-            <span class="dpd-sb">2025 · ₹50.0L · KTK</span>
-          </div>
-          <div class="dob"><span class="dpd-c s-none lvl0 dpd-old" title="Jan 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Feb 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Mar 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Apr 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="May 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jun 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jul 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Aug 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Sep 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Oct 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Nov 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Dec 23"></span><span class="dpd-c s-none lvl0" title="Jan 24"></span><span class="dpd-c s-none lvl0" title="Feb 24"></span><span class="dpd-c s-none lvl0" title="Mar 24"></span><span class="dpd-c s-none lvl0" title="Apr 24"></span><span class="dpd-c s-none lvl0" title="May 24"></span><span class="dpd-c s-none lvl0" title="Jun 24"></span><span class="dpd-c s-none lvl0" title="Jul 24"></span><span class="dpd-c s-none lvl0" title="Aug 24"></span><span class="dpd-c s-none lvl0" title="Sep 24"></span><span class="dpd-c s-none lvl0" title="Oct 24"></span><span class="dpd-c s-none lvl0" title="Nov 24"></span><span class="dpd-c s-none lvl0" title="Dec 24"></span><span class="dpd-c s-none lvl0" title="Jan 25"></span><span class="dpd-c s-none lvl0" title="Feb 25"></span><span class="dpd-c s-none lvl0" title="Mar 25"></span><span class="dpd-c s-none lvl0" title="Apr 25"></span><span class="dpd-c s-none lvl0" title="May 25"></span><span class="dpd-c s-none lvl0" title="Jun 25"></span><span class="dpd-c s-ok lvl0" title="Jul 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 25 · 0"></span></div>
-        </div>
-  
-        <div class="dpd-lane">
-          <div class="dol" title="Commercial Vehicle Loan · ₹1.3Cr · Live">
-            <span class="dpd-nm">Commercial Vehicle Loan</span>
-            <span class="dpd-sb">2025 · ₹1.3Cr</span>
-          </div>
-          <div class="dob"><span class="dpd-c s-none lvl0 dpd-old" title="Jan 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Feb 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Mar 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Apr 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="May 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jun 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jul 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Aug 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Sep 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Oct 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Nov 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Dec 23"></span><span class="dpd-c s-none lvl0" title="Jan 24"></span><span class="dpd-c s-none lvl0" title="Feb 24"></span><span class="dpd-c s-none lvl0" title="Mar 24"></span><span class="dpd-c s-none lvl0" title="Apr 24"></span><span class="dpd-c s-none lvl0" title="May 24"></span><span class="dpd-c s-none lvl0" title="Jun 24"></span><span class="dpd-c s-none lvl0" title="Jul 24"></span><span class="dpd-c s-none lvl0" title="Aug 24"></span><span class="dpd-c s-none lvl0" title="Sep 24"></span><span class="dpd-c s-none lvl0" title="Oct 24"></span><span class="dpd-c s-none lvl0" title="Nov 24"></span><span class="dpd-c s-none lvl0" title="Dec 24"></span><span class="dpd-c s-none lvl0" title="Jan 25"></span><span class="dpd-c s-none lvl0" title="Feb 25"></span><span class="dpd-c s-none lvl0" title="Mar 25"></span><span class="dpd-c s-none lvl0" title="Apr 25"></span><span class="dpd-c s-none lvl0" title="May 25"></span><span class="dpd-c s-none lvl0" title="Jun 25"></span><span class="dpd-c s-none lvl0" title="Jul 25"></span><span class="dpd-c s-ok lvl0" title="Aug 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 25 · 0"></span></div>
-        </div>
-  
-        <div class="dpd-lane">
           <div class="dol" title="Commercial Vehicle Loan · ₹34.6L · Live">
             <span class="dpd-nm">Commercial Vehicle Loan</span>
             <span class="dpd-sb">2025 · ₹34.6L</span>
@@ -1395,43 +1476,75 @@ The customer&#39;s behavioral features raise some concerns. The % Missed Payment
         </div>
   
         <div class="dpd-lane">
-          <div class="dol" title="Commercial Vehicle Loan · ₹45.0L · Live">
-            <span class="dpd-nm">Commercial Vehicle Loan</span>
+          <div class="dol" title="Commercial Equipment Loan · ₹45.0L · Live">
+            <span class="dpd-nm">Commercial Equipment Loan</span>
             <span class="dpd-sb">2025 · ₹45.0L</span>
           </div>
           <div class="dob"><span class="dpd-c s-none lvl0 dpd-old" title="Jan 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Feb 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Mar 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Apr 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="May 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jun 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jul 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Aug 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Sep 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Oct 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Nov 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Dec 23"></span><span class="dpd-c s-none lvl0" title="Jan 24"></span><span class="dpd-c s-none lvl0" title="Feb 24"></span><span class="dpd-c s-none lvl0" title="Mar 24"></span><span class="dpd-c s-none lvl0" title="Apr 24"></span><span class="dpd-c s-none lvl0" title="May 24"></span><span class="dpd-c s-none lvl0" title="Jun 24"></span><span class="dpd-c s-none lvl0" title="Jul 24"></span><span class="dpd-c s-none lvl0" title="Aug 24"></span><span class="dpd-c s-none lvl0" title="Sep 24"></span><span class="dpd-c s-none lvl0" title="Oct 24"></span><span class="dpd-c s-none lvl0" title="Nov 24"></span><span class="dpd-c s-none lvl0" title="Dec 24"></span><span class="dpd-c s-none lvl0" title="Jan 25"></span><span class="dpd-c s-none lvl0" title="Feb 25"></span><span class="dpd-c s-none lvl0" title="Mar 25"></span><span class="dpd-c s-none lvl0" title="Apr 25"></span><span class="dpd-c s-ok lvl0" title="May 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 25 · 0"></span></div>
         </div>
   
         <div class="dpd-lane">
-          <div class="dol" title="Commercial Vehicle Loan · ₹1.7Cr · Kotak · Live">
-            <span class="dpd-nm">Commercial Vehicle Loan</span>
-            <span class="dpd-sb">2024 · ₹1.7Cr · KTK</span>
+          <div class="dol" title="Commercial Equipment Loan · ₹50.0L · Kotak · Live">
+            <span class="dpd-nm">Commercial Equipment Loan</span>
+            <span class="dpd-sb">2025 · ₹50.0L · KTK</span>
           </div>
-          <div class="dob"><span class="dpd-c s-none lvl0 dpd-old" title="Jan 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Feb 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Mar 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Apr 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="May 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jun 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jul 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Aug 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Sep 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Oct 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Nov 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Dec 23"></span><span class="dpd-c s-none lvl0" title="Jan 24"></span><span class="dpd-c s-none lvl0" title="Feb 24"></span><span class="dpd-c s-none lvl0" title="Mar 24"></span><span class="dpd-c s-none lvl0" title="Apr 24"></span><span class="dpd-c s-none lvl0" title="May 24"></span><span class="dpd-c s-none lvl0" title="Jun 24"></span><span class="dpd-c s-none lvl0" title="Jul 24"></span><span class="dpd-c s-none lvl0" title="Aug 24"></span><span class="dpd-c s-none lvl0" title="Sep 24"></span><span class="dpd-c s-none lvl0" title="Oct 24"></span><span class="dpd-c s-ok lvl0" title="Nov 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 25 · 0"></span><span class="dpd-c s-ok lvl0" title="May 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 25 · 0"></span></div>
+          <div class="dob"><span class="dpd-c s-none lvl0 dpd-old" title="Jan 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Feb 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Mar 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Apr 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="May 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jun 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jul 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Aug 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Sep 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Oct 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Nov 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Dec 23"></span><span class="dpd-c s-none lvl0" title="Jan 24"></span><span class="dpd-c s-none lvl0" title="Feb 24"></span><span class="dpd-c s-none lvl0" title="Mar 24"></span><span class="dpd-c s-none lvl0" title="Apr 24"></span><span class="dpd-c s-none lvl0" title="May 24"></span><span class="dpd-c s-none lvl0" title="Jun 24"></span><span class="dpd-c s-none lvl0" title="Jul 24"></span><span class="dpd-c s-none lvl0" title="Aug 24"></span><span class="dpd-c s-none lvl0" title="Sep 24"></span><span class="dpd-c s-none lvl0" title="Oct 24"></span><span class="dpd-c s-none lvl0" title="Nov 24"></span><span class="dpd-c s-none lvl0" title="Dec 24"></span><span class="dpd-c s-none lvl0" title="Jan 25"></span><span class="dpd-c s-none lvl0" title="Feb 25"></span><span class="dpd-c s-none lvl0" title="Mar 25"></span><span class="dpd-c s-none lvl0" title="Apr 25"></span><span class="dpd-c s-none lvl0" title="May 25"></span><span class="dpd-c s-none lvl0" title="Jun 25"></span><span class="dpd-c s-ok lvl0" title="Jul 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 25 · 0"></span></div>
         </div>
   
         <div class="dpd-lane">
-          <div class="dol" title="Commercial Vehicle Loan · ₹35.0L · Kotak · Closed">
-            <span class="dpd-nm">Commercial Vehicle Loan</span>
-            <span class="dpd-sb">2024 · ₹35.0L · KTK</span>
+          <div class="dol" title="Commercial Equipment Loan · ₹1.3Cr · Live">
+            <span class="dpd-nm">Commercial Equipment Loan</span>
+            <span class="dpd-sb">2025 · ₹1.3Cr</span>
           </div>
-          <div class="dob"><span class="dpd-c s-none lvl0 dpd-old" title="Jan 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Feb 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Mar 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Apr 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="May 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jun 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jul 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Aug 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Sep 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Oct 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Nov 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Dec 23"></span><span class="dpd-c s-none lvl0" title="Jan 24"></span><span class="dpd-c s-none lvl0" title="Feb 24"></span><span class="dpd-c s-none lvl0" title="Mar 24"></span><span class="dpd-c s-none lvl0" title="Apr 24"></span><span class="dpd-c s-none lvl0" title="May 24"></span><span class="dpd-c s-none lvl0" title="Jun 24"></span><span class="dpd-c s-none lvl0" title="Jul 24"></span><span class="dpd-c s-none lvl0" title="Aug 24"></span><span class="dpd-c s-none lvl0" title="Sep 24"></span><span class="dpd-c s-none lvl0" title="Oct 24"></span><span class="dpd-c s-ok lvl0" title="Nov 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 25 · 0"></span><span class="dpd-c s-ok lvl0" title="May 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 25 · 0"></span><span class="dpd-c s-none lvl0" title="Dec 25"></span></div>
+          <div class="dob"><span class="dpd-c s-none lvl0 dpd-old" title="Jan 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Feb 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Mar 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Apr 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="May 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jun 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jul 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Aug 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Sep 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Oct 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Nov 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Dec 23"></span><span class="dpd-c s-none lvl0" title="Jan 24"></span><span class="dpd-c s-none lvl0" title="Feb 24"></span><span class="dpd-c s-none lvl0" title="Mar 24"></span><span class="dpd-c s-none lvl0" title="Apr 24"></span><span class="dpd-c s-none lvl0" title="May 24"></span><span class="dpd-c s-none lvl0" title="Jun 24"></span><span class="dpd-c s-none lvl0" title="Jul 24"></span><span class="dpd-c s-none lvl0" title="Aug 24"></span><span class="dpd-c s-none lvl0" title="Sep 24"></span><span class="dpd-c s-none lvl0" title="Oct 24"></span><span class="dpd-c s-none lvl0" title="Nov 24"></span><span class="dpd-c s-none lvl0" title="Dec 24"></span><span class="dpd-c s-none lvl0" title="Jan 25"></span><span class="dpd-c s-none lvl0" title="Feb 25"></span><span class="dpd-c s-none lvl0" title="Mar 25"></span><span class="dpd-c s-none lvl0" title="Apr 25"></span><span class="dpd-c s-none lvl0" title="May 25"></span><span class="dpd-c s-none lvl0" title="Jun 25"></span><span class="dpd-c s-none lvl0" title="Jul 25"></span><span class="dpd-c s-ok lvl0" title="Aug 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 25 · 0"></span></div>
         </div>
   
         <div class="dpd-lane">
-          <div class="dol" title="Commercial Vehicle Loan · ₹6.1Cr · Kotak · Live">
-            <span class="dpd-nm">Commercial Vehicle Loan</span>
+          <div class="dol" title="Commercial Equipment Loan · ₹6.1Cr · Kotak · Live">
+            <span class="dpd-nm">Commercial Equipment Loan</span>
             <span class="dpd-sb">2024 · ₹6.1Cr · KTK</span>
           </div>
           <div class="dob"><span class="dpd-c s-none lvl0 dpd-old" title="Jan 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Feb 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Mar 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Apr 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="May 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jun 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jul 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Aug 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Sep 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Oct 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Nov 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Dec 23"></span><span class="dpd-c s-none lvl0" title="Jan 24"></span><span class="dpd-c s-none lvl0" title="Feb 24"></span><span class="dpd-c s-none lvl0" title="Mar 24"></span><span class="dpd-c s-none lvl0" title="Apr 24"></span><span class="dpd-c s-none lvl0" title="May 24"></span><span class="dpd-c s-none lvl0" title="Jun 24"></span><span class="dpd-c s-none lvl0" title="Jul 24"></span><span class="dpd-c s-none lvl0" title="Aug 24"></span><span class="dpd-c s-none lvl0" title="Sep 24"></span><span class="dpd-c s-none lvl0" title="Oct 24"></span><span class="dpd-c s-ok lvl0" title="Nov 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 25 · 0"></span><span class="dpd-c s-ok lvl0" title="May 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 25 · 0"></span></div>
         </div>
   
         <div class="dpd-lane">
-          <div class="dol" title="Commercial Vehicle Loan · ₹6.0L · Kotak · Live">
-            <span class="dpd-nm">Commercial Vehicle Loan</span>
+          <div class="dol" title="Commercial Equipment Loan · ₹1.7Cr · Kotak · Live">
+            <span class="dpd-nm">Commercial Equipment Loan</span>
+            <span class="dpd-sb">2024 · ₹1.7Cr · KTK</span>
+          </div>
+          <div class="dob"><span class="dpd-c s-none lvl0 dpd-old" title="Jan 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Feb 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Mar 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Apr 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="May 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jun 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jul 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Aug 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Sep 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Oct 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Nov 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Dec 23"></span><span class="dpd-c s-none lvl0" title="Jan 24"></span><span class="dpd-c s-none lvl0" title="Feb 24"></span><span class="dpd-c s-none lvl0" title="Mar 24"></span><span class="dpd-c s-none lvl0" title="Apr 24"></span><span class="dpd-c s-none lvl0" title="May 24"></span><span class="dpd-c s-none lvl0" title="Jun 24"></span><span class="dpd-c s-none lvl0" title="Jul 24"></span><span class="dpd-c s-none lvl0" title="Aug 24"></span><span class="dpd-c s-none lvl0" title="Sep 24"></span><span class="dpd-c s-none lvl0" title="Oct 24"></span><span class="dpd-c s-ok lvl0" title="Nov 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 25 · 0"></span><span class="dpd-c s-ok lvl0" title="May 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 25 · 0"></span></div>
+        </div>
+  
+        <div class="dpd-lane">
+          <div class="dol" title="Commercial Equipment Loan · ₹35.0L · Kotak · Closed">
+            <span class="dpd-nm">Commercial Equipment Loan</span>
+            <span class="dpd-sb">2024 · ₹35.0L · KTK</span>
+          </div>
+          <div class="dob"><span class="dpd-c s-none lvl0 dpd-old" title="Jan 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Feb 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Mar 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Apr 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="May 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jun 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jul 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Aug 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Sep 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Oct 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Nov 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Dec 23"></span><span class="dpd-c s-none lvl0" title="Jan 24"></span><span class="dpd-c s-none lvl0" title="Feb 24"></span><span class="dpd-c s-none lvl0" title="Mar 24"></span><span class="dpd-c s-none lvl0" title="Apr 24"></span><span class="dpd-c s-none lvl0" title="May 24"></span><span class="dpd-c s-none lvl0" title="Jun 24"></span><span class="dpd-c s-none lvl0" title="Jul 24"></span><span class="dpd-c s-none lvl0" title="Aug 24"></span><span class="dpd-c s-none lvl0" title="Sep 24"></span><span class="dpd-c s-none lvl0" title="Oct 24"></span><span class="dpd-c s-ok lvl0" title="Nov 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 25 · 0"></span><span class="dpd-c s-ok lvl0" title="May 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 25 · 0"></span><span class="dpd-c s-none lvl0" title="Dec 25"></span></div>
+        </div>
+  
+        <div class="dpd-lane">
+          <div class="dol" title="Commercial Equipment Loan · ₹5.2Cr · Live">
+            <span class="dpd-nm">Commercial Equipment Loan</span>
+            <span class="dpd-sb">2023 · ₹5.2Cr</span>
+          </div>
+          <div class="dob"><span class="dpd-c s-ok lvl0 dpd-old" title="Jan 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Feb 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Mar 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Apr 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="May 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jun 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jul 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Aug 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Sep 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Oct 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Nov 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Dec 23 · 0"></span><span class="dpd-c s-none lvl0" title="Jan 24"></span><span class="dpd-c s-ok lvl0" title="Feb 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 24 · 0"></span><span class="dpd-c s-ok lvl0" title="May 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 25 · 0"></span><span class="dpd-c s-ok lvl0" title="May 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 25 · 0"></span></div>
+        </div>
+  
+        <div class="dpd-lane">
+          <div class="dol" title="Commercial Equipment Loan · ₹6.0L · Kotak · Live">
+            <span class="dpd-nm">Commercial Equipment Loan</span>
             <span class="dpd-sb">2023 · ₹6.0L · KTK</span>
           </div>
           <div class="dob"><span class="dpd-c s-none lvl0 dpd-old" title="Jan 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Feb 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Mar 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Apr 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="May 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jun 23"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jul 23 · 0"></span><span class="dpd-c s-none lvl0 dpd-old" title="Aug 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Sep 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Oct 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Nov 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Dec 23"></span><span class="dpd-c s-none lvl0" title="Jan 24"></span><span class="dpd-c s-none lvl0" title="Feb 24"></span><span class="dpd-c s-none lvl0" title="Mar 24"></span><span class="dpd-c s-none lvl0" title="Apr 24"></span><span class="dpd-c s-none lvl0" title="May 24"></span><span class="dpd-c s-none lvl0" title="Jun 24"></span><span class="dpd-c s-none lvl0" title="Jul 24"></span><span class="dpd-c s-none lvl0" title="Aug 24"></span><span class="dpd-c s-none lvl0" title="Sep 24"></span><span class="dpd-c s-none lvl0" title="Oct 24"></span><span class="dpd-c s-none lvl0" title="Nov 24"></span><span class="dpd-c s-none lvl0" title="Dec 24"></span><span class="dpd-c s-none lvl0" title="Jan 25"></span><span class="dpd-c s-none lvl0" title="Feb 25"></span><span class="dpd-c s-none lvl0" title="Mar 25"></span><span class="dpd-c s-none lvl0" title="Apr 25"></span><span class="dpd-c s-none lvl0" title="May 25"></span><span class="dpd-c s-none lvl0" title="Jun 25"></span><span class="dpd-c s-none lvl0" title="Jul 25"></span><span class="dpd-c s-none lvl0" title="Aug 25"></span><span class="dpd-c s-none lvl0" title="Sep 25"></span><span class="dpd-c s-none lvl0" title="Oct 25"></span><span class="dpd-c s-none lvl0" title="Nov 25"></span><span class="dpd-c s-none lvl0" title="Dec 25"></span></div>
+        </div>
+  
+        <div class="dpd-lane">
+          <div class="dol" title="Commercial Equipment Loan · ₹4.1Cr · Kotak · Live">
+            <span class="dpd-nm">Commercial Equipment Loan</span>
+            <span class="dpd-sb">2023 · ₹4.1Cr · KTK</span>
+          </div>
+          <div class="dob"><span class="dpd-c s-none lvl0 dpd-old" title="Jan 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Feb 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Mar 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Apr 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="May 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jun 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jul 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Aug 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Sep 23"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Oct 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Nov 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Dec 23 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 24 · 0"></span><span class="dpd-c s-ok lvl0" title="May 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 25 · 0"></span><span class="dpd-c s-ok lvl0" title="May 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 25 · 0"></span></div>
         </div>
   
         <div class="dpd-lane">
@@ -1443,88 +1556,72 @@ The customer&#39;s behavioral features raise some concerns. The % Missed Payment
         </div>
   
         <div class="dpd-lane">
-          <div class="dol" title="Commercial Vehicle Loan · ₹4.1Cr · Kotak · Live">
-            <span class="dpd-nm">Commercial Vehicle Loan</span>
-            <span class="dpd-sb">2023 · ₹4.1Cr · KTK</span>
-          </div>
-          <div class="dob"><span class="dpd-c s-none lvl0 dpd-old" title="Jan 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Feb 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Mar 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Apr 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="May 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jun 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jul 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Aug 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Sep 23"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Oct 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Nov 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Dec 23 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 24 · 0"></span><span class="dpd-c s-ok lvl0" title="May 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 25 · 0"></span><span class="dpd-c s-ok lvl0" title="May 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 25 · 0"></span></div>
-        </div>
-  
-        <div class="dpd-lane">
-          <div class="dol" title="Commercial Vehicle Loan · ₹5.2Cr · Live">
-            <span class="dpd-nm">Commercial Vehicle Loan</span>
-            <span class="dpd-sb">2023 · ₹5.2Cr</span>
-          </div>
-          <div class="dob"><span class="dpd-c s-ok lvl0 dpd-old" title="Jan 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Feb 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Mar 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Apr 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="May 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jun 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jul 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Aug 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Sep 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Oct 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Nov 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Dec 23 · 0"></span><span class="dpd-c s-none lvl0" title="Jan 24"></span><span class="dpd-c s-ok lvl0" title="Feb 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 24 · 0"></span><span class="dpd-c s-ok lvl0" title="May 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 25 · 0"></span><span class="dpd-c s-ok lvl0" title="May 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 25 · 0"></span></div>
-        </div>
-  
-        <div class="dpd-lane">
-          <div class="dol" title="Commercial Vehicle Loan · ₹1.7Cr · Kotak · Live">
-            <span class="dpd-nm">Commercial Vehicle Loan</span>
+          <div class="dol" title="Commercial Equipment Loan · ₹1.7Cr · Kotak · Live">
+            <span class="dpd-nm">Commercial Equipment Loan</span>
             <span class="dpd-sb">2022 · ₹1.7Cr · KTK</span>
           </div>
           <div class="dob"><span class="dpd-c s-ok lvl0 dpd-old" title="Jan 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Feb 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Mar 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Apr 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="May 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jun 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jul 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Aug 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Sep 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Oct 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Nov 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Dec 23 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 24 · 0"></span><span class="dpd-c s-ok lvl0" title="May 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 25 · 0"></span><span class="dpd-c s-ok lvl0" title="May 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 25 · 0"></span></div>
         </div>
   
         <div class="dpd-lane">
-          <div class="dol" title="Commercial Vehicle Loan · ₹40.0L · Kotak · Closed">
-            <span class="dpd-nm">Commercial Vehicle Loan</span>
+          <div class="dol" title="Commercial Equipment Loan · ₹40.0L · Kotak · Closed">
+            <span class="dpd-nm">Commercial Equipment Loan</span>
             <span class="dpd-sb">2022 · ₹40.0L · KTK</span>
           </div>
           <div class="dob"><span class="dpd-c s-ok lvl0 dpd-old" title="Jan 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Feb 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Mar 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Apr 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="May 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jun 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jul 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Aug 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Sep 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Oct 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Nov 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Dec 23 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 24 · 0"></span><span class="dpd-c s-ok lvl0" title="May 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 25 · 0"></span><span class="dpd-c s-ok lvl0" title="May 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 25 · 0"></span><span class="dpd-c s-none lvl0" title="Aug 25"></span><span class="dpd-c s-none lvl0" title="Sep 25"></span><span class="dpd-c s-none lvl0" title="Oct 25"></span><span class="dpd-c s-none lvl0" title="Nov 25"></span><span class="dpd-c s-none lvl0" title="Dec 25"></span></div>
         </div>
   
         <div class="dpd-lane">
-          <div class="dol" title="Commercial Vehicle Loan · ₹1.1Cr · Closed">
-            <span class="dpd-nm">Commercial Vehicle Loan</span>
-            <span class="dpd-sb">2021 · ₹1.1Cr</span>
-          </div>
-          <div class="dob"><span class="dpd-c s-ok lvl0 dpd-old" title="Jan 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Feb 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Mar 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Apr 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="May 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jun 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jul 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Aug 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Sep 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Oct 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Nov 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Dec 23 · 0"></span><span class="dpd-c s-none lvl0" title="Jan 24"></span><span class="dpd-c s-ok lvl0" title="Feb 24 · 0"></span><span class="dpd-c s-none lvl0" title="Mar 24"></span><span class="dpd-c s-none lvl0" title="Apr 24"></span><span class="dpd-c s-none lvl0" title="May 24"></span><span class="dpd-c s-none lvl0" title="Jun 24"></span><span class="dpd-c s-none lvl0" title="Jul 24"></span><span class="dpd-c s-none lvl0" title="Aug 24"></span><span class="dpd-c s-none lvl0" title="Sep 24"></span><span class="dpd-c s-none lvl0" title="Oct 24"></span><span class="dpd-c s-none lvl0" title="Nov 24"></span><span class="dpd-c s-none lvl0" title="Dec 24"></span><span class="dpd-c s-none lvl0" title="Jan 25"></span><span class="dpd-c s-none lvl0" title="Feb 25"></span><span class="dpd-c s-none lvl0" title="Mar 25"></span><span class="dpd-c s-none lvl0" title="Apr 25"></span><span class="dpd-c s-none lvl0" title="May 25"></span><span class="dpd-c s-none lvl0" title="Jun 25"></span><span class="dpd-c s-none lvl0" title="Jul 25"></span><span class="dpd-c s-none lvl0" title="Aug 25"></span><span class="dpd-c s-none lvl0" title="Sep 25"></span><span class="dpd-c s-none lvl0" title="Oct 25"></span><span class="dpd-c s-none lvl0" title="Nov 25"></span><span class="dpd-c s-none lvl0" title="Dec 25"></span></div>
-        </div>
-  
-        <div class="dpd-lane">
-          <div class="dol" title="Commercial Vehicle Loan · ₹20.2L · Kotak · Closed">
-            <span class="dpd-nm">Commercial Vehicle Loan</span>
-            <span class="dpd-sb">2021 · ₹20.2L · KTK</span>
-          </div>
-          <div class="dob"><span class="dpd-c s-ok lvl0 dpd-old" title="Jan 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Feb 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Mar 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Apr 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="May 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jun 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jul 23 · 0"></span><span class="dpd-c s-none lvl0 dpd-old" title="Aug 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Sep 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Oct 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Nov 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Dec 23"></span><span class="dpd-c s-none lvl0" title="Jan 24"></span><span class="dpd-c s-none lvl0" title="Feb 24"></span><span class="dpd-c s-none lvl0" title="Mar 24"></span><span class="dpd-c s-none lvl0" title="Apr 24"></span><span class="dpd-c s-none lvl0" title="May 24"></span><span class="dpd-c s-none lvl0" title="Jun 24"></span><span class="dpd-c s-none lvl0" title="Jul 24"></span><span class="dpd-c s-none lvl0" title="Aug 24"></span><span class="dpd-c s-none lvl0" title="Sep 24"></span><span class="dpd-c s-none lvl0" title="Oct 24"></span><span class="dpd-c s-none lvl0" title="Nov 24"></span><span class="dpd-c s-none lvl0" title="Dec 24"></span><span class="dpd-c s-none lvl0" title="Jan 25"></span><span class="dpd-c s-none lvl0" title="Feb 25"></span><span class="dpd-c s-none lvl0" title="Mar 25"></span><span class="dpd-c s-none lvl0" title="Apr 25"></span><span class="dpd-c s-none lvl0" title="May 25"></span><span class="dpd-c s-none lvl0" title="Jun 25"></span><span class="dpd-c s-none lvl0" title="Jul 25"></span><span class="dpd-c s-none lvl0" title="Aug 25"></span><span class="dpd-c s-none lvl0" title="Sep 25"></span><span class="dpd-c s-none lvl0" title="Oct 25"></span><span class="dpd-c s-none lvl0" title="Nov 25"></span><span class="dpd-c s-none lvl0" title="Dec 25"></span></div>
-        </div>
-  
-        <div class="dpd-lane">
-          <div class="dol" title="Commercial Vehicle Loan · ₹27.0L · Closed">
-            <span class="dpd-nm">Commercial Vehicle Loan</span>
-            <span class="dpd-sb">2021 · ₹27.0L</span>
-          </div>
-          <div class="dob"><span class="dpd-c s-ok lvl0 dpd-old" title="Jan 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Feb 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Mar 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Apr 23 · 0"></span><span class="dpd-c s-none lvl0 dpd-old" title="May 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jun 23"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jul 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Aug 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Sep 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Oct 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Nov 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Dec 23 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 24 · 0"></span><span class="dpd-c s-ok lvl0" title="May 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 24 · 0"></span><span class="dpd-c s-none lvl0" title="Sep 24"></span><span class="dpd-c s-none lvl0" title="Oct 24"></span><span class="dpd-c s-none lvl0" title="Nov 24"></span><span class="dpd-c s-none lvl0" title="Dec 24"></span><span class="dpd-c s-none lvl0" title="Jan 25"></span><span class="dpd-c s-none lvl0" title="Feb 25"></span><span class="dpd-c s-none lvl0" title="Mar 25"></span><span class="dpd-c s-none lvl0" title="Apr 25"></span><span class="dpd-c s-none lvl0" title="May 25"></span><span class="dpd-c s-none lvl0" title="Jun 25"></span><span class="dpd-c s-none lvl0" title="Jul 25"></span><span class="dpd-c s-none lvl0" title="Aug 25"></span><span class="dpd-c s-none lvl0" title="Sep 25"></span><span class="dpd-c s-none lvl0" title="Oct 25"></span><span class="dpd-c s-none lvl0" title="Nov 25"></span><span class="dpd-c s-none lvl0" title="Dec 25"></span></div>
-        </div>
-  
-        <div class="dpd-lane">
-          <div class="dol" title="Commercial Vehicle Loan · ₹38.2L · Closed">
-            <span class="dpd-nm">Commercial Vehicle Loan</span>
-            <span class="dpd-sb">2021 · ₹38.2L</span>
-          </div>
-          <div class="dob"><span class="dpd-c s-ok lvl0 dpd-old" title="Jan 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Feb 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Mar 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Apr 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="May 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jun 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jul 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Aug 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Sep 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Oct 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Nov 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Dec 23 · 0"></span><span class="dpd-c s-none lvl0" title="Jan 24"></span><span class="dpd-c s-ok lvl0" title="Feb 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 24 · 0"></span><span class="dpd-c s-ok lvl0" title="May 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 24 · 0"></span><span class="dpd-c s-none lvl0" title="Sep 24"></span><span class="dpd-c s-none lvl0" title="Oct 24"></span><span class="dpd-c s-none lvl0" title="Nov 24"></span><span class="dpd-c s-none lvl0" title="Dec 24"></span><span class="dpd-c s-none lvl0" title="Jan 25"></span><span class="dpd-c s-none lvl0" title="Feb 25"></span><span class="dpd-c s-none lvl0" title="Mar 25"></span><span class="dpd-c s-none lvl0" title="Apr 25"></span><span class="dpd-c s-none lvl0" title="May 25"></span><span class="dpd-c s-none lvl0" title="Jun 25"></span><span class="dpd-c s-none lvl0" title="Jul 25"></span><span class="dpd-c s-none lvl0" title="Aug 25"></span><span class="dpd-c s-none lvl0" title="Sep 25"></span><span class="dpd-c s-none lvl0" title="Oct 25"></span><span class="dpd-c s-none lvl0" title="Nov 25"></span><span class="dpd-c s-none lvl0" title="Dec 25"></span></div>
-        </div>
-  
-        <div class="dpd-lane">
-          <div class="dol" title="Commercial Vehicle Loan · ₹38.3L · Closed">
-            <span class="dpd-nm">Commercial Vehicle Loan</span>
+          <div class="dol" title="Commercial Equipment Loan · ₹38.3L · Closed">
+            <span class="dpd-nm">Commercial Equipment Loan</span>
             <span class="dpd-sb">2021 · ₹38.3L</span>
           </div>
           <div class="dob"><span class="dpd-c s-ok lvl0 dpd-old" title="Jan 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Feb 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Mar 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Apr 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="May 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jun 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jul 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Aug 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Sep 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Oct 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Nov 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Dec 23 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 24 · 0"></span><span class="dpd-c s-ok lvl0" title="May 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Sep 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Oct 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Nov 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Dec 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 25 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 25 · 0"></span><span class="dpd-c s-none lvl0" title="May 25"></span><span class="dpd-c s-none lvl0" title="Jun 25"></span><span class="dpd-c s-none lvl0" title="Jul 25"></span><span class="dpd-c s-none lvl0" title="Aug 25"></span><span class="dpd-c s-none lvl0" title="Sep 25"></span><span class="dpd-c s-none lvl0" title="Oct 25"></span><span class="dpd-c s-none lvl0" title="Nov 25"></span><span class="dpd-c s-none lvl0" title="Dec 25"></span></div>
         </div>
   
         <div class="dpd-lane">
-          <div class="dol" title="Commercial Vehicle Loan · ₹62.1L · Closed">
-            <span class="dpd-nm">Commercial Vehicle Loan</span>
+          <div class="dol" title="Commercial Equipment Loan · ₹1.1Cr · Closed">
+            <span class="dpd-nm">Commercial Equipment Loan</span>
+            <span class="dpd-sb">2021 · ₹1.1Cr</span>
+          </div>
+          <div class="dob"><span class="dpd-c s-ok lvl0 dpd-old" title="Jan 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Feb 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Mar 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Apr 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="May 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jun 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jul 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Aug 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Sep 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Oct 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Nov 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Dec 23 · 0"></span><span class="dpd-c s-none lvl0" title="Jan 24"></span><span class="dpd-c s-ok lvl0" title="Feb 24 · 0"></span><span class="dpd-c s-none lvl0" title="Mar 24"></span><span class="dpd-c s-none lvl0" title="Apr 24"></span><span class="dpd-c s-none lvl0" title="May 24"></span><span class="dpd-c s-none lvl0" title="Jun 24"></span><span class="dpd-c s-none lvl0" title="Jul 24"></span><span class="dpd-c s-none lvl0" title="Aug 24"></span><span class="dpd-c s-none lvl0" title="Sep 24"></span><span class="dpd-c s-none lvl0" title="Oct 24"></span><span class="dpd-c s-none lvl0" title="Nov 24"></span><span class="dpd-c s-none lvl0" title="Dec 24"></span><span class="dpd-c s-none lvl0" title="Jan 25"></span><span class="dpd-c s-none lvl0" title="Feb 25"></span><span class="dpd-c s-none lvl0" title="Mar 25"></span><span class="dpd-c s-none lvl0" title="Apr 25"></span><span class="dpd-c s-none lvl0" title="May 25"></span><span class="dpd-c s-none lvl0" title="Jun 25"></span><span class="dpd-c s-none lvl0" title="Jul 25"></span><span class="dpd-c s-none lvl0" title="Aug 25"></span><span class="dpd-c s-none lvl0" title="Sep 25"></span><span class="dpd-c s-none lvl0" title="Oct 25"></span><span class="dpd-c s-none lvl0" title="Nov 25"></span><span class="dpd-c s-none lvl0" title="Dec 25"></span></div>
+        </div>
+  
+        <div class="dpd-lane">
+          <div class="dol" title="Commercial Equipment Loan · ₹20.2L · Kotak · Closed">
+            <span class="dpd-nm">Commercial Equipment Loan</span>
+            <span class="dpd-sb">2021 · ₹20.2L · KTK</span>
+          </div>
+          <div class="dob"><span class="dpd-c s-ok lvl0 dpd-old" title="Jan 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Feb 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Mar 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Apr 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="May 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jun 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jul 23 · 0"></span><span class="dpd-c s-none lvl0 dpd-old" title="Aug 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Sep 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Oct 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Nov 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Dec 23"></span><span class="dpd-c s-none lvl0" title="Jan 24"></span><span class="dpd-c s-none lvl0" title="Feb 24"></span><span class="dpd-c s-none lvl0" title="Mar 24"></span><span class="dpd-c s-none lvl0" title="Apr 24"></span><span class="dpd-c s-none lvl0" title="May 24"></span><span class="dpd-c s-none lvl0" title="Jun 24"></span><span class="dpd-c s-none lvl0" title="Jul 24"></span><span class="dpd-c s-none lvl0" title="Aug 24"></span><span class="dpd-c s-none lvl0" title="Sep 24"></span><span class="dpd-c s-none lvl0" title="Oct 24"></span><span class="dpd-c s-none lvl0" title="Nov 24"></span><span class="dpd-c s-none lvl0" title="Dec 24"></span><span class="dpd-c s-none lvl0" title="Jan 25"></span><span class="dpd-c s-none lvl0" title="Feb 25"></span><span class="dpd-c s-none lvl0" title="Mar 25"></span><span class="dpd-c s-none lvl0" title="Apr 25"></span><span class="dpd-c s-none lvl0" title="May 25"></span><span class="dpd-c s-none lvl0" title="Jun 25"></span><span class="dpd-c s-none lvl0" title="Jul 25"></span><span class="dpd-c s-none lvl0" title="Aug 25"></span><span class="dpd-c s-none lvl0" title="Sep 25"></span><span class="dpd-c s-none lvl0" title="Oct 25"></span><span class="dpd-c s-none lvl0" title="Nov 25"></span><span class="dpd-c s-none lvl0" title="Dec 25"></span></div>
+        </div>
+  
+        <div class="dpd-lane">
+          <div class="dol" title="Commercial Equipment Loan · ₹27.0L · Closed">
+            <span class="dpd-nm">Commercial Equipment Loan</span>
+            <span class="dpd-sb">2021 · ₹27.0L</span>
+          </div>
+          <div class="dob"><span class="dpd-c s-ok lvl0 dpd-old" title="Jan 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Feb 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Mar 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Apr 23 · 0"></span><span class="dpd-c s-none lvl0 dpd-old" title="May 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Jun 23"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jul 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Aug 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Sep 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Oct 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Nov 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Dec 23 · 0"></span><span class="dpd-c s-ok lvl0" title="Jan 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Feb 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 24 · 0"></span><span class="dpd-c s-ok lvl0" title="May 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 24 · 0"></span><span class="dpd-c s-none lvl0" title="Sep 24"></span><span class="dpd-c s-none lvl0" title="Oct 24"></span><span class="dpd-c s-none lvl0" title="Nov 24"></span><span class="dpd-c s-none lvl0" title="Dec 24"></span><span class="dpd-c s-none lvl0" title="Jan 25"></span><span class="dpd-c s-none lvl0" title="Feb 25"></span><span class="dpd-c s-none lvl0" title="Mar 25"></span><span class="dpd-c s-none lvl0" title="Apr 25"></span><span class="dpd-c s-none lvl0" title="May 25"></span><span class="dpd-c s-none lvl0" title="Jun 25"></span><span class="dpd-c s-none lvl0" title="Jul 25"></span><span class="dpd-c s-none lvl0" title="Aug 25"></span><span class="dpd-c s-none lvl0" title="Sep 25"></span><span class="dpd-c s-none lvl0" title="Oct 25"></span><span class="dpd-c s-none lvl0" title="Nov 25"></span><span class="dpd-c s-none lvl0" title="Dec 25"></span></div>
+        </div>
+  
+        <div class="dpd-lane">
+          <div class="dol" title="Commercial Equipment Loan · ₹38.2L · Closed">
+            <span class="dpd-nm">Commercial Equipment Loan</span>
+            <span class="dpd-sb">2021 · ₹38.2L</span>
+          </div>
+          <div class="dob"><span class="dpd-c s-ok lvl0 dpd-old" title="Jan 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Feb 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Mar 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Apr 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="May 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jun 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jul 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Aug 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Sep 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Oct 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Nov 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Dec 23 · 0"></span><span class="dpd-c s-none lvl0" title="Jan 24"></span><span class="dpd-c s-ok lvl0" title="Feb 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Mar 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Apr 24 · 0"></span><span class="dpd-c s-ok lvl0" title="May 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jun 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Jul 24 · 0"></span><span class="dpd-c s-ok lvl0" title="Aug 24 · 0"></span><span class="dpd-c s-none lvl0" title="Sep 24"></span><span class="dpd-c s-none lvl0" title="Oct 24"></span><span class="dpd-c s-none lvl0" title="Nov 24"></span><span class="dpd-c s-none lvl0" title="Dec 24"></span><span class="dpd-c s-none lvl0" title="Jan 25"></span><span class="dpd-c s-none lvl0" title="Feb 25"></span><span class="dpd-c s-none lvl0" title="Mar 25"></span><span class="dpd-c s-none lvl0" title="Apr 25"></span><span class="dpd-c s-none lvl0" title="May 25"></span><span class="dpd-c s-none lvl0" title="Jun 25"></span><span class="dpd-c s-none lvl0" title="Jul 25"></span><span class="dpd-c s-none lvl0" title="Aug 25"></span><span class="dpd-c s-none lvl0" title="Sep 25"></span><span class="dpd-c s-none lvl0" title="Oct 25"></span><span class="dpd-c s-none lvl0" title="Nov 25"></span><span class="dpd-c s-none lvl0" title="Dec 25"></span></div>
+        </div>
+  
+        <div class="dpd-lane">
+          <div class="dol" title="Commercial Equipment Loan · ₹62.1L · Closed">
+            <span class="dpd-nm">Commercial Equipment Loan</span>
             <span class="dpd-sb">2020 · ₹62.1L</span>
           </div>
           <div class="dob"><span class="dpd-c s-ok lvl0 dpd-old" title="Jan 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Feb 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Mar 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Apr 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="May 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jun 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jul 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Aug 23 · 0"></span><span class="dpd-c s-none lvl0 dpd-old" title="Sep 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Oct 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Nov 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Dec 23"></span><span class="dpd-c s-none lvl0" title="Jan 24"></span><span class="dpd-c s-none lvl0" title="Feb 24"></span><span class="dpd-c s-none lvl0" title="Mar 24"></span><span class="dpd-c s-none lvl0" title="Apr 24"></span><span class="dpd-c s-none lvl0" title="May 24"></span><span class="dpd-c s-none lvl0" title="Jun 24"></span><span class="dpd-c s-none lvl0" title="Jul 24"></span><span class="dpd-c s-none lvl0" title="Aug 24"></span><span class="dpd-c s-none lvl0" title="Sep 24"></span><span class="dpd-c s-none lvl0" title="Oct 24"></span><span class="dpd-c s-none lvl0" title="Nov 24"></span><span class="dpd-c s-none lvl0" title="Dec 24"></span><span class="dpd-c s-none lvl0" title="Jan 25"></span><span class="dpd-c s-none lvl0" title="Feb 25"></span><span class="dpd-c s-none lvl0" title="Mar 25"></span><span class="dpd-c s-none lvl0" title="Apr 25"></span><span class="dpd-c s-none lvl0" title="May 25"></span><span class="dpd-c s-none lvl0" title="Jun 25"></span><span class="dpd-c s-none lvl0" title="Jul 25"></span><span class="dpd-c s-none lvl0" title="Aug 25"></span><span class="dpd-c s-none lvl0" title="Sep 25"></span><span class="dpd-c s-none lvl0" title="Oct 25"></span><span class="dpd-c s-none lvl0" title="Nov 25"></span><span class="dpd-c s-none lvl0" title="Dec 25"></span></div>
         </div>
   
         <div class="dpd-lane">
-          <div class="dol" title="Commercial Vehicle Loan · ₹1.1Cr · Kotak · Closed">
-            <span class="dpd-nm">Commercial Vehicle Loan</span>
+          <div class="dol" title="Commercial Equipment Loan · ₹1.1Cr · Kotak · Closed">
+            <span class="dpd-nm">Commercial Equipment Loan</span>
             <span class="dpd-sb">2019 · ₹1.1Cr · KTK</span>
           </div>
           <div class="dob"><span class="dpd-c s-ok lvl0 dpd-old" title="Jan 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Feb 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Mar 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Apr 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="May 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jun 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Jul 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Aug 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Sep 23 · 0"></span><span class="dpd-c s-ok lvl0 dpd-old" title="Oct 23 · 0"></span><span class="dpd-c s-none lvl0 dpd-old" title="Nov 23"></span><span class="dpd-c s-none lvl0 dpd-old" title="Dec 23"></span><span class="dpd-c s-none lvl0" title="Jan 24"></span><span class="dpd-c s-none lvl0" title="Feb 24"></span><span class="dpd-c s-none lvl0" title="Mar 24"></span><span class="dpd-c s-none lvl0" title="Apr 24"></span><span class="dpd-c s-none lvl0" title="May 24"></span><span class="dpd-c s-none lvl0" title="Jun 24"></span><span class="dpd-c s-none lvl0" title="Jul 24"></span><span class="dpd-c s-none lvl0" title="Aug 24"></span><span class="dpd-c s-none lvl0" title="Sep 24"></span><span class="dpd-c s-none lvl0" title="Oct 24"></span><span class="dpd-c s-none lvl0" title="Nov 24"></span><span class="dpd-c s-none lvl0" title="Dec 24"></span><span class="dpd-c s-none lvl0" title="Jan 25"></span><span class="dpd-c s-none lvl0" title="Feb 25"></span><span class="dpd-c s-none lvl0" title="Mar 25"></span><span class="dpd-c s-none lvl0" title="Apr 25"></span><span class="dpd-c s-none lvl0" title="May 25"></span><span class="dpd-c s-none lvl0" title="Jun 25"></span><span class="dpd-c s-none lvl0" title="Jul 25"></span><span class="dpd-c s-none lvl0" title="Aug 25"></span><span class="dpd-c s-none lvl0" title="Sep 25"></span><span class="dpd-c s-none lvl0" title="Oct 25"></span><span class="dpd-c s-none lvl0" title="Nov 25"></span><span class="dpd-c s-none lvl0" title="Dec 25"></span></div>
@@ -1577,7 +1674,7 @@ The customer&#39;s behavioral features raise some concerns. The % Missed Payment
   
   
   <div class="panel" id="products">
-    <h2>Product Portfolio Detail <span class="count">4 products</span></h2>
+    <h2>Product Portfolio Detail <span class="count">5 products</span></h2>
     <div class="tabs">
       <button class="active" onclick="tab(event,'pr-breakdown')">Breakdown</button>
       <button onclick="tab(event,'pr-vintage')">Vintage &amp; Activity</button>
@@ -1588,7 +1685,7 @@ The customer&#39;s behavioral features raise some concerns. The % Missed Payment
       
       <div class="prod-filter" id="prodFilter">
         <span class="grp-label">Show</span>
-        <button type="button" class="seg active" data-mode="all" onclick="filterProducts(event,'all')">All (4)</button>
+        <button type="button" class="seg active" data-mode="all" onclick="filterProducts(event,'all')">All (5)</button>
         <button type="button" class="seg" data-mode="delinquent" onclick="filterProducts(event,'delinquent')">Delinquent only</button>
       </div>
       <table class="data" id="prodTable">
@@ -1603,18 +1700,58 @@ The customer&#39;s behavioral features raise some concerns. The % Missed Payment
           
           
           <tr data-delinquent="yes" class="row-delinquent">
-            <td><b>Commercial Vehicle Loan</b></td>
+            <td><b>Commercial Equipment Loan</b></td>
             <td class="ctr"><span class="tag green">Yes</span></td>
-            <td class="ctr">44</td>
-            <td class="ctr">11</td>
+            <td class="ctr">43</td>
+            <td class="ctr">10</td>
             <td class="ctr">33</td>
-            <td class="num">38,40,23,518</td>
-            <td class="num">13,69,71,434</td>
+            <td class="num">38,05,66,826</td>
+            <td class="num">13,44,68,764</td>
             <td class="ctr"><span class="tag red">55</span></td>
             <td class="ctr">–</td>
             <td class="ctr">27</td>
             <td class="stat-cell">
               <span class="tag red" title="Peak days past due">Delinquent 55</span>
+              
+              
+              
+            </td>
+          </tr>
+          
+          
+          <tr data-delinquent="no">
+            <td><b>Commercial Vehicle Loan</b></td>
+            <td class="ctr"><span class="tag green">Yes</span></td>
+            <td class="ctr">1</td>
+            <td class="ctr">1</td>
+            <td class="ctr">0</td>
+            <td class="num">34,56,692</td>
+            <td class="num">25,02,670</td>
+            <td class="ctr">–</td>
+            <td class="ctr">–</td>
+            <td class="ctr">0</td>
+            <td class="stat-cell">
+              
+              
+              
+              <span class="tag green">Clean</span>
+            </td>
+          </tr>
+          
+          
+          <tr data-delinquent="yes" class="row-delinquent">
+            <td><b>Home Loan</b></td>
+            <td class="ctr"><span class="tag green">Yes</span></td>
+            <td class="ctr">2</td>
+            <td class="ctr">1</td>
+            <td class="ctr">1</td>
+            <td class="num">64,36,000</td>
+            <td class="num">56,54,063</td>
+            <td class="ctr"><span class="tag red">51</span></td>
+            <td class="ctr">–</td>
+            <td class="ctr">0</td>
+            <td class="stat-cell">
+              <span class="tag red" title="Peak days past due">Delinquent 51</span>
               
               
               
@@ -1661,26 +1798,6 @@ The customer&#39;s behavioral features raise some concerns. The % Missed Payment
             </td>
           </tr>
           
-          
-          <tr data-delinquent="yes" class="row-delinquent">
-            <td><b>Home Loan</b></td>
-            <td class="ctr"><span class="tag green">Yes</span></td>
-            <td class="ctr">2</td>
-            <td class="ctr">1</td>
-            <td class="ctr">1</td>
-            <td class="num">64,36,000</td>
-            <td class="num">56,54,063</td>
-            <td class="ctr"><span class="tag red">51</span></td>
-            <td class="ctr">–</td>
-            <td class="ctr">0</td>
-            <td class="stat-cell">
-              <span class="tag red" title="Peak days past due">Delinquent 51</span>
-              
-              
-              
-            </td>
-          </tr>
-          
           <tr class="total" data-delinquent="total">
             <td>TOTAL</td><td></td>
             <td class="ctr">50</td>
@@ -1707,14 +1824,38 @@ The customer&#39;s behavioral features raise some concerns. The % Missed Payment
         <tbody>
           
           <tr>
-            <td><b>Commercial Vehicle Loan</b></td>
+            <td><b>Commercial Equipment Loan</b></td>
             <td class="ctr">0</td>
             <td class="ctr">Aug 2012</td>
             <td class="ctr">Sep 2025</td>
             <td class="ctr">Dec 2025</td>
             <td class="ctr">6</td>
-            <td class="ctr">28</td>
+            <td class="ctr">27</td>
             <td class="ctr">7</td>
+            <td><span class="tag green">Clean</span></td>
+          </tr>
+          
+          <tr>
+            <td><b>Commercial Vehicle Loan</b></td>
+            <td class="ctr">0</td>
+            <td class="ctr">Jan 2025</td>
+            <td class="ctr">Jan 2025</td>
+            <td class="ctr">Live</td>
+            <td class="ctr">6</td>
+            <td class="ctr">1</td>
+            <td class="ctr">–</td>
+            <td><span class="tag green">Clean</span></td>
+          </tr>
+          
+          <tr>
+            <td><b>Home Loan</b></td>
+            <td class="ctr">0</td>
+            <td class="ctr">Apr 2012</td>
+            <td class="ctr">Sep 2023</td>
+            <td class="ctr">Jan 2022</td>
+            <td class="ctr">6</td>
+            <td class="ctr">1</td>
+            <td class="ctr">–</td>
             <td><span class="tag green">Clean</span></td>
           </tr>
           
@@ -1738,18 +1879,6 @@ The customer&#39;s behavioral features raise some concerns. The % Missed Payment
             <td class="ctr">Oct 2021</td>
             <td class="ctr">–</td>
             <td class="ctr">–</td>
-            <td class="ctr">–</td>
-            <td><span class="tag green">Clean</span></td>
-          </tr>
-          
-          <tr>
-            <td><b>Home Loan</b></td>
-            <td class="ctr">0</td>
-            <td class="ctr">Apr 2012</td>
-            <td class="ctr">Sep 2023</td>
-            <td class="ctr">Jan 2022</td>
-            <td class="ctr">6</td>
-            <td class="ctr">1</td>
             <td class="ctr">–</td>
             <td><span class="tag green">Clean</span></td>
           </tr>
@@ -2348,7 +2477,7 @@ The customer&#39;s behavioral features raise some concerns. The % Missed Payment
 
   
 
-  <div class="foot">Generated 2026-07-28 · BUREAU_ANALYSER v2</div>
+  <div class="foot">Generated 2026-07-29 · BUREAU_ANALYSER v2</div>
 </div>
 
 
@@ -2375,11 +2504,11 @@ The customer&#39;s behavioral features raise some concerns. The % Missed Payment
 
 
 <script id="risk-trail-data" type="application/json">
-{"checklist": [{"checked": true, "detail": "91 days \u2014 Auto Loan \u2014 17M ago", "label": "MAX DPD occurred", "severity": "high"}, {"checked": false, "detail": null, "label": "Adverse events (write-off / settlement)", "severity": "positive"}, {"checked": true, "detail": "Bureau FOIR: \u003e300% \u2014 business/guarantor profile", "label": "High FOIR (\u003e 50%)", "severity": "high"}, {"checked": false, "detail": null, "label": "CC utilization elevated (\u226530%)", "severity": "positive"}, {"checked": true, "detail": "28 Kotak loan(s): commercial_vehichle_loan(27), credit_card(1)", "label": "Customer has Kotak loan", "severity": "neutral"}, {"checked": false, "detail": null, "label": "Kotak loan default (live)", "severity": "positive"}, {"checked": true, "detail": "Sanctioned: \u20b96,436,000 | On-Us: 0, Off-Us: 2", "label": "Live Home Loan detected", "severity": "neutral"}, {"checked": true, "detail": null, "label": "Bureau thick", "severity": "positive"}, {"checked": false, "detail": "Data unavailable", "label": "Banking thick", "severity": "medium"}, {"checked": false, "detail": "Exposure 12M: Stable", "label": "Exposure elevated", "severity": "neutral"}], "concerns": ["Active delinquency detected with Max DPD of 91 days [Auto Loan: Opened: Apr 2023 \u2013 Oct 2023 | Active]", "Auto Loan: Delinquent with Max DPD of 91 days [Opened: Apr 2023 \u2013 Oct 2023 | Active]", "Commercial Vehicle Loan: Delinquent with Max DPD of 55 days [Opened: Aug 2012 \u2013 Sep 2025 | Last Closed: Dec 2025]"], "customer_id": 10472013940, "exposure_summary": "Sanctioned exposure peaked at \u20b923.8Cr in Sep 2025, led by CMVL (\u20b922.4Cr) and AL (\u20b985.0L). Current exposure stands at \u20b923.5Cr (CMVL, AL, HL active), down 1% from peak \u2014 trend stable.", "generated_at": "2026-07-28T15:05:50.656872", "key_findings": [{"account_level": true, "category": "Delinquency", "finding": "Active delinquency detected with Max DPD of 91 days [Auto Loan: Opened: Apr 2023 \u2013 Oct 2023 | Active]", "inference": "Severe delinquency indicates significant repayment stress; loan may be classified as NPA", "severity": "high_risk"}, {"account_level": true, "category": "Delinquency", "finding": "Auto Loan: Delinquent with Max DPD of 91 days [Opened: Apr 2023 \u2013 Oct 2023 | Active]", "inference": "Severe delinquency on Auto Loan account; may indicate deep financial distress", "severity": "high_risk"}, {"account_level": true, "category": "Delinquency", "finding": "Commercial Vehicle Loan: Delinquent with Max DPD of 55 days [Opened: Aug 2012 \u2013 Sep 2025 | Last Closed: Dec 2025]", "inference": "Significant past-due on Commercial Vehicle Loan; repayment discipline is compromised", "severity": "moderate_risk"}, {"account_level": true, "category": "Delinquency", "finding": "Home Loan: Delinquent with Max DPD of 51 days [Opened: Apr 2012 \u2013 Sep 2023 | Last Closed: Jan 2022]", "inference": "Significant past-due on Home Loan; repayment discipline is compromised", "severity": "moderate_risk"}, {"account_level": true, "category": "Outstanding", "finding": "Auto Loan: Overdue amount of INR 78,748 [Opened: Apr 2023 \u2013 Oct 2023 | Active]", "inference": "Active overdue balance on Auto Loan indicates unresolved payment obligation", "severity": "concern"}, {"account_level": false, "category": "Payment Behavior", "finding": "6.6% missed payments in last 18 months", "inference": "Some missed payments detected; not habitual but warrants attention", "severity": "concern"}, {"account_level": false, "category": "Enquiry Behavior", "finding": "Trade-to-enquiry ratio (unsecured, 24M): 0.0%", "inference": "Low conversion from enquiries to actual loans suggests possible rejections by lenders", "severity": "concern"}, {"account_level": false, "category": "Portfolio", "finding": "Portfolio spans 4 loan products (Commercial Vehicle Loan, Auto Loan, Credit Card, Home Loan)", "inference": "Diversified credit portfolio indicates established borrowing history across products", "severity": "neutral"}], "kpis": {"bureau_income": {"label": "Bureau Income", "rag": "neutral", "sub": "Stamp Loan: Housing Loan", "value": "\u20b964,828"}, "cibil": {"label": "CIBIL Score", "rag": "amber", "sub": "Good \u00b7 TransUnion", "value": "743"}, "exposure": {"labels": ["Aug 2024", "Sep 2024", "Oct 2024", "Nov 2024", "Dec 2024", "Jan 2025", "Feb 2025", "Mar 2025", "Apr 2025", "May 2025", "Jun 2025", "Jul 2025", "Aug 2025", "Sep 2025", "Oct 2025", "Nov 2025", "Dec 2025", "Jan 2026", "Feb 2026", "Mar 2026", "Apr 2026", "May 2026", "Jun 2026", "Jul 2026"], "rag": "neutral", "series": [158954480.0, 158954480.0, 152439920.0, 152439920.0, 233904920.0, 237361612.0, 237361612.0, 237361612.0, 237361612.0, 228566812.0, 224737744.0, 224737744.0, 229737744.0, 238373273.0, 238373273.0, 238373273.0, 238373273.0, 234873273.0, 234873273.0, 234873273.0, 234873273.0, 234873273.0, 234873273.0, 234873273.0], "sub": "Sanctioned \u20b939.90 Cr \u00b7 Unsec 0%", "value": "\u20b914.84 Cr"}, "foir": {"rag": "red", "sub": "Unsec 0.0% \u00b7 EMI \u20b91,724,029", "value": "\u003e300% \u2014 business/guarantor profile"}, "max_dpd": {"rag": "red", "sub": "17M ago \u00b7 Auto Loan", "value": "91 days"}, "verdict": {"rag": "amber", "stress_pct": 58, "sub": "2 red \u00b7 3 amber of 6 signals", "value": "CAUTION"}}, "persona": {"profiles": [{"detail": "1 CV (LCV/HCV)", "label": "Transport Operator", "track": "Transport"}, {"detail": "43 CE Loan(s)", "label": "Established Contractor", "track": "Transport"}, {"detail": "HL 64L", "label": "Mature Salaried", "track": "Salaried"}], "stress_flags": [], "summary": "Probable profile of customer is Transport Operator, Established Contractor, Mature Salaried"}, "scorecard_signals": [{"label": "CIBIL Score", "note": "Good", "rag": "amber", "tooltip": "TransUnion credit score from bureau data", "value": "743"}, {"label": "Max DPD", "note": "Auto Loan, 17M ago", "rag": "red", "tooltip": "Max DPD: 91 days (Auto Loan, 17M ago).\nThresholds: 0 = clean \u00b7 1\u201330 = amber \u00b7 \u003e30 = high risk", "value": "91 days"}, {"label": "Enquiries", "note": "Moderate", "rag": "amber", "tooltip": "Unsecured credit enquiries in last 12M: 5.\nThresholds: \u22643 = minimal \u00b7 \u226410 = moderate \u00b7 \u003e10 = high pressure", "value": "5 in 12M"}, {"label": "Payments", "note": "18M window", "rag": "amber", "tooltip": "Missed payment rate over 18M: 6.6%.\nThresholds: 0% = clean \u00b7 \u226410% = some \u00b7 \u003e10% = frequent", "value": "7% missed"}, {"label": "FOIR", "note": "Over-leveraged", "rag": "red", "tooltip": "Bureau obligation-to-income ratio.\nBureau Obligation (aff_emi): INR 1,724,029\nBureau Income: INR 64,828\nFOIR = Bureau Obligation \u00f7 Bureau Income \u00d7 100 = 2659.4%\nFOIR (unsecured only): 0.0%\nThresholds: \u226440% = comfortable \u00b7 \u226465% = stretched \u00b7 \u003e65% = over-leveraged", "value": "\u003e300% \u2014 business/guarantor profile"}, {"label": "Exposure 12M", "note": "vs 12M ago", "rag": "neutral", "tooltip": "Sanctioned exposure: Jul 2026 = \u20b92348.7L \u00b7 12M ago = \u20b92247.4L.\nChange: +4.5%. Thresholds: \u2264\u22125% = declining \u00b7 \u2264+30% = growing \u00b7 \u003e+30% = rapid", "value": "Stable"}], "strengths": [], "verdict": "CAUTION", "verdict_rag": "amber"}
+{"checklist": [{"checked": true, "detail": "91 days \u2014 Auto Loan \u2014 17M ago", "label": "MAX DPD occurred", "severity": "high"}, {"checked": false, "detail": null, "label": "Adverse events (write-off / settlement)", "severity": "positive"}, {"checked": true, "detail": "Bureau FOIR: \u003e300% \u2014 business/guarantor profile", "label": "High FOIR (\u003e 50%)", "severity": "high"}, {"checked": false, "detail": null, "label": "CC utilization elevated (\u226530%)", "severity": "positive"}, {"checked": true, "detail": "28 Kotak loan(s): commercial_equipment_loan(27), credit_card(1)", "label": "Customer has Kotak loan", "severity": "neutral"}, {"checked": false, "detail": null, "label": "Kotak loan default (live)", "severity": "positive"}, {"checked": true, "detail": "Sanctioned: \u20b96,436,000 | On-Us: 0, Off-Us: 2", "label": "Live Home Loan detected", "severity": "neutral"}, {"checked": true, "detail": null, "label": "Bureau thick", "severity": "positive"}, {"checked": false, "detail": "Exposure 12M: Stable", "label": "Exposure elevated", "severity": "neutral"}], "concerns": ["Active delinquency detected with Max DPD of 91 days [Auto Loan: Opened: Apr 2023 \u2013 Oct 2023 | Active]", "Auto Loan: Delinquent with Max DPD of 91 days [Opened: Apr 2023 \u2013 Oct 2023 | Active]", "Commercial Equipment Loan: Delinquent with Max DPD of 55 days [Opened: Aug 2012 \u2013 Sep 2025 | Last Closed: Dec 2025]"], "customer_id": 10472013940, "exposure_summary": "Sanctioned exposure peaked at \u20b923.8Cr in Sep 2025, led by CEL (\u20b922.0Cr) and AL (\u20b985.0L). Current exposure stands at \u20b923.5Cr (CEL, CMVL, HL, AL active), down 1% from peak \u2014 trend stable.", "generated_at": "2026-07-29T15:19:49.879043", "key_findings": [{"account_level": true, "category": "Delinquency", "finding": "Active delinquency detected with Max DPD of 91 days [Auto Loan: Opened: Apr 2023 \u2013 Oct 2023 | Active]", "inference": "Severe delinquency indicates significant repayment stress; loan may be classified as NPA", "severity": "high_risk"}, {"account_level": true, "category": "Delinquency", "finding": "Auto Loan: Delinquent with Max DPD of 91 days [Opened: Apr 2023 \u2013 Oct 2023 | Active]", "inference": "Severe delinquency on Auto Loan account; may indicate deep financial distress", "severity": "high_risk"}, {"account_level": true, "category": "Delinquency", "finding": "Commercial Equipment Loan: Delinquent with Max DPD of 55 days [Opened: Aug 2012 \u2013 Sep 2025 | Last Closed: Dec 2025]", "inference": "Significant past-due on Commercial Equipment Loan; repayment discipline is compromised", "severity": "moderate_risk"}, {"account_level": true, "category": "Delinquency", "finding": "Home Loan: Delinquent with Max DPD of 51 days [Opened: Apr 2012 \u2013 Sep 2023 | Last Closed: Jan 2022]", "inference": "Significant past-due on Home Loan; repayment discipline is compromised", "severity": "moderate_risk"}, {"account_level": true, "category": "Outstanding", "finding": "Auto Loan: Overdue amount of INR 78,748 [Opened: Apr 2023 \u2013 Oct 2023 | Active]", "inference": "Active overdue balance on Auto Loan indicates unresolved payment obligation", "severity": "concern"}, {"account_level": false, "category": "Payment Behavior", "finding": "6.6% missed payments in last 18 months", "inference": "Some missed payments detected; not habitual but warrants attention", "severity": "concern"}, {"account_level": false, "category": "Enquiry Behavior", "finding": "Trade-to-enquiry ratio (unsecured, 24M): 0.0%", "inference": "Low conversion from enquiries to actual loans suggests possible rejections by lenders", "severity": "concern"}, {"account_level": false, "category": "Portfolio", "finding": "Portfolio spans 5 loan products (Commercial Equipment Loan, Commercial Vehicle Loan, Home Loan, Auto Loan, Credit Card)", "inference": "Diversified credit portfolio indicates established borrowing history across products", "severity": "neutral"}], "kpis": {"bureau_income": {"label": "Bureau Income", "rag": "neutral", "sub": "Stamp Loan: Housing Loan", "value": "\u20b964,828"}, "cibil": {"label": "CIBIL Score", "rag": "amber", "sub": "Good \u00b7 TransUnion", "value": "743"}, "exposure": {"labels": ["Aug 2024", "Sep 2024", "Oct 2024", "Nov 2024", "Dec 2024", "Jan 2025", "Feb 2025", "Mar 2025", "Apr 2025", "May 2025", "Jun 2025", "Jul 2025", "Aug 2025", "Sep 2025", "Oct 2025", "Nov 2025", "Dec 2025", "Jan 2026", "Feb 2026", "Mar 2026", "Apr 2026", "May 2026", "Jun 2026", "Jul 2026"], "rag": "neutral", "series": [158954480.0, 158954480.0, 152439920.0, 152439920.0, 233904920.0, 237361612.0, 237361612.0, 237361612.0, 237361612.0, 228566812.0, 224737744.0, 224737744.0, 229737744.0, 238373273.0, 238373273.0, 238373273.0, 238373273.0, 234873273.0, 234873273.0, 234873273.0, 234873273.0, 234873273.0, 234873273.0, 234873273.0], "sub": "Sanctioned \u20b939.90 Cr \u00b7 Unsec 0%", "value": "\u20b914.84 Cr"}, "foir": {"dist": [{"category": "Joint", "count": 28, "pct": 59.6}, {"category": "Guarantor", "count": 19, "pct": 40.4}], "label": "Sector distribution of BL (CMVL, CEL, AL, BL)", "rag": "neutral", "value": null}, "max_dpd": {"rag": "red", "sub": "17M ago \u00b7 Auto Loan", "value": "91 days"}, "verdict": {"rag": "amber", "stress_pct": 58, "sub": "2 red \u00b7 3 amber of 6 signals", "value": "CAUTION"}}, "persona": {"profiles": [{"detail": "1 CV (LCV/HCV)", "label": "Transport Operator", "track": "Transport"}, {"detail": "43 CE Loan(s)", "label": "Established Contractor", "track": "Transport"}], "stress_flags": [], "summary": "Probable profile of customer is Transport Operator, Established Contractor"}, "scorecard_signals": [{"label": "CIBIL Score", "note": "Good", "rag": "amber", "tooltip": "TransUnion credit score from bureau data", "value": "743"}, {"label": "Max DPD", "note": "Auto Loan, 17M ago", "rag": "red", "tooltip": "Max DPD: 91 days (Auto Loan, 17M ago).\nThresholds: 0 = clean \u00b7 1\u201330 = amber \u00b7 \u003e30 = high risk", "value": "91 days"}, {"label": "Enquiries", "note": "Moderate", "rag": "amber", "tooltip": "Unsecured credit enquiries in last 12M: 5.\nThresholds: \u22643 = minimal \u00b7 \u226410 = moderate \u00b7 \u003e10 = high pressure", "value": "5 in 12M"}, {"label": "Payments", "note": "18M window", "rag": "amber", "tooltip": "Missed payment rate over 18M: 6.6%.\nThresholds: 0% = clean \u00b7 \u226410% = some \u00b7 \u003e10% = frequent", "value": "7% missed"}, {"label": "FOIR", "note": "Over-leveraged", "rag": "red", "tooltip": "Bureau obligation-to-income ratio.\nBureau Obligation (aff_emi): INR 1,724,029\nBureau Income: INR 64,828\nFOIR = Bureau Obligation \u00f7 Bureau Income \u00d7 100 = 2659.4%\nFOIR (unsecured only): 0.0%\nThresholds: \u226440% = comfortable \u00b7 \u226465% = stretched \u00b7 \u003e65% = over-leveraged", "value": "\u003e300% \u2014 business/guarantor profile"}, {"label": "Exposure 12M", "note": "vs 12M ago", "rag": "neutral", "tooltip": "Sanctioned exposure: Jul 2026 = \u20b92348.7L \u00b7 12M ago = \u20b92247.4L.\nChange: +4.5%. Thresholds: \u2264\u22125% = declining \u00b7 \u2264+30% = growing \u00b7 \u003e+30% = rapid", "value": "Stable"}], "strengths": [], "verdict": "CAUTION", "verdict_rag": "amber"}
 </script>
 
 
-<script id="v2-chart-data" type="application/json">{"live_closed": {"labels": ["Commercial Vehicle Loan", "Auto Loan", "Credit Card", "Home Loan"], "live": [11, 3, 0, 1], "closed": [33, 0, 1, 1]}, "vintage": {"axis": ["Apr 2012", "May 2012", "Jun 2012", "Jul 2012", "Aug 2012", "Sep 2012", "Oct 2012", "Nov 2012", "Dec 2012", "Jan 2013", "Feb 2013", "Mar 2013", "Apr 2013", "May 2013", "Jun 2013", "Jul 2013", "Aug 2013", "Sep 2013", "Oct 2013", "Nov 2013", "Dec 2013", "Jan 2014", "Feb 2014", "Mar 2014", "Apr 2014", "May 2014", "Jun 2014", "Jul 2014", "Aug 2014", "Sep 2014", "Oct 2014", "Nov 2014", "Dec 2014", "Jan 2015", "Feb 2015", "Mar 2015", "Apr 2015", "May 2015", "Jun 2015", "Jul 2015", "Aug 2015", "Sep 2015", "Oct 2015", "Nov 2015", "Dec 2015", "Jan 2016", "Feb 2016", "Mar 2016", "Apr 2016", "May 2016", "Jun 2016", "Jul 2016", "Aug 2016", "Sep 2016", "Oct 2016", "Nov 2016", "Dec 2016", "Jan 2017", "Feb 2017", "Mar 2017", "Apr 2017", "May 2017", "Jun 2017", "Jul 2017", "Aug 2017", "Sep 2017", "Oct 2017", "Nov 2017", "Dec 2017", "Jan 2018", "Feb 2018", "Mar 2018", "Apr 2018", "May 2018", "Jun 2018", "Jul 2018", "Aug 2018", "Sep 2018", "Oct 2018", "Nov 2018", "Dec 2018", "Jan 2019", "Feb 2019", "Mar 2019", "Apr 2019", "May 2019", "Jun 2019", "Jul 2019", "Aug 2019", "Sep 2019", "Oct 2019", "Nov 2019", "Dec 2019", "Jan 2020", "Feb 2020", "Mar 2020", "Apr 2020", "May 2020", "Jun 2020", "Jul 2020", "Aug 2020", "Sep 2020", "Oct 2020", "Nov 2020", "Dec 2020", "Jan 2021", "Feb 2021", "Mar 2021", "Apr 2021", "May 2021", "Jun 2021", "Jul 2021", "Aug 2021", "Sep 2021", "Oct 2021", "Nov 2021", "Dec 2021", "Jan 2022", "Feb 2022", "Mar 2022", "Apr 2022", "May 2022", "Jun 2022", "Jul 2022", "Aug 2022", "Sep 2022", "Oct 2022", "Nov 2022", "Dec 2022", "Jan 2023", "Feb 2023", "Mar 2023", "Apr 2023", "May 2023", "Jun 2023", "Jul 2023", "Aug 2023", "Sep 2023", "Oct 2023", "Nov 2023", "Dec 2023", "Jan 2024", "Feb 2024", "Mar 2024", "Apr 2024", "May 2024", "Jun 2024", "Jul 2024", "Aug 2024", "Sep 2024", "Oct 2024", "Nov 2024", "Dec 2024", "Jan 2025", "Feb 2025", "Mar 2025", "Apr 2025", "May 2025", "Jun 2025", "Jul 2025", "Aug 2025", "Sep 2025", "Oct 2025", "Nov 2025", "Dec 2025", "Jan 2026", "Feb 2026", "Mar 2026", "Apr 2026", "May 2026", "Jun 2026", "Jul 2026"], "items": [{"label": "Commercial Vehicle Loan", "start": 4, "end": 171}, {"label": "Auto Loan", "start": 132, "end": 171}, {"label": "Credit Card", "start": 53, "end": 114}, {"label": "Home Loan", "start": 0, "end": 171}]}, "dpd_grid": {"months": ["Jan 2024", "Feb 2024", "Mar 2024", "Apr 2024", "May 2024", "Jun 2024", "Jul 2024", "Aug 2024", "Sep 2024", "Oct 2024", "Nov 2024", "Dec 2024", "Jan 2025", "Feb 2025", "Mar 2025", "Apr 2025", "May 2025", "Jun 2025", "Jul 2025", "Aug 2025", "Sep 2025", "Oct 2025", "Nov 2025", "Dec 2025"], "rows": [{"product": "Auto Loan", "cells": [{"v": 1, "level": 1}, {"v": 1, "level": 1}, {"v": 32, "level": 2}, {"v": 2, "level": 1}, {"v": 32, "level": 2}, {"v": 63, "level": 3}, {"v": 60, "level": 3}, {"v": 91, "level": 4}, {"v": 76, "level": 3}, {"v": 68, "level": 3}, {"v": 84, "level": 3}, {"v": 66, "level": 3}, {"v": 64, "level": 3}, {"v": 64, "level": 3}, {"v": 63, "level": 3}, {"v": 5, "level": 1}, {"v": 35, "level": 2}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 4, "level": 1}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 5, "level": 1}, {"v": 20, "level": 1}]}, {"product": "Commercial Vehicle Loan", "cells": [{"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 11, "level": 1}, {"v": 39, "level": 2}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}]}, {"product": "Credit Card", "cells": [{"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}]}, {"product": "Home Loan", "cells": [{"v": 31, "level": 2}, {"v": 30, "level": 2}, {"v": 31, "level": 2}, {"v": 31, "level": 2}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 1, "level": 1}, {"v": 1, "level": 1}, {"v": 1, "level": 1}, {"v": 0, "level": 0}, {"v": 20, "level": 1}, {"v": 0, "level": 0}, {"v": 17, "level": 1}, {"v": 20, "level": 1}, {"v": 19, "level": 1}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}]}], "has_events": true}, "explorer": {"products": ["Commercial Vehicle Loan", "Auto Loan", "Credit Card", "Home Loan"], "metrics": {"sanctioned": {"label": "Sanctioned \u20b9", "fmt": "inr", "values": [384023518.0, 8500000.0, 15000.0, 6436000.0]}, "outstanding": {"label": "Outstanding \u20b9", "fmt": "inr", "values": [136971434.0, 5813862.0, 0.0, 5654063.0]}, "count": {"label": "Tradeline Count", "fmt": "int", "values": [44, 3, 1, 2]}, "live": {"label": "Live", "fmt": "int", "values": [11, 3, 0, 1]}, "closed": {"label": "Closed", "fmt": "int", "values": [33, 0, 1, 1]}, "overdue": {"label": "Overdue \u20b9", "fmt": "inr", "values": [0.0, 78748.0, 0.0, 0.0]}, "utilization": {"label": "Utilization %", "fmt": "pct", "values": [null, null, null, null]}, "on_us": {"label": "On-Us Count", "fmt": "int", "values": [27, 0, 1, 0]}, "vintage": {"label": "Avg Vintage (mo)", "fmt": "num", "values": [0.0, 0.0, 0.0, 0.0]}, "max_single": {"label": "Largest Loan \u20b9", "fmt": "inr", "values": [60965000.0, 4200000.0, 15000.0, 6000000.0]}, "joint": {"label": "Joint Tradelines", "fmt": "int", "values": [28, 0, 0, 1]}}}}</script>
+<script id="v2-chart-data" type="application/json">{"live_closed": {"labels": ["Commercial Equipment Loan", "Commercial Vehicle Loan", "Home Loan", "Auto Loan", "Credit Card"], "live": [10, 1, 1, 3, 0], "closed": [33, 0, 1, 0, 1]}, "vintage": {"axis": ["Apr 2012", "May 2012", "Jun 2012", "Jul 2012", "Aug 2012", "Sep 2012", "Oct 2012", "Nov 2012", "Dec 2012", "Jan 2013", "Feb 2013", "Mar 2013", "Apr 2013", "May 2013", "Jun 2013", "Jul 2013", "Aug 2013", "Sep 2013", "Oct 2013", "Nov 2013", "Dec 2013", "Jan 2014", "Feb 2014", "Mar 2014", "Apr 2014", "May 2014", "Jun 2014", "Jul 2014", "Aug 2014", "Sep 2014", "Oct 2014", "Nov 2014", "Dec 2014", "Jan 2015", "Feb 2015", "Mar 2015", "Apr 2015", "May 2015", "Jun 2015", "Jul 2015", "Aug 2015", "Sep 2015", "Oct 2015", "Nov 2015", "Dec 2015", "Jan 2016", "Feb 2016", "Mar 2016", "Apr 2016", "May 2016", "Jun 2016", "Jul 2016", "Aug 2016", "Sep 2016", "Oct 2016", "Nov 2016", "Dec 2016", "Jan 2017", "Feb 2017", "Mar 2017", "Apr 2017", "May 2017", "Jun 2017", "Jul 2017", "Aug 2017", "Sep 2017", "Oct 2017", "Nov 2017", "Dec 2017", "Jan 2018", "Feb 2018", "Mar 2018", "Apr 2018", "May 2018", "Jun 2018", "Jul 2018", "Aug 2018", "Sep 2018", "Oct 2018", "Nov 2018", "Dec 2018", "Jan 2019", "Feb 2019", "Mar 2019", "Apr 2019", "May 2019", "Jun 2019", "Jul 2019", "Aug 2019", "Sep 2019", "Oct 2019", "Nov 2019", "Dec 2019", "Jan 2020", "Feb 2020", "Mar 2020", "Apr 2020", "May 2020", "Jun 2020", "Jul 2020", "Aug 2020", "Sep 2020", "Oct 2020", "Nov 2020", "Dec 2020", "Jan 2021", "Feb 2021", "Mar 2021", "Apr 2021", "May 2021", "Jun 2021", "Jul 2021", "Aug 2021", "Sep 2021", "Oct 2021", "Nov 2021", "Dec 2021", "Jan 2022", "Feb 2022", "Mar 2022", "Apr 2022", "May 2022", "Jun 2022", "Jul 2022", "Aug 2022", "Sep 2022", "Oct 2022", "Nov 2022", "Dec 2022", "Jan 2023", "Feb 2023", "Mar 2023", "Apr 2023", "May 2023", "Jun 2023", "Jul 2023", "Aug 2023", "Sep 2023", "Oct 2023", "Nov 2023", "Dec 2023", "Jan 2024", "Feb 2024", "Mar 2024", "Apr 2024", "May 2024", "Jun 2024", "Jul 2024", "Aug 2024", "Sep 2024", "Oct 2024", "Nov 2024", "Dec 2024", "Jan 2025", "Feb 2025", "Mar 2025", "Apr 2025", "May 2025", "Jun 2025", "Jul 2025", "Aug 2025", "Sep 2025", "Oct 2025", "Nov 2025", "Dec 2025", "Jan 2026", "Feb 2026", "Mar 2026", "Apr 2026", "May 2026", "Jun 2026", "Jul 2026"], "items": [{"label": "Commercial Equipment Loan", "start": 4, "end": 171}, {"label": "Commercial Vehicle Loan", "start": 153, "end": 171}, {"label": "Home Loan", "start": 0, "end": 171}, {"label": "Auto Loan", "start": 132, "end": 171}, {"label": "Credit Card", "start": 53, "end": 114}]}, "dpd_grid": {"months": ["Jan 2024", "Feb 2024", "Mar 2024", "Apr 2024", "May 2024", "Jun 2024", "Jul 2024", "Aug 2024", "Sep 2024", "Oct 2024", "Nov 2024", "Dec 2024", "Jan 2025", "Feb 2025", "Mar 2025", "Apr 2025", "May 2025", "Jun 2025", "Jul 2025", "Aug 2025", "Sep 2025", "Oct 2025", "Nov 2025", "Dec 2025"], "rows": [{"product": "Auto Loan", "cells": [{"v": 1, "level": 1}, {"v": 1, "level": 1}, {"v": 32, "level": 2}, {"v": 2, "level": 1}, {"v": 32, "level": 2}, {"v": 63, "level": 3}, {"v": 60, "level": 3}, {"v": 91, "level": 4}, {"v": 76, "level": 3}, {"v": 68, "level": 3}, {"v": 84, "level": 3}, {"v": 66, "level": 3}, {"v": 64, "level": 3}, {"v": 64, "level": 3}, {"v": 63, "level": 3}, {"v": 5, "level": 1}, {"v": 35, "level": 2}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 4, "level": 1}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 5, "level": 1}, {"v": 20, "level": 1}]}, {"product": "Commercial Equipment Loan", "cells": [{"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 11, "level": 1}, {"v": 39, "level": 2}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}]}, {"product": "Commercial Vehicle Loan", "cells": [{"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}]}, {"product": "Credit Card", "cells": [{"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}]}, {"product": "Home Loan", "cells": [{"v": 31, "level": 2}, {"v": 30, "level": 2}, {"v": 31, "level": 2}, {"v": 31, "level": 2}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 1, "level": 1}, {"v": 1, "level": 1}, {"v": 1, "level": 1}, {"v": 0, "level": 0}, {"v": 20, "level": 1}, {"v": 0, "level": 0}, {"v": 17, "level": 1}, {"v": 20, "level": 1}, {"v": 19, "level": 1}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}, {"v": null, "level": 0}, {"v": null, "level": 0}, {"v": 0, "level": 0}, {"v": 0, "level": 0}]}], "has_events": true}, "explorer": {"products": ["Commercial Equipment Loan", "Commercial Vehicle Loan", "Home Loan", "Auto Loan", "Credit Card"], "metrics": {"sanctioned": {"label": "Sanctioned \u20b9", "fmt": "inr", "values": [380566826.0, 3456692.0, 6436000.0, 8500000.0, 15000.0]}, "outstanding": {"label": "Outstanding \u20b9", "fmt": "inr", "values": [134468764.0, 2502670.0, 5654063.0, 5813862.0, 0.0]}, "count": {"label": "Tradeline Count", "fmt": "int", "values": [43, 1, 2, 3, 1]}, "live": {"label": "Live", "fmt": "int", "values": [10, 1, 1, 3, 0]}, "closed": {"label": "Closed", "fmt": "int", "values": [33, 0, 1, 0, 1]}, "overdue": {"label": "Overdue \u20b9", "fmt": "inr", "values": [0.0, 0.0, 0.0, 78748.0, 0.0]}, "utilization": {"label": "Utilization %", "fmt": "pct", "values": [null, null, null, null, null]}, "on_us": {"label": "On-Us Count", "fmt": "int", "values": [27, 0, 0, 0, 1]}, "vintage": {"label": "Avg Vintage (mo)", "fmt": "num", "values": [0.0, 0.0, 0.0, 0.0, 0.0]}, "max_single": {"label": "Largest Loan \u20b9", "fmt": "inr", "values": [60965000.0, 3456692.0, 6000000.0, 4200000.0, 15000.0]}, "joint": {"label": "Joint Tradelines", "fmt": "int", "values": [27, 1, 1, 0, 0]}}}}</script>
 
 <script>
   // ---- TABS / SUMMARY TOGGLE ------------------------------------------------
@@ -3060,7 +3189,7 @@ The customer&#39;s behavioral features raise some concerns. The % Missed Payment
         });
     }
 
-    const CD = {"product_mix": {"labels": ["Commercial Vehicle Loan", "Auto Loan", "Credit Card", "Home Loan"], "values": [44, 3, 1, 2]}, "secured_split": {"labels": ["Secured", "Unsecured"], "values": [49, 1]}, "onus_offus": {"labels": ["On-Us (Kotak)", "Off-Us"], "values": [28, 22]}, "unsec_outstanding": {"labels": [], "values": []}, "timeseries": {"months": ["Aug 2024", "Sep 2024", "Oct 2024", "Nov 2024", "Dec 2024", "Jan 2025", "Feb 2025", "Mar 2025", "Apr 2025", "May 2025", "Jun 2025", "Jul 2025", "Aug 2025", "Sep 2025", "Oct 2025", "Nov 2025", "Dec 2025", "Jan 2026", "Feb 2026", "Mar 2026", "Apr 2026", "May 2026", "Jun 2026", "Jul 2026"], "series": {"CMVL": [144454480.0, 144454480.0, 137939920.0, 137939920.0, 219404920.0, 222861612.0, 222861612.0, 222861612.0, 222861612.0, 214066812.0, 210237744.0, 210237744.0, 215237744.0, 223873273.0, 223873273.0, 223873273.0, 223873273.0, 220373273.0, 220373273.0, 220373273.0, 220373273.0, 220373273.0, 220373273.0, 220373273.0], "AL": [8500000.0, 8500000.0, 8500000.0, 8500000.0, 8500000.0, 8500000.0, 8500000.0, 8500000.0, 8500000.0, 8500000.0, 8500000.0, 8500000.0, 8500000.0, 8500000.0, 8500000.0, 8500000.0, 8500000.0, 8500000.0, 8500000.0, 8500000.0, 8500000.0, 8500000.0, 8500000.0, 8500000.0], "HL": [6000000.0, 6000000.0, 6000000.0, 6000000.0, 6000000.0, 6000000.0, 6000000.0, 6000000.0, 6000000.0, 6000000.0, 6000000.0, 6000000.0, 6000000.0, 6000000.0, 6000000.0, 6000000.0, 6000000.0, 6000000.0, 6000000.0, 6000000.0, 6000000.0, 6000000.0, 6000000.0, 6000000.0]}}, "dpd_timeline": {"months": ["Aug 2024", "Sep 2024", "Oct 2024", "Nov 2024", "Dec 2024", "Jan 2025", "Feb 2025", "Mar 2025", "Apr 2025", "May 2025", "Jun 2025", "Jul 2025", "Aug 2025", "Sep 2025", "Oct 2025", "Nov 2025", "Dec 2025", "Jan 2026", "Feb 2026", "Mar 2026", "Apr 2026", "May 2026", "Jun 2026", "Jul 2026"], "events": [{"loan_type": "Auto Loan", "dpd": 91, "month_idx": 6, "month_label": "Feb 2025"}], "historical": [{"loan_type": "Commercial Vehicle Loan", "dpd": 55, "months_ago": 49}, {"loan_type": "Home Loan", "dpd": 51, "months_ago": 27}]}};
+    const CD = {"product_mix": {"labels": ["Commercial Equipment Loan", "Commercial Vehicle Loan", "Home Loan", "Auto Loan", "Credit Card"], "values": [43, 1, 2, 3, 1]}, "secured_split": {"labels": ["Secured", "Unsecured"], "values": [49, 1]}, "onus_offus": {"labels": ["On-Us (Kotak)", "Off-Us"], "values": [28, 22]}, "unsec_outstanding": {"labels": [], "values": []}, "timeseries": {"months": ["Aug 2024", "Sep 2024", "Oct 2024", "Nov 2024", "Dec 2024", "Jan 2025", "Feb 2025", "Mar 2025", "Apr 2025", "May 2025", "Jun 2025", "Jul 2025", "Aug 2025", "Sep 2025", "Oct 2025", "Nov 2025", "Dec 2025", "Jan 2026", "Feb 2026", "Mar 2026", "Apr 2026", "May 2026", "Jun 2026", "Jul 2026"], "series": {"CEL": [144454480.0, 144454480.0, 137939920.0, 137939920.0, 219404920.0, 219404920.0, 219404920.0, 219404920.0, 219404920.0, 210610120.0, 206781052.0, 206781052.0, 211781052.0, 220416581.0, 220416581.0, 220416581.0, 220416581.0, 216916581.0, 216916581.0, 216916581.0, 216916581.0, 216916581.0, 216916581.0, 216916581.0], "CMVL": [0.0, 0.0, 0.0, 0.0, 0.0, 3456692.0, 3456692.0, 3456692.0, 3456692.0, 3456692.0, 3456692.0, 3456692.0, 3456692.0, 3456692.0, 3456692.0, 3456692.0, 3456692.0, 3456692.0, 3456692.0, 3456692.0, 3456692.0, 3456692.0, 3456692.0, 3456692.0], "HL": [6000000.0, 6000000.0, 6000000.0, 6000000.0, 6000000.0, 6000000.0, 6000000.0, 6000000.0, 6000000.0, 6000000.0, 6000000.0, 6000000.0, 6000000.0, 6000000.0, 6000000.0, 6000000.0, 6000000.0, 6000000.0, 6000000.0, 6000000.0, 6000000.0, 6000000.0, 6000000.0, 6000000.0], "AL": [8500000.0, 8500000.0, 8500000.0, 8500000.0, 8500000.0, 8500000.0, 8500000.0, 8500000.0, 8500000.0, 8500000.0, 8500000.0, 8500000.0, 8500000.0, 8500000.0, 8500000.0, 8500000.0, 8500000.0, 8500000.0, 8500000.0, 8500000.0, 8500000.0, 8500000.0, 8500000.0, 8500000.0]}}, "dpd_timeline": {"months": ["Aug 2024", "Sep 2024", "Oct 2024", "Nov 2024", "Dec 2024", "Jan 2025", "Feb 2025", "Mar 2025", "Apr 2025", "May 2025", "Jun 2025", "Jul 2025", "Aug 2025", "Sep 2025", "Oct 2025", "Nov 2025", "Dec 2025", "Jan 2026", "Feb 2026", "Mar 2026", "Apr 2026", "May 2026", "Jun 2026", "Jul 2026"], "events": [{"loan_type": "Auto Loan", "dpd": 91, "month_idx": 6, "month_label": "Feb 2025"}], "historical": [{"loan_type": "Commercial Equipment Loan", "dpd": 55, "months_ago": 49}, {"loan_type": "Home Loan", "dpd": 51, "months_ago": 27}]}};
     let V2C = null;
     try { V2C = JSON.parse(document.getElementById('v2-chart-data').textContent || 'null'); } catch(e){ V2C = null; }
 

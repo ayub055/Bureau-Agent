@@ -313,17 +313,8 @@ def compute_checklist(
         "detail": None if bu_thick else (bu_grp_val if bu_grp_val else "Data unavailable"),
     })
 
-    # B9. Banking thickness
-    bank_grp_val = None
-    if bureau_report and bureau_report.tradeline_features:
-        bank_grp_val = bureau_report.tradeline_features.bank_grp
-    bank_thick = bank_grp_val is not None and "thick" in bank_grp_val.lower()
-    bureau_items.append({
-        "label": "Banking thick",
-        "checked": bank_thick,
-        "severity": "positive" if bank_thick else "medium",
-        "detail": None if bank_thick else (bank_grp_val if bank_grp_val else "Data unavailable"),
-    })
+    # B9. (removed) Banking thickness — this is a bureau report; banking signals
+    # are out of scope, so the "Banking thick" tile is intentionally not emitted.
 
     # B10. Exposure trend elevated
     exposure_elevated = False
@@ -643,7 +634,7 @@ def compute_probable_persona(bureau_report: Optional[BureauReport]) -> dict:
         stress_flags.append({"label": "Cash Flow Stress", "severity": "moderate",
                               "detail": f"{tod_count} Temporary OD"})
 
-    # --- Select top 2-3 by priority ---
+    # --- Select top 2 by priority ---
     # Deduplicate by label (keep highest priority)
     seen_labels = set()
     unique_matches = []
@@ -652,7 +643,9 @@ def compute_probable_persona(bureau_report: Optional[BureauReport]) -> dict:
             seen_labels.add(m["label"])
             unique_matches.append(m)
 
-    top = unique_matches[:3]
+    # Show at most 2 personas — this feeds both the persona list and the
+    # summary line below it (both derive from `top`).
+    top = unique_matches[:2]
 
     if not top:
         # Not enough signal in the tradelines to classify — show a plain message
@@ -1487,20 +1480,43 @@ def _compute_v2_context(
             "rag": "red" if ei.max_dpd > 30 else ("amber" if ei.max_dpd > 0 else "green"),
         }
 
-    foir_val = tl.get("foir")
-    if foir_val is None:
-        foir = {"value": "N/A", "sub": "Not available", "rag": "neutral"}
-    else:
-        sub_parts = []
-        if tl.get("foir_unsec") is not None:
-            sub_parts.append(f"Unsec {tl['foir_unsec']:.1f}%")
-        if tl.get("aff_emi") is not None:
-            sub_parts.append(f"EMI ₹{tl['aff_emi']:,.0f}")
+    # FOIR tile is conditional: a BL-heavy book replaces the FOIR value with a
+    # `sector` breakdown across CMVL/CEL/AL/BL tradelines (computed in the builder).
+    bl_sd = getattr(bureau_report, "bl_sector_distribution", None) or {}
+    if bl_sd.get("trigger") and bl_sd.get("distribution"):
+        # Render as a compact mini bar-chart. Cap the rows so a lender-heavy book
+        # can't make the tile unboundedly tall — the overflow rolls up into "Others".
+        _MAX_ROWS = 6
+        _dist = list(bl_sd["distribution"])
+        if len(_dist) > _MAX_ROWS:
+            rest = _dist[_MAX_ROWS - 1:]
+            _dist = _dist[:_MAX_ROWS - 1] + [{
+                "category": f"Others ({len(rest)})",
+                "count": sum(d["count"] for d in rest),
+                "pct": round(sum(d["pct"] for d in rest), 1),
+            }]
         foir = {
-            "value": T.foir_display(foir_val),  # guarded for implausible business/guarantor FOIR
-            "sub": " · ".join(sub_parts) if sub_parts else "Bureau obligation ÷ income",
-            "rag": "red" if foir_val > 65 else ("amber" if foir_val > 40 else "green"),
+            "label": bl_sd.get("title", "Sector distribution of BL (CMVL, CEL, AL, BL)"),
+            "value": None,
+            "dist": _dist,
+            "rag": "neutral",
         }
+    else:
+        foir_val = tl.get("foir")
+        if foir_val is None:
+            foir = {"label": "FOIR (Bureau)", "value": "N/A", "sub": "Not available", "rag": "neutral"}
+        else:
+            sub_parts = []
+            if tl.get("foir_unsec") is not None:
+                sub_parts.append(f"Unsec {tl['foir_unsec']:.1f}%")
+            if tl.get("aff_emi") is not None:
+                sub_parts.append(f"EMI ₹{tl['aff_emi']:,.0f}")
+            foir = {
+                "label": "FOIR (Bureau)",
+                "value": T.foir_display(foir_val),  # guarded for implausible business/guarantor FOIR
+                "sub": " · ".join(sub_parts) if sub_parts else "Bureau obligation ÷ income",
+                "rag": "red" if foir_val > 65 else ("amber" if foir_val > 40 else "green"),
+            }
 
     unsec_pct = (
         f"{ei.unsecured_outstanding / ei.total_outstanding * 100:.0f}%"
@@ -1546,13 +1562,18 @@ def _compute_v2_context(
     _bi = getattr(bureau_report, "bureau_income", None) or {}
     _se = getattr(bureau_report, "sustained_emi", None) or {}
     _ob = getattr(bureau_report, "obligation", None) or {}
+    _bt = getattr(bureau_report, "business_throughput", None) or {}
     profile = {
         "ktk_rel": tl.get("ktk_rel"),
         "bureau_income": _bi.get("bureau_income"),
         "stamp_loan": (_bi.get("stamp_loan") if _bi.get("stamp_loan") not in (None, "NA") else None),
+        "stamp_sanction": (_bi.get("stamp_sanction") if _bi.get("stamp_loan") not in (None, "NA") else None),
         "sustained_emi": _se.get("sustained_emi"),
         "obligation": _ob.get("aff_emi"),
         "obligation_unsec": _ob.get("emi_unsec"),
+        "business_throughput": (_bt.get("turnover") if _bt.get("eligible") else None),
+        "business_throughput_disp": _bt.get("turnover_disp"),
+        "business_throughput_bracket": _bt.get("bracket"),
         "bu_grp": tl.get("bu_grp"),
     }
     v2["profile"] = profile if any(val is not None for val in profile.values()) else None
@@ -1642,6 +1663,32 @@ def _compute_v2_context(
         bureau_report.executive_inputs,
         getattr(bureau_report, "monthly_exposure", None),
     )
+
+    # ── Year-wise exposure (yearly + cumulative outstanding, last 5 years) ──
+    # Ascending year rows, each split into a "Yearly" and "Cumulative" sub-row
+    # with a proportional bar. Reconciles to the Total-exposure tile: the newest
+    # year's cumulative == total outstanding. Rendered in the Exposure tab.
+    from pipeline.extractors.bureau_feature_extractor import compute_yearly_exposure
+    ye = compute_yearly_exposure(bureau_report.meta.customer_id, 5)
+    if ye.get("years"):
+        peak = max(ye["yearly"]) or 0.0        # scale yearly bars to the biggest year
+        total = ye["cumulative"][-1] or 0.0    # scale cumulative bars to the grand total
+        rows = []
+        for yr, yv, cv in zip(ye["years"], ye["yearly"], ye["cumulative"]):
+            rows.append({
+                "year": yr,
+                "yearly_disp": (f"+₹{format_inr_units(yv)}" if yv > 0 else "—"),
+                "cumulative_disp": f"₹{format_inr_units(cv)}",
+                "yearly_pct": round(yv / peak * 100) if peak > 0 else 0,
+                "cumulative_pct": round(cv / total * 100) if total > 0 else 0,
+            })
+        v2["exposure_years"] = {
+            "rows": rows,
+            "metric_label": "Outstanding",
+            "total_disp": f"₹{format_inr_units(ye['total'])}",
+        }
+    else:
+        v2["exposure_years"] = None
 
     return v2
 

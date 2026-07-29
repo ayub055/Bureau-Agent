@@ -7,7 +7,7 @@ bu_feats_output = "BU_Feats.csv"
 bu_tl_output = "BU_TL.csv"
 
 def main():
-
+    
     # Connect to DuckDB
     con = duckdb.connect("mydb.duckdb")
 
