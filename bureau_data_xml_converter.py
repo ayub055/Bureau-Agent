@@ -194,7 +194,12 @@ def build_scrub_rows(root, const):
             "loan_type_new": LOAN_TYPE_CODE_MAP.get(code.strip(), ""),
             "loan_status": "Closed" if date_closed else "Live",
             "loan_classification": "",
-            "ownership_type": a.findtext("accountRelation", ""),
+            "ownership_type": {
+                1: "Individual",
+                2: "Authorised User (refers to supplementary card holder)",
+                3: "Guarantor",
+                4: "Joint"
+            }.get(int(a.findtext("accountRelationCode", 0)), ""),
             "sector": a.findtext("reportingMemberShortName", ""),
             "sanction_amount": a.findtext("sanctionAmount", ""),
             "high_credit_amount": a.findtext("highCreditOrSanctionedAmount", ""),

@@ -187,17 +187,37 @@ def compute_checklist(
         "detail": f"Flags: {', '.join(sorted(set(adverse_flags)))}" if has_adverse else None,
     })
 
-    # B3. High FOIR (>50%)
-    foir_val = None
-    if bureau_report and bureau_report.tradeline_features:
-        foir_val = bureau_report.tradeline_features.foir
-    has_high_foir = foir_val is not None and foir_val > 50
-    bureau_items.append({
-        "label": "High FOIR (> 50%)",
-        "checked": has_high_foir,
-        "severity": "high" if (foir_val and foir_val > 65) else ("medium" if has_high_foir else "neutral"),
-        "detail": f"Bureau FOIR: {T.foir_display(foir_val)}" if foir_val is not None else None,
-    })
+    # B3. FOIR — or, for a BL-heavy book (bl_sector_distribution trigger), the
+    # "Obligation vs Sustained EMI Multiplier" in its place (never both — here and in
+    # the Risk Assessment grid, which also drops the FOIR scorecard signal when the
+    # multiplier is present). For a commercial/business-heavy book the FOIR/income read
+    # is unreliable, so we instead surface the bureau obligation as a multiple of the
+    # demonstrated sustained EMI (excluding BL-like loans); >1 means the obligation
+    # exceeds proven repayment capacity. Falls back to FOIR if the multiple can't be computed.
+    bl_triggered = bool(bureau_report and (getattr(bureau_report, "bl_sector_distribution", None) or {}).get("trigger"))
+    oblig = (getattr(bureau_report, "obligation", None) or {}).get("aff_emi") if bl_triggered else None
+    se = (getattr(bureau_report, "sustained_emi", None) or {}).get("sustained_emi") if bl_triggered else None
+    if bl_triggered and oblig is not None and se:
+        mult = oblig / se
+        over = mult > 1
+        bureau_items.append({
+            "label": "Obligation vs Sustained EMI Multiplier",
+            "checked": over,
+            "severity": "high" if mult > 1.5 else ("medium" if over else "positive"),
+            "detail": (f"Bureau obligation ₹{oblig:,.0f} is {mult:.1f}× sustained EMI "
+                       f"₹{se:,.0f} (excl. BL-like loans)"),
+        })
+    else:
+        foir_val = None
+        if bureau_report and bureau_report.tradeline_features:
+            foir_val = bureau_report.tradeline_features.foir
+        has_high_foir = foir_val is not None and foir_val > 50
+        bureau_items.append({
+            "label": "High FOIR (> 50%)",
+            "checked": has_high_foir,
+            "severity": "high" if (foir_val and foir_val > 65) else ("medium" if has_high_foir else "neutral"),
+            "detail": f"Bureau FOIR: {T.foir_display(foir_val)}" if foir_val is not None else None,
+        })
 
     # B4. CC utilization elevated (>=30%)
     cc_util = None
@@ -1353,8 +1373,17 @@ def _compute_risk_items(scorecard: dict, bureau_checklist: list) -> list:
     """
     items: list = []
 
+    # For a BL-heavy book the checklist carries the "Obligation vs Sustained EMI
+    # Multiplier" flag in place of FOIR — so drop the FOIR scorecard signal here to
+    # avoid showing both (the multiplier flows in via the checklist loop below).
+    multiplier_present = any(
+        it.get("label") == "Obligation vs Sustained EMI Multiplier" for it in bureau_checklist
+    )
+
     # Deterministic risk signals (CIBIL, Max DPD, CC Util, FOIR, Adverse, Exposure…)
     for s in (scorecard.get("signals") or []):
+        if multiplier_present and s.get("label") == "FOIR":
+            continue
         items.append({
             "label": s.get("label", ""),
             "value": s.get("value", ""),
@@ -1451,12 +1480,29 @@ def _compute_v2_context(
         "rag": c_rag,
     }
 
-    # Bureau Income card (deterministic affluence); hidden when no income
+    # Bureau Income card (deterministic affluence); hidden when no income.
+    # When the book is BL-heavy (bl_sector_distribution trigger — the same gate that
+    # swaps the FOIR tile below), bureau income is unreliable, so this tile instead
+    # shows Sustained EMI labelled "(excluding BL Like loans)". The tooltip mirrors
+    # the Sustained-EMI meaning already shown on the profile card. Deterministic;
+    # falls back to income when the trigger is off or no sustained EMI is available.
+    _SUSTAINED_EMI_MEANING = ("Maximum EMI the customer has paid consecutively for at "
+                              "least 6 months in the last 3 years (from scrub date)")
+    bl_sd = getattr(bureau_report, "bl_sector_distribution", None) or {}
     bi = getattr(bureau_report, "bureau_income", None) or {}
     bi_val = bi.get("bureau_income")
     bi_stamp = bi.get("stamp_loan")
     stamp_txt = bi_stamp if bi_stamp and bi_stamp != "NA" else None
-    if bi_val and bi_val > 0:
+    _se_val = (getattr(bureau_report, "sustained_emi", None) or {}).get("sustained_emi")
+    if bl_sd.get("trigger") and _se_val is not None:
+        bureau_income_kpi = {
+            "label": "Sustained EMI",
+            "value": f"₹{format_inr_units(_se_val)}",
+            "sub": "(excluding BL Like loans)",
+            "rag": "neutral",
+            "title": _SUSTAINED_EMI_MEANING,
+        }
+    elif bi_val and bi_val > 0:
         bureau_income_kpi = {
             "label": "Bureau Income",
             "value": f"₹{format_inr_units(bi_val)}",
@@ -1482,7 +1528,7 @@ def _compute_v2_context(
 
     # FOIR tile is conditional: a BL-heavy book replaces the FOIR value with a
     # `sector` breakdown across CMVL/CEL/AL/BL tradelines (computed in the builder).
-    bl_sd = getattr(bureau_report, "bl_sector_distribution", None) or {}
+    # `bl_sd` was resolved above (same trigger drives the income → Sustained-EMI swap).
     if bl_sd.get("trigger") and bl_sd.get("distribution"):
         # Render as a compact mini bar-chart. Cap the rows so a lender-heavy book
         # can't make the tile unboundedly tall — the overflow rolls up into "Others".
@@ -1565,9 +1611,13 @@ def _compute_v2_context(
     _bt = getattr(bureau_report, "business_throughput", None) or {}
     profile = {
         "ktk_rel": tl.get("ktk_rel"),
-        "bureau_income": _bi.get("bureau_income"),
-        "stamp_loan": (_bi.get("stamp_loan") if _bi.get("stamp_loan") not in (None, "NA") else None),
-        "stamp_sanction": (_bi.get("stamp_sanction") if _bi.get("stamp_loan") not in (None, "NA") else None),
+        # Hidden for a BL-heavy book (bl_sector_distribution trigger) — bureau income
+        # is unreliable there; the KPI tile shows Sustained EMI in its place instead.
+        "bureau_income": None if bl_sd.get("trigger") else _bi.get("bureau_income"),
+        # "Loan considered for income" (stamp loan) is part of the income derivation,
+        # so it is hidden alongside Bureau Income for a BL-heavy book (trigger).
+        "stamp_loan": (None if bl_sd.get("trigger") else (_bi.get("stamp_loan") if _bi.get("stamp_loan") not in (None, "NA") else None)),
+        "stamp_sanction": (None if bl_sd.get("trigger") else (_bi.get("stamp_sanction") if _bi.get("stamp_loan") not in (None, "NA") else None)),
         "sustained_emi": _se.get("sustained_emi"),
         "obligation": _ob.get("aff_emi"),
         "obligation_unsec": _ob.get("emi_unsec"),

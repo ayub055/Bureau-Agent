@@ -664,7 +664,7 @@
   {% set k = v2.kpis %}
   <div class="kpis" id="kpis">
     {% if k.bureau_income %}
-    <div class="kpi {{ k.bureau_income.rag }}">
+    <div class="kpi {{ k.bureau_income.rag }}"{% if k.bureau_income.title %} title="{{ k.bureau_income.title }}"{% endif %}>
       <div class="label">{{ k.bureau_income.label }}</div>
       <div class="value">{{ k.bureau_income.value }}</div>
       <div class="sub">{{ k.bureau_income.sub }}</div>
