@@ -87,9 +87,11 @@ SCRUB_COLUMNS = [
     "high_credit_amount", "creditlimit", "out_standing_balance", "over_due_amount",
     "emi", "tu_score", "date_opened", "date_closed", "datereported_trades",
     "last_payment_date", "pay_hist_start_date", "pay_hist_end_date", "dpd_string",
-    # Inert pass-through columns the report-creation SQL selects but never uses in
-    # any computation (and drops before final output) — required only so its binder
-    # resolves. Not present in the XML → emitted empty.
+    # `base` is an inert pass-through the report-creation SQL selects but never uses
+    # (dropped before final output) — required only so its binder resolves; emitted
+    # empty. `CV_RN` is a computed dedup discriminator (see build_scrub_rows): the
+    # feature-creator's GROUP BY keeps rows with distinct CV_RN separate. Also dropped
+    # before the canonical dpd_data.csv.
     "base", "CV_RN",
 ]
 ENQ_COLUMNS = [
@@ -158,9 +160,31 @@ def _pull_constants(root):
     }
 
 
+def _sanction_num(a):
+    """Numeric sanctionAmount for CV_RN ordering; blank / non-numeric → 0.0."""
+    try:
+        return float((a.findtext("sanctionAmount", "") or "").strip())
+    except ValueError:
+        return 0.0
+
+
 def build_scrub_rows(root, const):
+    accounts = root.findall(".//accountList")
+
+    # CV_RN — dedup discriminator inside the feature-creator's GROUP BY. To honour the
+    # "keep every tradeline" requirement, give EVERY account a distinct row number
+    # (ROW_NUMBER() OVER(ORDER BY sanction_amount) — the source's CV-only rule extended
+    # to all loan types), so genuinely-distinct-but-alike loans are never collapsed:
+    # CV/CE fleet loans reported without an accountNumber AND other types (e.g. two
+    # Business Loans with distinct account numbers but otherwise identical fields).
+    # One XML = one customer, so the rank spans all accounts (no PARTITION); a stable
+    # sort by sanction_amount keeps XML order for ties → deterministic ranks.
+    rank_by_id = {}
+    for rn, a in enumerate(sorted(accounts, key=_sanction_num), start=1):
+        rank_by_id[id(a)] = rn
+
     rows = []
-    for a in root.findall(".//accountList"):
+    for a in accounts:
         code = a.findtext("accountTypeCode", "") or a.findtext("accountType", "")
         date_closed = to_iso(a.findtext("dateClosed", ""))
         rows.append({
@@ -188,11 +212,8 @@ def build_scrub_rows(root, const):
             "dpd_string": (a.findtext("paymentHistory1", "") or "")
                           + (a.findtext("paymentHistory2", "") or ""),
             "base": "",
-            # CV_RN is a distinguishing key inside the feature-creator's GROUP BY —
-            # populate it with the tradeline's accountNumber so genuinely distinct loans
-            # that share date/amount/type (e.g. CE424107/CE424136/CE424159) are NOT
-            # collapsed. Blank accountNumbers still dedup (true duplicate reporting).
-            "CV_RN": a.findtext("accountNumber", ""),
+            # Distinct rank per tradeline → no row is ever collapsed in the GROUP BY.
+            "CV_RN": str(rank_by_id[id(a)]),
         })
     return rows
 
