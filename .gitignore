@@ -14,10 +14,10 @@ logs/
 # ── Project instructions / docs ─────────────────────────────
 CLAUDE.md
 project.md
-docs/
-*.md
 .claude/
-
+instructions.md
+integration_context.md
+README.md
 # ── Archived (removed) code & assets ────────────────────────
 _archive/
 
